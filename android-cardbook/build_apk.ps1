@@ -10,6 +10,8 @@ function Invoke-Step($Label, $Executable, [string[]]$Arguments) {
 
 $Project = Split-Path -Parent $MyInvocation.MyCommand.Path
 $RepoRoot = Split-Path -Parent $Project
+$VersionCode = if ($env:CARDBOOK_ANDROID_VERSION_CODE) { $env:CARDBOOK_ANDROID_VERSION_CODE } else { "3" }
+$VersionName = if ($env:CARDBOOK_ANDROID_VERSION_NAME) { $env:CARDBOOK_ANDROID_VERSION_NAME } else { "0.3.0" }
 $Sdk = Join-Path $env:LOCALAPPDATA "Android\Sdk"
 $Platform = Join-Path $Sdk "platforms\android-35\android.jar"
 $BuildTools = Join-Path $Sdk "build-tools\35.0.0"
@@ -39,6 +41,10 @@ $Aligned = Join-Path $Out "aligned.apk"
 $Signed = Join-Path $Out "cardbook-debug.apk"
 $Keystore = Join-Path $Project "debug.keystore"
 $FinalApk = Join-Path $RepoRoot "static\downloads\cardbook.apk"
+$ReleaseKeystore = $env:CARDBOOK_RELEASE_KEYSTORE
+$ReleaseAlias = $env:CARDBOOK_RELEASE_ALIAS
+$ReleaseStorePass = $env:CARDBOOK_RELEASE_STOREPASS
+$ReleaseKeyPass = $env:CARDBOOK_RELEASE_KEYPASS
 
 Remove-Item $Out -Recurse -Force -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force $Out, $Gen, $Classes, $Dex | Out-Null
@@ -56,6 +62,8 @@ Invoke-Step "aapt2 link" $Aapt2 ([string[]]@(
     "-I", $Platform,
     "--manifest", (Join-Path $Project "app\src\main\AndroidManifest.xml"),
     "--java", $Gen,
+    "--version-code", $VersionCode,
+    "--version-name", $VersionName,
     "--auto-add-overlay",
     $ResZip
 ))
@@ -85,7 +93,25 @@ Copy-Item $Linked $Unsigned -Force
 Invoke-Step "jar add dex" $Jar ([string[]]@("uf", $Unsigned, "-C", $Dex, "classes.dex"))
 Invoke-Step "zipalign" $Zipalign ([string[]]@("-f", "4", $Unsigned, $Aligned))
 
-if (-not (Test-Path $Keystore)) {
+if ($ReleaseKeystore -and $ReleaseAlias -and $ReleaseStorePass) {
+    if (-not (Test-Path $ReleaseKeystore)) {
+        throw "Release keystore not found: $ReleaseKeystore"
+    }
+    $Signed = Join-Path $Out "cardbook-release.apk"
+    $SignArgs = [System.Collections.Generic.List[string]]::new()
+    $SignArgs.AddRange([string[]]@(
+        "sign",
+        "--ks", $ReleaseKeystore,
+        "--ks-key-alias", $ReleaseAlias,
+        "--ks-pass", "pass:$ReleaseStorePass"
+    ))
+    if ($ReleaseKeyPass) {
+        $SignArgs.AddRange([string[]]@("--key-pass", "pass:$ReleaseKeyPass"))
+    }
+    $SignArgs.AddRange([string[]]@("--out", $Signed, $Aligned))
+    Invoke-Step "apksigner release sign" $Apksigner ([string[]]$SignArgs.ToArray())
+} else {
+    if (-not (Test-Path $Keystore)) {
     Invoke-Step "keytool debug keystore" $Keytool ([string[]]@(
         "-genkeypair",
         "-v",
@@ -98,17 +124,19 @@ if (-not (Test-Path $Keystore)) {
         "-validity", "10000",
         "-dname", "CN=Android Debug,O=Android,C=US"
     ))
-}
+    }
 
-Invoke-Step "apksigner sign" $Apksigner ([string[]]@(
-    "sign",
-    "--ks", $Keystore,
-    "--ks-pass", "pass:android",
-    "--key-pass", "pass:android",
-    "--out", $Signed,
-    $Aligned
-))
+    Invoke-Step "apksigner debug sign" $Apksigner ([string[]]@(
+        "sign",
+        "--ks", $Keystore,
+        "--ks-pass", "pass:android",
+        "--key-pass", "pass:android",
+        "--out", $Signed,
+        $Aligned
+    ))
+}
 Invoke-Step "apksigner verify" $Apksigner ([string[]]@("verify", $Signed))
 
 Copy-Item $Signed $FinalApk -Force
 Get-Item $FinalApk | Select-Object FullName, Length, LastWriteTime
+Write-Host "Version: $VersionName ($VersionCode)"

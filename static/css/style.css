@@ -398,6 +398,29 @@ textarea { min-height: 130px; resize: vertical; }
 .android-section strong {
     color: var(--cb-blue-dark);
 }
+.android-build-card {
+    display: grid;
+    gap: 10px;
+    max-width: 440px;
+    margin-top: 22px;
+    padding: 20px;
+    border: 1px solid rgba(0, 87, 184, .14);
+    border-radius: 8px;
+    background: var(--cb-white);
+    box-shadow: 0 18px 42px rgba(0, 32, 78, .08);
+}
+.android-build-card span {
+    color: var(--cb-muted);
+    font-weight: 800;
+}
+.android-build-card span:first-child {
+    color: var(--cb-blue-dark);
+    font-size: 1.08rem;
+}
+.android-build-card .btn {
+    width: fit-content;
+    margin-top: 6px;
+}
 @media (max-width: 860px) {
     .mobile-app-banner,
     .android-hero-grid {

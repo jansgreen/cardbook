@@ -28,6 +28,14 @@ class AndroidView(TemplateView):
         context = super().get_context_data(**kwargs)
         apk_path = Path(settings.BASE_DIR) / "static" / "downloads" / "cardbook.apk"
         context["apk_ready"] = apk_path.exists()
+        context["apk_version_name"] = "0.3.0"
+        context["apk_version_code"] = "3"
+        context["apk_min_sdk"] = "26"
+        context["apk_target_sdk"] = "35"
+        if apk_path.exists():
+            size_mb = apk_path.stat().st_size / (1024 * 1024)
+            context["apk_size"] = f"{size_mb:.2f} MB"
+            context["apk_updated_at"] = apk_path.stat().st_mtime
         return context
 
 

@@ -34,12 +34,20 @@
         <div>
             <p class="eyebrow">Incluido</p>
             <h2>La app usa la misma API de la plataforma</h2>
-            <p>El proyecto Android queda en <strong>android-cardbook/</strong>. Para pruebas locales usa <strong>http://10.0.2.2:8000</strong> desde el emulador.</p>
+            <p>La APK publicada carga Cardbook de forma nativa con WebView, conserva sesion, comparte tarjetas con Android y abre telefono, correo, WhatsApp, mapas y descargas desde apps del sistema.</p>
+            {% if apk_ready %}
+                <div class="android-build-card">
+                    <span>Version {{ apk_version_name }} ({{ apk_version_code }})</span>
+                    <span>Android SDK {{ apk_min_sdk }} - {{ apk_target_sdk }}</span>
+                    <span>{{ apk_size }}</span>
+                    <a class="btn btn-primary" href="{% url 'web-android-download' %}">Descargar APK</a>
+                </div>
+            {% endif %}
         </div>
         <div class="steps">
-            <div><strong>01</strong><h3>Construir APK</h3><p>Abre android-cardbook en Android Studio y ejecuta assembleDebug.</p></div>
-            <div><strong>02</strong><h3>Publicar descarga</h3><p>Copia el APK generado como static/downloads/cardbook.apk.</p></div>
-            <div><strong>03</strong><h3>Actualizar API</h3><p>Para produccion cambia la URL base al dominio HTTPS de Cardbook.</p></div>
+            <div><strong>01</strong><h3>Pulido base</h3><p>Splash, loader, tema Cardbook, icono adaptativo y pantalla offline.</p></div>
+            <div><strong>02</strong><h3>Integracion Android</h3><p>Compartir nativo, enlaces externos seguros, descargas y subida de archivos.</p></div>
+            <div><strong>03</strong><h3>Build profesional</h3><p>Versionado, target SDK moderno y firma release opcional por variables de entorno.</p></div>
         </div>
     </div>
 </section>
