@@ -1,0 +1,172 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block title %}Empresas - Cardbook{% endblock %}
+{% block topbar_title %}Empresas{% endblock %}
+{% block topbar_subtitle %}Centro empresarial privado de Cardbook{% endblock %}
+{% block dashboard_content %}
+<section class="business-command">
+    <div class="business-breadcrumb">
+        <span>Dashboard</span>
+        <span>Empresas</span>
+        <strong>Inicio</strong>
+    </div>
+
+    {% if active_company %}
+        <article class="business-hero-card">
+            <div class="business-hero-left">
+                <div class="business-hero-logo">
+                    {% if active_company.logo %}<img src="{{ active_company.logo.url }}" alt="{{ active_company.name }}">{% else %}<span>{{ active_company.name|slice:":2" }}</span>{% endif %}
+                    <a href="{% url 'dashboard-company-update' active_company.id %}" aria-label="Editar empresa">✎</a>
+                </div>
+                <div class="business-hero-copy">
+                    <div class="business-active-pill">Empresa activa</div>
+                    <form method="get" class="business-company-select">
+                        <select name="company" onchange="this.form.submit()" aria-label="Empresa activa">
+                            {% for company in companies %}
+                                <option value="{{ company.id }}" {% if company.id == active_company.id %}selected{% endif %}>{{ company.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                    <h1>{{ active_company.name }}</h1>
+                    <p>{{ active_company.description|default:"Empresa dedicada a crear presencia digital profesional dentro de Cardbook." }}</p>
+                    <div class="business-hero-meta">
+                        <span>⌖ {{ active_company.city|default:"Ubicacion no definida" }}</span>
+                        <span>▣ {{ active_company.category|default:"Sin categoria" }}</span>
+                        {% if active_company.website %}<span>↗ {{ active_company.website }}</span>{% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="business-hero-right">
+                <div class="business-rating-block">
+                    <strong>★ {{ stats.efficient }}</strong>
+                    <span>reconocimientos eficientes</span>
+                </div>
+                <div class="business-hero-actions">
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="efficient">
+                        <input type="hidden" name="company" value="{{ active_company.id }}">
+                        <button type="submit">★ Reconocer excelente</button>
+                    </form>
+                    <a href="#sugeridas">Solicitar alianza</a>
+                    <button type="button" data-share>Compartir</button>
+                </div>
+            </div>
+        </article>
+
+        <section class="business-page-grid">
+            <main class="business-page-main">
+                <section class="business-metric-row">
+                    <article><i class="metric-blue">▤</i><span>Publicaciones</span><strong>{{ stats.posts }}</strong><a href="#publicaciones">Ver todas</a></article>
+                    <article><i class="metric-green">▧</i><span>Fotos</span><strong>{{ stats.images }}</strong><a href="#publicaciones">Ver todas</a></article>
+                    <article><i class="metric-purple">▣</i><span>Videos</span><strong>{{ stats.videos }}</strong><a href="#publicaciones">Ver todos</a></article>
+                    <article><i class="metric-gold">★</i><span>Excelentes</span><strong>{{ stats.excellent }}</strong><a href="#publicaciones">Ver todos</a></article>
+                    <article><i class="metric-orange">◉</i><span>Vistas</span><strong>{{ stats.views }}</strong><a href="#publicaciones">Ver todas</a></article>
+                    <article><i class="metric-cyan">◇</i><span>Alianzas</span><strong>{{ stats.alliances }}</strong><a href="#alianzas">Ver todas</a></article>
+                </section>
+
+                <article class="business-composer-card" id="publicaciones">
+                    <div>
+                        <h2>Crear publicación empresarial</h2>
+                        <p>Comparte novedades, proyectos, logros y más sobre tu empresa.</p>
+                    </div>
+                    <form method="post" enctype="multipart/form-data" class="business-upload-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="create_post">
+                        <div class="business-hidden-company">{{ post_form.company }}</div>
+                        <label>Titulo{{ post_form.title }}</label>
+                        <label>Descripcion{{ post_form.caption }}</label>
+                        <label>Tipo{{ post_form.media_type }}</label>
+                        <label>Archivo{{ post_form.media }}</label>
+                        <div class="upload-choice upload-photo"><span>▧</span><strong>Subir foto</strong><small>PNG, JPG hasta 10MB</small></div>
+                        <div class="upload-choice upload-video"><span>▣</span><strong>Subir video</strong><small>MP4 hasta 50MB</small></div>
+                        <div class="form-actions"><button class="btn btn-primary" type="submit">Publicar novedad</button></div>
+                    </form>
+                </article>
+
+                <section class="business-recent-card">
+                    <h2>Publicaciones recientes</h2>
+                    {% for post in posts %}
+                        <article class="business-post-card enterprise-post">
+                            <div class="business-post-head">
+                                {% if post.company.logo %}<img src="{{ post.company.logo.url }}" alt="{{ post.company.name }}">{% endif %}
+                                <div><strong>{{ post.company.name }}</strong><span>{{ post.created_at|timesince }} · público</span></div>
+                            </div>
+                            <h2>{{ post.title }}</h2>
+                            {% if post.caption %}<p>{{ post.caption }}</p>{% endif %}
+                            {% if post.media_type == "video" %}
+                                <video src="{{ post.media.url }}" controls muted playsinline></video>
+                            {% else %}
+                                <img class="post-media" src="{{ post.media.url }}" alt="{{ post.title }}">
+                            {% endif %}
+                            <div class="business-post-actions">
+                                <span>{{ post.excellent_count }} Excelentes</span>
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="excellent">
+                                    <input type="hidden" name="company" value="{{ active_company.id }}">
+                                    <input type="hidden" name="post_id" value="{{ post.id }}">
+                                    <button type="submit">Excelente</button>
+                                </form>
+                            </div>
+                        </article>
+                    {% empty %}
+                        <p>No hay publicaciones empresariales todavia.</p>
+                    {% endfor %}
+                </section>
+            </main>
+
+            <aside class="business-page-side">
+                <article class="business-side-card" id="sugeridas">
+                    <div class="side-card-head"><h2>Empresas sugeridas</h2><a href="#">Ver todas</a></div>
+                    {% for company in suggested_companies %}
+                        <div class="side-company-item">
+                            {% if company.logo %}<img src="{{ company.logo.url }}" alt="{{ company.name }}">{% else %}<div>{{ company.name|slice:":2" }}</div>{% endif %}
+                            <section>
+                                <strong>{{ company.name }}</strong>
+                                <span>{{ company.category|default:"Empresa sugerida" }}</span>
+                                <small class="efficient-badge {{ company.efficient_badge_class }}">★ {{ company.efficient_count }}</small>
+                            </section>
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="request_alliance">
+                                <input type="hidden" name="company" value="{{ active_company.id }}">
+                                <input type="hidden" name="receiver_id" value="{{ company.id }}">
+                                <button type="submit">Solicitar alianza</button>
+                            </form>
+                        </div>
+                    {% empty %}<p>No hay sugerencias todavia.</p>{% endfor %}
+                </article>
+
+                <article class="business-side-card">
+                    <div class="side-card-head"><h2>Empresas aliadas</h2><a href="#">Ver todas</a></div>
+                    <div class="allied-avatar-grid">
+                        {% for alliance in accepted_alliances %}
+                            {% if alliance.requester_id == active_company.id %}
+                                <div>{% if alliance.receiver.logo %}<img src="{{ alliance.receiver.logo.url }}" alt="{{ alliance.receiver.name }}">{% endif %}<span>{{ alliance.receiver.name }}</span></div>
+                            {% else %}
+                                <div>{% if alliance.requester.logo %}<img src="{{ alliance.requester.logo.url }}" alt="{{ alliance.requester.name }}">{% endif %}<span>{{ alliance.requester.name }}</span></div>
+                            {% endif %}
+                        {% empty %}<p>Aun no hay alianzas aceptadas.</p>{% endfor %}
+                    </div>
+                </article>
+
+                <article class="business-side-card" id="alianzas">
+                    <div class="side-card-head"><h2>Solicitudes de alianza</h2><a href="#">Ver todas</a></div>
+                    {% for alliance in pending_alliances %}
+                        <div class="alliance-request polished">
+                            <strong>{{ alliance.requester.name }}</strong>
+                            <span>{{ alliance.requester.category|default:"Empresa" }}</span>
+                            <div>
+                                <form method="post">{% csrf_token %}<input type="hidden" name="action" value="accept_alliance"><input type="hidden" name="company" value="{{ active_company.id }}"><input type="hidden" name="alliance_id" value="{{ alliance.id }}"><button type="submit">Aceptar</button></form>
+                                <form method="post">{% csrf_token %}<input type="hidden" name="action" value="reject_alliance"><input type="hidden" name="company" value="{{ active_company.id }}"><input type="hidden" name="alliance_id" value="{{ alliance.id }}"><button type="submit">Rechazar</button></form>
+                            </div>
+                        </div>
+                    {% empty %}<p>No hay solicitudes pendientes.</p>{% endfor %}
+                </article>
+            </aside>
+        </section>
+    {% else %}
+        <div class="panel"><p>No tienes empresas todavia. Crea tu primera empresa para activar la red empresarial.</p></div>
+    {% endif %}
+</section>
+{% endblock %}

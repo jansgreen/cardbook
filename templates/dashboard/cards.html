@@ -1,0 +1,8 @@
+﻿{% extends "dashboard/base_dashboard.html" %}
+{% block title %}Perfiles del negocio - Cardbook{% endblock %}
+{% block topbar_title %}Perfil del negocio{% endblock %}
+{% block topbar_subtitle %}Gestiona perfiles publicos, QR, redes y enlaces compartibles{% endblock %}
+{% block dashboard_content %}
+<section class="dashboard-heading action-heading"><div><p>Presencia digital</p><h1>Mis perfiles del negocio</h1></div><a class="btn btn-primary" href="{% url 'dashboard-card-create' %}">Nuevo perfil</a></section>
+<div class="cards-table">{% for card in cards %}<article class="dash-card"><div class="dash-card-top"><h2>{{ card.user.get_full_name|default:card.user.username }}</h2><span>{{ card.company.name }}</span></div><p>{{ card.job_title|default:"Sin cargo" }}</p><div class="card-meta"><span>{{ card.email|default:"Sin email" }}</span><span>{{ card.phone_number|default:"Sin telefono" }}</span></div><div class="dash-card-actions"><a href="{% url 'public-card-web' card.slug %}">Abrir</a><a href="{% url 'dashboard-card-update' card.id %}">Editar</a><form method="post" action="{% url 'dashboard-card-delete' card.id %}">{% csrf_token %}<button type="submit">Eliminar</button></form></div></article>{% empty %}<div class="panel"><p>No hay tarjetas activas.</p></div>{% endfor %}</div>
+{% endblock %}

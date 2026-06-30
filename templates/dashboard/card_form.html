@@ -1,0 +1,30 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block title %}{% if object %}Editar perfil{% else %}Nuevo perfil{% endif %} - Cardbook{% endblock %}
+{% block topbar_title %}{% if object %}Editar perfil del negocio{% else %}Nuevo perfil del negocio{% endif %}{% endblock %}
+{% block topbar_subtitle %}Configura la informacion visible en el perfil publico{% endblock %}
+{% block dashboard_content %}
+<section class="dashboard-heading">
+    <p>Tarjetas</p>
+    <h1>{% if object %}Editar {{ object.slug }}{% else %}Crear perfil publico{% endif %}</h1>
+</section>
+<div class="form-layout">
+    <div class="form-helper">
+        <strong>QR profesional incluido</strong>
+        <span>El codigo se genera automaticamente para la URL publica de este perfil. Puedes definir el estilo y los colores desde este formulario.</span>
+    </div>
+    <form class="panel dashboard-form" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% for field in form %}
+            <label class="{% if field.field.widget.input_type == 'color' %}color-field{% endif %}">
+                {{ field.label }}
+                {{ field }}
+                {{ field.errors }}
+            </label>
+        {% endfor %}
+        <div class="form-actions">
+            <a class="btn btn-outline" href="{% url 'dashboard-cards' %}">Cancelar</a>
+            <button class="btn btn-primary" type="submit">Guardar perfil</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,7 @@
+﻿{% extends "dashboard/base_dashboard.html" %}
+{% block title %}Analytics - Cardbook{% endblock %}
+{% block dashboard_content %}
+<section class="dashboard-heading"><p>Medicion</p><h1>Estadisticas</h1></section>
+<section class="stats-grid"><article><span>Vistas totales</span><strong>{{ total_views }}</strong></article><article><span>Clicks totales</span><strong>{{ total_clicks }}</strong></article></section>
+<div class="panel"><table class="data-table"><thead><tr><th>Tarjeta</th><th>Empresa</th><th>Vistas</th><th>Clicks</th></tr></thead><tbody>{% for card in cards %}<tr><td>{{ card.slug }}</td><td>{{ card.company.name }}</td><td>{{ card.view_total }}</td><td>{{ card.click_total }}</td></tr>{% empty %}<tr><td colspan="4">No hay datos todavia.</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

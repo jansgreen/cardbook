@@ -1,0 +1,51 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block title %}Book - Cardbook{% endblock %}
+{% block topbar_title %}Book{% endblock %}
+{% block topbar_subtitle %}Negocios, perfiles y tarjetas que guardaste{% endblock %}
+{% block dashboard_content %}
+<section class="dashboard-heading action-heading">
+    <div>
+        <p>Contactos empresariales</p>
+        <h1>Book</h1>
+    </div>
+    <span class="status-pill">{{ book_count }} guardados</span>
+</section>
+
+<section class="book-grid">
+    {% for item in book_items %}
+        <article class="book-card">
+            <div class="book-card-head">
+                {% if item.company.logo %}
+                    <img src="{{ item.company.logo.url }}" alt="{{ item.company.name }}">
+                {% else %}
+                    <div class="book-logo-placeholder">{{ item.company.name|slice:":2" }}</div>
+                {% endif %}
+                <div>
+                    <h2>{{ item.company.name }}</h2>
+                    <span>{{ item.company.category|default:"Negocio guardado" }}</span>
+                </div>
+            </div>
+            <p>{{ item.company.description|default:"Perfil guardado en tu Book profesional."|truncatechars:140 }}</p>
+            <div class="book-meta">
+                {% if item.company.city %}<span>{{ item.company.city }}</span>{% endif %}
+                <span>★ {{ item.company.efficient_count }} eficientes</span>
+            </div>
+            {% if item.notes %}<blockquote>{{ item.notes }}</blockquote>{% endif %}
+            <div class="book-actions">
+                <a href="{% url 'public-company-detail' item.company.slug %}">Empresa</a>
+                {% if item.digital_card %}<a href="{% url 'public-card-web' item.digital_card.slug %}">Perfil</a>{% endif %}
+                {% if item.business_card %}<a href="{% url 'public-business-card' item.business_card.slug %}">Tarjeta</a>{% endif %}
+                <form method="post" action="{% url 'dashboard-book-delete' item.id %}">
+                    {% csrf_token %}
+                    <button type="submit">Eliminar</button>
+                </form>
+            </div>
+        </article>
+    {% empty %}
+        <article class="panel">
+            <h2>Tu Book esta vacio</h2>
+            <p>Cuando otro negocio comparta su perfil o tarjeta contigo, usa el boton "Guardar en Book" para conservarlo en tu cuenta.</p>
+        </article>
+    {% endfor %}
+</section>
+{% endblock %}

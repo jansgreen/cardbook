@@ -1,0 +1,112 @@
+{% load static %}
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% if translation %}{{ translation.full_name }}{% else %}{{ card.user.get_full_name|default:card.user.username }}{% endif %} - Cardbook</title>
+    <link rel="stylesheet" href="{% static 'css/cards.css' %}">
+</head>
+<body>
+    <main class="public-card-page">
+        <section class="public-card-layout">
+            <article class="public-card">
+                <header class="card-cover">
+                    {% if card.company.logo %}<img class="company-logo" src="{{ card.company.logo.url }}" alt="{{ card.company.name }}">{% else %}<img class="company-logo" src="{% static 'img/logo.png' %}" alt="Cardbook">{% endif %}
+                    {% if card.photo %}<img class="profile-photo" src="{{ card.photo.url }}" alt="Foto de perfil">{% elif card.user.avatar %}<img class="profile-photo" src="{{ card.user.avatar.url }}" alt="Foto de perfil">{% else %}<div class="profile-photo text-avatar">{{ card.user.username|slice:":2" }}</div>{% endif %}
+                </header>
+                <section class="card-main">
+                    <p class="company-name">{{ card.company.name }}</p>
+                    <h1 class="name-font-{{ card.name_font }} name-size-{{ card.name_size }}">{% if translation %}{{ translation.full_name }}{% else %}{{ card.user.get_full_name|default:card.user.username }}{% endif %}</h1>
+                    <p class="job-title">{{ card.job_title|default:"Profesional" }}</p>
+                    {% if translation and translation.bio %}<p class="bio">{{ translation.bio }}</p>{% endif %}
+                    <form class="public-language-form" method="get">
+                        <label for="profile-lang">Idioma</label>
+                        <select id="profile-lang" name="lang" onchange="this.form.submit()">
+                            {% for code, label in language_options %}
+                                <option value="{{ code }}" {% if code == lang %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                    <div class="action-grid">
+                        {% if card.phone_number %}<a href="tel:{{ card.phone_number }}">Llamar</a>{% endif %}
+                        {% if card.email %}<a href="mailto:{{ card.email }}">Email</a>{% endif %}
+                        {% if card.website %}<a href="{{ card.website }}" target="_blank" rel="noopener">Website</a>{% endif %}
+                        <button type="button" data-share>Compartir</button>
+                    </div>
+                    <div class="detail-list">
+                        {% if card.phone_number %}<p><strong>Telefono</strong><span>{{ card.phone_number }}</span></p>{% endif %}
+                        {% if card.email %}<p><strong>Email</strong><span>{{ card.email }}</span></p>{% endif %}
+                        {% if card.website %}<p><strong>Web</strong><span>{{ card.website }}</span></p>{% endif %}
+                        {% if translation and translation.address %}<p><strong>Direccion</strong><span>{{ translation.address }}</span></p>{% endif %}
+                        {% if translation and translation.services %}<p><strong>Servicios</strong><span>{{ translation.services }}</span></p>{% endif %}
+                    </div>
+                    {% if translation and translation.custom_message %}<blockquote>{{ translation.custom_message }}</blockquote>{% endif %}
+                    <div class="secondary-actions">
+                        <a href="data:text/vcard;charset=utf-8,BEGIN:VCARD%0AVERSION:3.0%0AFN:{% if translation %}{{ translation.full_name }}{% else %}{{ card.user.get_full_name|default:card.user.username }}{% endif %}%0AEND:VCARD" download="contact.vcf">Guardar contacto</a>
+                    </div>
+                </section>
+            </article>
+
+            <aside class="qr-card" style="--qr-accent: {{ card.qr_dot_color }};">
+                <div class="qr-card-header">
+                    <img class="qr-brand-logo" src="{% static 'img/logo.png' %}" alt="Cardbook">
+                    <div>
+                        <p>QR inteligente</p>
+                        <h2>Escanea mi tarjeta</h2>
+                    </div>
+                </div>
+                <div class="qr-frame">
+                    <img src="{% url 'public-card-qr' card.slug %}" alt="QR de {{ card.slug }}">
+                </div>
+                <p class="qr-note">Este codigo abre directamente la tarjeta digital publica.</p>
+                <div class="qr-meta">
+                    <span>{{ card.get_qr_shape_display }}</span>
+                    <span>{{ card.qr_dot_color }}</span>
+                </div>
+                {% if can_print and print_business_card %}
+                    <a class="print-view-link" href="{% url 'public-business-card-print' print_business_card.slug %}">Vista de impresion</a>
+                {% endif %}
+                <form class="book-save-form" method="post" action="{% url 'public-save-to-book' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="digital_card" value="{{ card.id }}">
+                    <input type="hidden" name="company" value="{{ card.company.id }}">
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button type="submit">Guardar en Book</button>
+                </form>
+                {% if card.whatsapp_url or card.instagram_url or card.facebook_url or card.linkedin_url or card.x_url or card.youtube_url or card.tiktok_url or card.github_url or card.infaithcore_url %}
+                    <div class="social-panel">
+                        <p>Conecta conmigo</p>
+                        <div class="social-grid">
+                            {% if card.whatsapp_url %}<a class="social-link whatsapp" href="{{ card.whatsapp_url }}" target="_blank" rel="noopener" aria-label="WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.04 3.5a8.45 8.45 0 0 0-7.2 12.86L3.9 20.5l4.24-.91A8.46 8.46 0 1 0 12.04 3.5Zm0 1.8a6.66 6.66 0 0 1 5.66 10.17 6.63 6.63 0 0 1-8.94 2.35l-.29-.17-2.17.47.48-2.08-.19-.31A6.65 6.65 0 0 1 12.04 5.3Zm-2.38 3.2c-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.66 2.66 4.1 3.62 2.02.8 2.43.64 2.87.6.44-.04 1.43-.58 1.63-1.14.2-.56.2-1.04.14-1.14-.06-.1-.22-.16-.46-.28-.24-.12-1.43-.7-1.65-.78-.22-.08-.38-.12-.54.12-.16.24-.62.78-.76.94-.14.16-.28.18-.52.06-.24-.12-1.02-.38-1.94-1.2-.72-.64-1.2-1.43-1.34-1.67-.14-.24-.02-.37.1-.49.12-.11.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.54-1.3-.74-1.78-.2-.46-.4-.4-.54-.41h-.48Z"/></svg></a>{% endif %}
+                            {% if card.instagram_url %}<a class="social-link instagram" href="{{ card.instagram_url }}" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3.8h8A4.2 4.2 0 0 1 20.2 8v8a4.2 4.2 0 0 1-4.2 4.2H8A4.2 4.2 0 0 1 3.8 16V8A4.2 4.2 0 0 1 8 3.8Zm0 1.8A2.4 2.4 0 0 0 5.6 8v8A2.4 2.4 0 0 0 8 18.4h8a2.4 2.4 0 0 0 2.4-2.4V8A2.4 2.4 0 0 0 16 5.6H8Zm4 3.1A3.3 3.3 0 1 1 12 15.3 3.3 3.3 0 0 1 12 8.7Zm0 1.8a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Zm4.24-2.7a.86.86 0 1 1 0 1.72.86.86 0 0 1 0-1.72Z"/></svg></a>{% endif %}
+                            {% if card.facebook_url %}<a class="social-link facebook" href="{{ card.facebook_url }}" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.6 21v-7.7h2.58l.39-3h-2.97V8.4c0-.87.24-1.46 1.49-1.46h1.6V4.25A21.4 21.4 0 0 0 14.36 4c-2.31 0-3.9 1.41-3.9 4v2.24H7.84v3h2.62V21h3.14Z"/></svg></a>{% endif %}
+                            {% if card.linkedin_url %}<a class="social-link linkedin" href="{{ card.linkedin_url }}" target="_blank" rel="noopener" aria-label="LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.68 8.93H3.9V20h2.78V8.93ZM5.3 4a1.6 1.6 0 1 0 0 3.2 1.6 1.6 0 0 0 0-3.2Zm6.1 4.93H8.74V20h2.66v-5.48c0-1.45.27-2.85 2.06-2.85 1.77 0 1.8 1.65 1.8 2.94V20h2.77v-6.08c0-2.98-.64-5.27-4.12-5.27a3.61 3.61 0 0 0-3.25 1.78h-.04l-.22-1.5Z"/></svg></a>{% endif %}
+                            {% if card.x_url %}<a class="social-link x-twitter" href="{{ card.x_url }}" target="_blank" rel="noopener" aria-label="X"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.4 10.48 21 3h-1.56l-5.73 6.48L9.13 3H3.85l6.92 9.8L3.85 20.65h1.56l6.05-6.85 4.84 6.85h5.28l-7.18-10.17Zm-2.14 2.43-.7-.98L5.98 4.14h2.4l4.5 6.28.7.98 5.86 8.18h-2.4l-4.78-6.67Z"/></svg></a>{% endif %}
+                            {% if card.youtube_url %}<a class="social-link youtube" href="{{ card.youtube_url }}" target="_blank" rel="noopener" aria-label="YouTube"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.2 7.35a2.72 2.72 0 0 0-1.91-1.93C17.6 5 12 5 12 5s-5.6 0-7.29.42A2.72 2.72 0 0 0 2.8 7.35 28.46 28.46 0 0 0 2.38 12c0 1.62.14 3.25.42 4.65.26.94.98 1.67 1.91 1.93C6.4 19 12 19 12 19s5.6 0 7.29-.42a2.72 2.72 0 0 0 1.91-1.93c.28-1.4.42-3.03.42-4.65s-.14-3.25-.42-4.65ZM10.08 15V9l5.2 3-5.2 3Z"/></svg></a>{% endif %}
+                            {% if card.tiktok_url %}<a class="social-link tiktok" href="{{ card.tiktok_url }}" target="_blank" rel="noopener" aria-label="TikTok"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.44 3.5c.32 2.32 1.62 3.7 3.85 3.85v2.56a6.55 6.55 0 0 1-3.78-1.17v5.67c0 2.86-1.74 5.58-5.2 5.58-2.77 0-4.92-1.78-4.92-4.49 0-3.25 3.14-5.32 6.33-4.54v2.7c-1.47-.47-3.64.18-3.64 1.78 0 1.08.96 1.82 2.1 1.82 1.66 0 2.48-.98 2.48-2.77V3.5h2.78Z"/></svg></a>{% endif %}
+                            {% if card.github_url %}<a class="social-link github" href="{{ card.github_url }}" target="_blank" rel="noopener" aria-label="GitHub"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.8a8.2 8.2 0 0 0-2.6 15.98c.41.08.56-.18.56-.4v-1.42c-2.28.5-2.76-.98-2.76-.98-.37-.95-.91-1.2-.91-1.2-.75-.51.06-.5.06-.5.82.06 1.25.85 1.25.85.74 1.25 1.93.89 2.4.68.08-.53.29-.89.52-1.1-1.82-.2-3.74-.91-3.74-4.05 0-.9.32-1.63.84-2.2-.08-.21-.36-1.05.08-2.18 0 0 .69-.22 2.25.84A7.75 7.75 0 0 1 12 7.82c.7 0 1.39.09 2.04.28 1.56-1.06 2.25-.84 2.25-.84.44 1.13.16 1.97.08 2.18.52.57.84 1.3.84 2.2 0 3.15-1.92 3.84-3.75 4.05.3.26.56.76.56 1.53v2.16c0 .22.15.48.57.4A8.2 8.2 0 0 0 12 3.8Z"/></svg></a>{% endif %}
+                            {% if card.infaithcore_url %}<a class="social-link infaithcore" href="{{ card.infaithcore_url }}" target="_blank" rel="noopener" aria-label="Infaithcore"><img src="{% static 'img/infaithcore.png' %}" alt=""></a>{% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+                {% if allied_companies %}
+                    <div class="public-allies-panel">
+                        <p>Empresas aliadas</p>
+                        <div class="public-allies-list">
+                            {% for ally in allied_companies|slice:":4" %}
+                                <a href="{% url 'public-company-detail' ally.slug %}">
+                                    {% if ally.logo %}<img src="{{ ally.logo.url }}" alt="{{ ally.name }}">{% endif %}
+                                    <span>{{ ally.name }}</span>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+                <button type="button" data-share>Compartir tarjeta</button>
+            </aside>
+        </section>
+    </main>
+    <script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>

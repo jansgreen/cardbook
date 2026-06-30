@@ -1,0 +1,41 @@
+﻿{% extends "base.html" %}
+{% load static %}
+{% block title %}Crear cuenta - Cardbook{% endblock %}
+{% block content %}
+<section class="auth-page">
+    <div class="auth-shell register-shell">
+        <div class="auth-panel auth-brand-panel">
+            <img class="auth-logo" src="{% static 'img/logo.png' %}" alt="Cardbook logo">
+            <p class="eyebrow">Empieza hoy</p>
+            <h1>Crea tu cuenta Cardbook</h1>
+            <p>Prepara tu empresa para compartir tarjetas digitales profesionales, multilenguaje y medibles.</p>
+            <div class="auth-points">
+                <span>Empresas</span>
+                <span>Equipos</span>
+                <span>QR y analytics</span>
+            </div>
+        </div>
+
+        <div class="auth-panel auth-form-panel">
+            <h2>Registro</h2>
+            <p class="auth-subtitle">Despues de crear tu cuenta entraras directo al dashboard.</p>
+            <form method="post" class="auth-form register-form" novalidate>
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <div class="form-alert">{{ form.non_field_errors }}</div>
+                {% endif %}
+                <label>Usuario{{ form.username }}{{ form.username.errors }}</label>
+                <label>Email{{ form.email }}{{ form.email.errors }}</label>
+                <label>Nombre{{ form.first_name }}{{ form.first_name.errors }}</label>
+                <label>Apellido{{ form.last_name }}{{ form.last_name.errors }}</label>
+                <label>Telefono{{ form.phone_number }}{{ form.phone_number.errors }}</label>
+                <label>Idioma preferido{{ form.preferred_language }}{{ form.preferred_language.errors }}</label>
+                <label>Contrasena{{ form.password1 }}{{ form.password1.errors }}</label>
+                <label>Confirmar contrasena{{ form.password2 }}{{ form.password2.errors }}</label>
+                <button class="btn btn-primary auth-submit" type="submit">Crear mi cuenta</button>
+            </form>
+            <p class="auth-switch">Ya tienes cuenta? <a href="{% url 'web-login' %}">Iniciar sesion</a></p>
+        </div>
+    </div>
+</section>
+{% endblock %}

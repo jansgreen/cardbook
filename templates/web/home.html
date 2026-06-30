@@ -1,0 +1,102 @@
+﻿{% extends "base.html" %}
+{% block title %}Cardbook - Tarjetas digitales inteligentes{% endblock %}
+{% block content %}
+<section class="hero-section">
+    <div class="hero-overlay"></div>
+    <div class="container hero-content fade-in">
+        <p class="eyebrow">Cardbook para empresas modernas</p>
+        <h1>Tarjetas digitales inteligentes para empresas modernas</h1>
+        <p class="hero-copy">Crea perfiles profesionales, comparte por QR, adapta el idioma de cada contacto y mide el impacto de tus tarjetas digitales desde un solo lugar.</p>
+        <div class="hero-actions">
+            <a class="btn btn-primary" href="{% url 'dashboard-home' %}">Crear mi tarjeta</a>
+            <a class="btn btn-secondary" href="#demo">Ver demo</a>
+        </div>
+    </div>
+</section>
+
+<section class="section benefits-section" id="benefits">
+    <div class="container">
+        <div class="section-heading fade-in">
+            <p class="eyebrow">Beneficios</p>
+            <h2>Todo lo necesario para compartir una presencia profesional</h2>
+        </div>
+        <div class="feature-grid">
+            <article class="feature-card fade-in"><span>ML</span><h3>Multilenguaje</h3><p>Contenido localizado para clientes en espanol, ingles, frances y portugues.</p></article>
+            <article class="feature-card fade-in"><span>QR</span><h3>Codigo QR</h3><p>Comparte tarjetas al instante en eventos, vitrinas, recibos y redes sociales.</p></article>
+            <article class="feature-card fade-in"><span>ID</span><h3>Perfil profesional</h3><p>Foto, cargo, empresa, enlaces y acciones de contacto en una sola vista.</p></article>
+            <article class="feature-card fade-in"><span>ST</span><h3>Estadisticas</h3><p>Mide vistas, clicks y escaneos para entender que canales funcionan mejor.</p></article>
+            <article class="feature-card fade-in"><span>SH</span><h3>Facil de compartir</h3><p>Enlace publico, botones rapidos y experiencia optimizada para movil.</p></article>
+            <article class="feature-card fade-in"><span>SM</span><h3>Pequenas empresas</h3><p>Organiza equipos, roles y tarjetas sin cargar a tu negocio con complejidad.</p></article>
+        </div>
+    </div>
+</section>
+
+<section class="section process-section" id="how-it-works">
+    <div class="container split-layout">
+        <div class="fade-in">
+            <p class="eyebrow">Como funciona</p>
+            <h2>Del registro al primer contacto en minutos</h2>
+            <p>Cardbook centraliza el perfil digital de tu negocio y lo convierte en una experiencia clara para clientes, socios y prospectos.</p>
+        </div>
+        <div class="steps fade-in">
+            <div><strong>01</strong><h3>Crea tu empresa</h3><p>Registra datos, logo y equipo.</p></div>
+            <div><strong>02</strong><h3>Publica tarjetas</h3><p>Asigna tarjetas a usuarios y roles.</p></div>
+            <div><strong>03</strong><h3>Comparte y mide</h3><p>Usa QR, enlaces y estadisticas.</p></div>
+        </div>
+    </div>
+</section>
+
+<section class="section pricing-section" id="plans">
+    <div class="container">
+        <div class="section-heading fade-in">
+            <p class="eyebrow">Planes</p>
+            <h2>Opciones simples para empezar y crecer</h2>
+        </div>
+        <div class="pricing-grid">
+            <article class="plan-card fade-in"><h3>Inicial</h3><p class="price">Gratis</p><p>Una tarjeta digital para validar presencia profesional.</p><a class="btn btn-outline" href="{% url 'dashboard-home' %}">Empezar</a></article>
+            <article class="plan-card plan-featured fade-in"><h3>Negocio</h3><p class="price">US$12</p><p>Empresas, equipo, traducciones y analiticas esenciales.</p><a class="btn btn-primary" href="{% url 'dashboard-home' %}">Crear mi tarjeta</a></article>
+            <article class="plan-card fade-in"><h3>Equipo</h3><p class="price">A medida</p><p>Roles, multiples empresas y soporte para operaciones mayores.</p><a class="btn btn-outline" href="{% url 'web-contact' %}">Contactar</a></article>
+        </div>
+    </div>
+</section>
+
+<section class="section demo-section" id="demo">
+    <div class="container demo-panel fade-in">
+        <div>
+            <p class="eyebrow">Demo visual</p>
+            <h2>Una tarjeta pensada para verse bien en el telefono</h2>
+            <p>El diseno publico prioriza acciones rapidas: llamar, enviar correo, abrir web, cambiar idioma y compartir.</p>
+        </div>
+        <div class="phone-preview" aria-label="Demo de tarjeta digital">
+            <div class="phone-card">
+                <div class="avatar">CB</div>
+                <h3>Maria Rivera</h3>
+                <p>Directora comercial</p>
+                <div class="mini-actions"><span>Llamar</span><span>Email</span><span>Web</span></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<section class="section android-download-section" id="android">
+    <div class="container android-download-panel fade-in">
+        <div>
+            <p class="eyebrow">App Android</p>
+            <h2>Lleva Cardbook en el bolsillo</h2>
+            <p>Accede a tus empresas, perfiles digitales, tarjetas de presentacion, Book y alianzas desde la app movil conectada a esta plataforma.</p>
+        </div>
+        <div class="android-download-actions">
+            <a class="btn btn-primary" href="{% url 'web-android' %}">Descargar app</a>
+            <a class="btn btn-outline" href="{% url 'web-login' %}">Entrar a mi cuenta</a>
+        </div>
+    </div>
+</section>
+<section class="section cta-section">
+    <div class="container cta-panel fade-in">
+        <h2>Convierte cada contacto en una oportunidad medible</h2>
+        <a class="btn btn-primary" href="{% url 'dashboard-home' %}">Crear mi tarjeta</a>
+    </div>
+</section>
+{% endblock %}
+

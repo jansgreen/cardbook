@@ -1,0 +1,80 @@
+﻿{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Dashboard - Cardbook{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+</head>
+<body class="dashboard-body">
+    <aside class="dashboard-sidebar" data-sidebar>
+        <div class="sidebar-head">
+            <a class="brand" href="{% url 'dashboard-home' %}">
+                <img class="brand-logo" src="{% static 'img/logo.png' %}" alt="Cardbook logo">
+                <span>Cardbook</span>
+            </a>
+            <p>Panel de gestion</p>
+        </div>
+
+        <nav class="sidebar-nav" aria-label="Dashboard">
+            <a class="{% if request.resolver_match.url_name == 'dashboard-home' %}active{% endif %}" href="{% url 'dashboard-home' %}">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h7V4H4v9Zm0 7h7v-5H4v5Zm9 0h7v-9h-7v9Zm0-16v5h7V4h-7Z"/></svg>
+                <span>Resumen</span>
+            </a>
+            <a class="{% if 'company' in request.resolver_match.url_name or request.resolver_match.url_name == 'dashboard-companies' %}active{% endif %}" href="{% url 'dashboard-companies' %}">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21V7l9-4 9 4v14h-6v-6H9v6H3Zm5-10h2V9H8v2Zm0 3h2v-2H8v2Zm6-3h2V9h-2v2Zm0 3h2v-2h-2v2Z"/></svg>
+                <span>Empresas</span>
+            </a>
+            <a class="{% if request.resolver_match.url_name == 'dashboard-cards' or request.resolver_match.url_name == 'dashboard-card-create' or request.resolver_match.url_name == 'dashboard-card-update' %}active{% endif %}" href="{% url 'dashboard-cards' %}">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Zm0 4h16V7H4v2Zm3 6h6v-2H7v2Z"/></svg>
+                <span>Perfil del negocio</span>
+            </a>
+            <a class="{% if 'business-card' in request.resolver_match.url_name or request.resolver_match.url_name == 'dashboard-business-cards' %}active{% endif %}" href="{% url 'dashboard-business-cards' %}">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5A2.5 2.5 0 0 1 5.5 4h13A2.5 2.5 0 0 1 21 6.5v11a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5v-11Zm3 2v2h7v-2H6Zm0 4v1.6h11.5v-1.6H6Zm0 3.2v1.6h8.5v-1.6H6Zm10.2-7.2a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6Z"/></svg>
+                <span>Presentacion</span>
+            </a>
+            <a class="{% if request.resolver_match.url_name == 'dashboard-analytics' %}active{% endif %}" href="{% url 'dashboard-analytics' %}">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V10h4v11H5Zm5 0V3h4v18h-4Zm5 0v-7h4v7h-4Z"/></svg>
+                <span>Estadistica</span>
+            </a>
+            <a class="{% if request.resolver_match.url_name == 'dashboard-book' %}active{% endif %}" href="{% url 'dashboard-book' %}">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4a3 3 0 0 1 3-3h11v18H8a3 3 0 0 0-3 3V4Zm3-1a1 1 0 0 0-1 1v13.2A4.96 4.96 0 0 1 8 17h9V3H8Zm2 4h5v2h-5V7Zm0 4h5v2h-5v-2Z"/></svg>
+                <span>Book</span>
+            </a>
+            <a href="{% url 'web-home' %}">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm6.9 9h-3.1a15.8 15.8 0 0 0-1.1-5 8.1 8.1 0 0 1 4.2 5ZM12 4.1c.8 1.1 1.5 3.1 1.8 5H10.2c.3-1.9 1-3.9 1.8-5ZM4.3 13h3.5c.1 1.8.5 3.5 1.1 4.9A8 8 0 0 1 4.3 13Zm3.5-2H4.3a8 8 0 0 1 4.6-4.9A15.6 15.6 0 0 0 7.8 11Zm4.2 8.9c-.8-1.1-1.5-3.1-1.8-5h3.6c-.3 1.9-1 3.9-1.8 5Zm2.2-7H9.8a14 14 0 0 1 0-2h4.4a14 14 0 0 1 0 2Zm.9 4.9c.6-1.4 1-3.1 1.1-4.9h3.5a8 8 0 0 1-4.6 4.9Zm1.1-6.9c-.1-1.8-.5-3.5-1.1-5a8.1 8.1 0 0 1 4.6 5h-3.5Z"/></svg>
+                <span>Sitio publico</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-foot">
+            <span>{{ request.user.get_full_name|default:request.user.username }}</span>
+            <a href="{% url 'web-logout' %}">Cerrar sesion</a>
+        </div>
+    </aside>
+
+    <div class="dashboard-shell">
+        <header class="dashboard-topbar">
+            <button class="sidebar-toggle" data-sidebar-toggle type="button">Menu</button>
+            <div class="topbar-title">
+                <strong>{% block topbar_title %}Dashboard{% endblock %}</strong>
+                <span>{% block topbar_subtitle %}Gestiona tu presencia digital{% endblock %}</span>
+            </div>
+            <div class="topbar-user">
+                <span>{{ request.user.email|default:"Sin email" }}</span>
+            </div>
+        </header>
+        {% if messages %}
+            <div class="dashboard-messages">
+                {% for message in messages %}<div class="message {{ message.tags }}">{{ message }}</div>{% endfor %}
+            </div>
+        {% endif %}
+        <main class="dashboard-main">
+            {% block dashboard_content %}{% endblock %}
+        </main>
+    </div>
+    <script src="{% static 'js/dashboard.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+﻿{% extends "dashboard/base_dashboard.html" %}
+{% block title %}Dashboard - Cardbook{% endblock %}
+{% block topbar_title %}Resumen{% endblock %}
+{% block topbar_subtitle %}Vista general de tu actividad{% endblock %}
+{% block dashboard_content %}
+<section class="dashboard-heading"><p>Panel principal</p><h1>Resumen de actividad</h1></section>
+<section class="stats-grid">
+    <article><span>Empresas</span><strong>{{ company_count }}</strong></article>
+    <article><span>Perfiles</span><strong>{{ card_count }}</strong></article>
+    <article><span>Presentacion</span><strong>{{ business_card_count }}</strong></article>
+    <article><span>Vistas</span><strong>{{ view_count }}</strong></article>
+</section>
+<section class="dashboard-grid">
+    <article class="panel"><div class="panel-head"><h2>Mis empresas</h2><a class="panel-action" href="{% url 'dashboard-company-create' %}">Nueva</a></div>{% for company in companies %}<div class="list-row"><span>{{ company.name }}</span><a href="{% url 'dashboard-company-update' company.id %}">Editar</a></div>{% empty %}<p>No tienes empresas todavia.</p>{% endfor %}</article>
+    <article class="panel"><div class="panel-head"><h2>Accesos rapidos</h2></div><div class="quick-actions"><a href="{% url 'dashboard-company-create' %}">Crear empresa</a><a href="{% url 'dashboard-card-create' %}">Crear perfil</a><a href="{% url 'dashboard-business-card-create' %}">Crear presentacion</a><a href="{% url 'web-home' %}">Ver sitio publico</a></div></article>
+    <article class="panel wide"><div class="panel-head"><h2>Mis perfiles del negocio</h2><a class="panel-action" href="{% url 'dashboard-card-create' %}">Nuevo</a></div>{% for card in cards %}<div class="list-row"><span>{{ card.slug }} - {{ card.company.name }}</span><a href="{% url 'public-card-web' card.slug %}">Publico</a></div>{% empty %}<p>No tienes perfiles activos.</p>{% endfor %}</article>
+    <article class="panel wide"><div class="panel-head"><h2>Mis tarjetas de presentacion</h2><a class="panel-action" href="{% url 'dashboard-business-card-create' %}">Nueva</a></div>{% for business_card in business_cards %}<div class="list-row"><span>{{ business_card.display_name }} - {{ business_card.company_name }}</span><a href="{% url 'public-business-card' business_card.slug %}">Compartir</a></div>{% empty %}<p>No tienes tarjetas de presentacion activas.</p>{% endfor %}</article>
+</section>
+{% endblock %}

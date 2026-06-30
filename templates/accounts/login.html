@@ -1,0 +1,43 @@
+﻿{% extends "base.html" %}
+{% load static %}
+{% block title %}Iniciar sesion - Cardbook{% endblock %}
+{% block content %}
+<section class="auth-page">
+    <div class="auth-shell">
+        <div class="auth-panel auth-brand-panel">
+            <img class="auth-logo" src="{% static 'img/logo.png' %}" alt="Cardbook logo">
+            <p class="eyebrow">Acceso seguro</p>
+            <h1>Bienvenido de vuelta</h1>
+            <p>Entra a tu dashboard para administrar empresas, tarjetas digitales, traducciones y estadisticas.</p>
+            <div class="auth-points">
+                <span>Dashboard web</span>
+                <span>Tarjetas publicas</span>
+                <span>Analytics</span>
+            </div>
+        </div>
+
+        <div class="auth-panel auth-form-panel">
+            <h2>Iniciar sesion</h2>
+            <p class="auth-subtitle">Usa tus credenciales de Cardbook.</p>
+            <form method="post" class="auth-form" novalidate>
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <div class="form-alert">{{ form.non_field_errors }}</div>
+                {% endif %}
+                <label>
+                    Usuario
+                    {{ form.username }}
+                    {{ form.username.errors }}
+                </label>
+                <label>
+                    Contrasena
+                    {{ form.password }}
+                    {{ form.password.errors }}
+                </label>
+                <button class="btn btn-primary auth-submit" type="submit">Entrar al dashboard</button>
+            </form>
+            <p class="auth-switch">No tienes cuenta? <a href="{% url 'web-register' %}">Crear cuenta</a></p>
+        </div>
+    </div>
+</section>
+{% endblock %}

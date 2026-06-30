@@ -1,0 +1,46 @@
+﻿{% extends "base.html" %}
+{% block title %}Cardbook Android - App movil{% endblock %}
+{% block content %}
+<section class="page-hero android-hero">
+    <div class="container android-hero-grid">
+        <div>
+            <p class="eyebrow">App movil</p>
+            <h1>Cardbook para Android</h1>
+            <p>Gestiona empresas, perfiles digitales, tarjetas, Book, publicaciones y alianzas desde una app conectada a la API REST de Cardbook.</p>
+            <div class="hero-actions">
+                {% if apk_ready %}
+                    <a class="btn btn-primary" href="{% url 'web-android-download' %}">Descargar APK</a>
+                {% else %}
+                    <a class="btn btn-secondary" href="#build">APK pendiente</a>
+                {% endif %}
+                <a class="btn btn-secondary" href="{% url 'dashboard-home' %}">Ir al dashboard</a>
+            </div>
+        </div>
+        <div class="android-device" aria-label="Vista previa de Cardbook Android">
+            <div class="android-device-top">Cardbook</div>
+            <div class="android-device-body">
+                <span>Empresas</span>
+                <span>Perfiles</span>
+                <span>Tarjetas</span>
+                <span>Book</span>
+                <span>Alianzas</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section android-section" id="build">
+    <div class="container split-layout">
+        <div>
+            <p class="eyebrow">Incluido</p>
+            <h2>La app usa la misma API de la plataforma</h2>
+            <p>El proyecto Android queda en <strong>android-cardbook/</strong>. Para pruebas locales usa <strong>http://10.0.2.2:8000</strong> desde el emulador.</p>
+        </div>
+        <div class="steps">
+            <div><strong>01</strong><h3>Construir APK</h3><p>Abre android-cardbook en Android Studio y ejecuta assembleDebug.</p></div>
+            <div><strong>02</strong><h3>Publicar descarga</h3><p>Copia el APK generado como static/downloads/cardbook.apk.</p></div>
+            <div><strong>03</strong><h3>Actualizar API</h3><p>Para produccion cambia la URL base al dominio HTTPS de Cardbook.</p></div>
+        </div>
+    </div>
+</section>
+{% endblock %}

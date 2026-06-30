@@ -1,0 +1,74 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ company.name }} - Cardbook</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/cards.css' %}">
+</head>
+<body>
+    <header class="site-header business-public-header">
+        <nav class="nav-wrap" aria-label="Principal">
+            <a class="brand" href="{% url 'web-home' %}">
+                <img class="brand-logo" src="{% static 'img/logo.png' %}" alt="Cardbook logo">
+                <span>Cardbook</span>
+            </a>
+            <div class="nav-menu open">
+                {% if request.user.is_authenticated %}<a class="nav-cta" href="{% url 'dashboard-home' %}">Ir a dashboard</a>{% else %}<a class="nav-cta" href="{% url 'web-login' %}">Iniciar sesion</a>{% endif %}
+            </div>
+        </nav>
+    </header>
+    <main class="company-public-page">
+        <section class="company-public-hero">
+            {% if company.logo %}<img src="{{ company.logo.url }}" alt="{{ company.name }}">{% endif %}
+            <div>
+                <p>{{ company.category|default:"Empresa en Cardbook" }}</p>
+                <h1>{{ company.name }}</h1>
+                <span>★ {{ company.efficient_count }} eficientes · {{ company.city|default:"Ubicacion no definida" }}</span>
+                <p>{{ company.description|default:"Perfil empresarial publico." }}</p>
+            </div>
+        </section>
+
+        <section class="company-public-grid">
+            <article class="company-public-panel">
+                <h2>Novedades</h2>
+                <div class="company-post-grid">
+                    {% for post in posts %}
+                        <article>
+                            {% if post.media_type == "video" %}<video src="{{ post.media.url }}" controls muted playsinline></video>{% else %}<img src="{{ post.media.url }}" alt="{{ post.title }}">{% endif %}
+                            <h3>{{ post.title }}</h3>
+                            {% if post.caption %}<p>{{ post.caption|truncatechars:120 }}</p>{% endif %}
+                        </article>
+                    {% empty %}<p>No hay novedades publicas todavia.</p>{% endfor %}
+                </div>
+            </article>
+            <aside class="company-public-panel">
+                <h2>Tarjetas digitales</h2>
+                {% for card in digital_cards %}
+                    <a class="public-company-card-link" href="{% url 'public-card-web' card.slug %}">
+                        <strong>{{ card.user.get_full_name|default:card.user.username }}</strong>
+                        <span>{{ card.job_title|default:"Profesional" }}</span>
+                    </a>
+                {% empty %}<p>No hay tarjetas publicas activas.</p>{% endfor %}
+            </aside>
+        </section>
+
+        <section class="company-public-panel">
+            <h2>Empresas Aliadas</h2>
+            <div class="allied-company-grid">
+                {% for ally in allied_companies %}
+                    <article>
+                        {% if ally.logo %}<img src="{{ ally.logo.url }}" alt="{{ ally.name }}">{% endif %}
+                        <strong>{{ ally.name }}</strong>
+                        <p>{{ ally.description|default:"Empresa aliada en Cardbook."|truncatechars:100 }}</p>
+                        <span>★ {{ ally.efficient_count }} eficientes</span>
+                        <a href="{% url 'public-company-detail' ally.slug %}">Ver Empresa</a>
+                    </article>
+                {% empty %}<p>Esta empresa aun no tiene alianzas publicas.</p>{% endfor %}
+            </div>
+        </section>
+    </main>
+</body>
+</html>

@@ -1,0 +1,30 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block title %}{% if object %}Editar tarjeta de presentacion{% else %}Nueva tarjeta de presentacion{% endif %} - Cardbook{% endblock %}
+{% block topbar_title %}{% if object %}Editar tarjeta de presentacion{% else %}Nueva tarjeta de presentacion{% endif %}{% endblock %}
+{% block topbar_subtitle %}Disena una tarjeta convencional compartible{% endblock %}
+{% block dashboard_content %}
+<section class="dashboard-heading">
+    <p>Tarjeta comercial</p>
+    <h1>{% if object %}Editar {{ object.slug }}{% else %}Crear tarjeta de presentacion{% endif %}</h1>
+</section>
+<div class="form-layout">
+    <div class="form-helper">
+        <strong>Medida convencional</strong>
+        <span>La vista usa proporcion 3.5 x 2 pulgadas. El QR puede llevar al perfil publico del negocio.</span>
+    </div>
+    <form class="panel dashboard-form" method="post">
+        {% csrf_token %}
+        {% for field in form %}
+            <label class="{% if field.field.widget.input_type == 'checkbox' %}checkbox-field{% endif %}">
+                {{ field.label }}
+                {{ field }}
+                {{ field.errors }}
+            </label>
+        {% endfor %}
+        <div class="form-actions">
+            <a class="btn btn-outline" href="{% url 'dashboard-business-cards' %}">Cancelar</a>
+            <button class="btn btn-primary" type="submit">Guardar tarjeta</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
