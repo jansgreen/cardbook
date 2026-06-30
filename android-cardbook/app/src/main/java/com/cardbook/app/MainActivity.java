@@ -115,7 +115,8 @@ public class MainActivity extends Activity {
         LinearLayout appBar = new LinearLayout(this);
         appBar.setOrientation(LinearLayout.HORIZONTAL);
         appBar.setGravity(Gravity.CENTER_VERTICAL);
-        appBar.setPadding(dp(14), dp(8), dp(12), dp(8));
+        int statusBarHeight = getStatusBarHeight();
+        appBar.setPadding(dp(14), statusBarHeight + dp(8), dp(12), dp(8));
         appBar.setBackground(gradient(BLUE_DARK, BLUE));
 
         ImageView mark = new ImageView(this);
@@ -135,8 +136,8 @@ public class MainActivity extends Activity {
         appBar.addView(navButton("Inicio", new View.OnClickListener() {
             @Override public void onClick(View view) { webView.loadUrl(BASE_URL); }
         }));
-        appBar.addView(navButton("Login", new View.OnClickListener() {
-            @Override public void onClick(View view) { webView.loadUrl(BASE_URL + "login/"); }
+        appBar.addView(navButton("Panel", new View.OnClickListener() {
+            @Override public void onClick(View view) { webView.loadUrl(BASE_URL + "dashboard/"); }
         }));
 
         progressBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
@@ -152,7 +153,7 @@ public class MainActivity extends Activity {
         splashView = createSplashView();
         container.addView(splashView, new FrameLayout.LayoutParams(-1, -1));
 
-        root.addView(appBar, new LinearLayout.LayoutParams(-1, dp(64)));
+        root.addView(appBar, new LinearLayout.LayoutParams(-1, dp(64) + statusBarHeight));
         root.addView(progressBar, new LinearLayout.LayoutParams(-1, dp(3)));
         root.addView(container, new LinearLayout.LayoutParams(-1, 0, 1));
         setContentView(root);
@@ -433,6 +434,14 @@ public class MainActivity extends Activity {
 
     private int dp(int value) {
         return (int) (value * getResources().getDisplayMetrics().density);
+    }
+
+    private int getStatusBarHeight() {
+        int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
+        if (resourceId > 0) {
+            return getResources().getDimensionPixelSize(resourceId);
+        }
+        return 0;
     }
 
     public class AndroidBridge {

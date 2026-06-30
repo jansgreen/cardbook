@@ -27,8 +27,8 @@
         <article class="business-hero-card">
             <div class="business-hero-left">
                 <div class="business-hero-logo">
-                    {% if active_company.logo %}<img src="{{ active_company.logo.url }}" alt="{{ active_company.name }}">{% else %}<span>{{ active_company.name|slice:":2" }}</span>{% endif %}
-                    <a href="{% url 'dashboard-company-update' active_company.id %}" aria-label="Editar empresa">âœŽ</a>
+                    {% if active_company.logo %}<img src="{{ active_company.logo.url }}" alt="{{ active_company.name }}" data-fallback-text="{{ active_company.name|slice:':2' }}">{% else %}<span>{{ active_company.name|slice:":2" }}</span>{% endif %}
+                    <a href="{% url 'dashboard-company-update' active_company.id %}" aria-label="Editar empresa">Editar</a>
                 </div>
                 <div class="business-hero-copy">
                     <div class="business-active-pill">Empresa activa</div>
@@ -42,15 +42,15 @@
                     <h1>{{ active_company.name }}</h1>
                     <p>{{ active_company.description|default:"Empresa dedicada a crear presencia digital profesional dentro de Cardbook." }}</p>
                     <div class="business-hero-meta">
-                        <span>âŒ– {{ active_company.city|default:"Ubicacion no definida" }}</span>
-                        <span>â–£ {{ active_company.category|default:"Sin categoria" }}</span>
-                        {% if active_company.website %}<span>â†— {{ active_company.website }}</span>{% endif %}
+                        <span>Ubicaci&oacute;n: {{ active_company.city|default:"Ubicacion no definida" }}</span>
+                        <span>Categor&iacute;a: {{ active_company.category|default:"Sin categoria" }}</span>
+                        {% if active_company.website %}<span>Web: {{ active_company.website }}</span>{% endif %}
                     </div>
                 </div>
             </div>
             <div class="business-hero-right">
                 <div class="business-rating-block">
-                    <strong>â˜… {{ stats.efficient }}</strong>
+                    <strong>&#9733; {{ stats.efficient }}</strong>
                     <span>reconocimientos eficientes</span>
                 </div>
                 <div class="business-hero-actions">
@@ -58,7 +58,7 @@
                         {% csrf_token %}
                         <input type="hidden" name="action" value="efficient">
                         <input type="hidden" name="company" value="{{ active_company.id }}">
-                        <button type="submit">â˜… Reconocer excelente</button>
+                        <button type="submit">&#9733; Reconocer excelente</button>
                     </form>
                     <a href="#sugeridas">Solicitar alianza</a>
                     <button type="button" data-share>Compartir</button>
@@ -69,18 +69,18 @@
         <section class="business-page-grid">
             <main class="business-page-main">
                 <section class="business-metric-row">
-                    <article><i class="metric-blue">â–¤</i><span>Publicaciones</span><strong>{{ stats.posts }}</strong><a href="#publicaciones">Ver todas</a></article>
-                    <article><i class="metric-green">â–§</i><span>Fotos</span><strong>{{ stats.images }}</strong><a href="#publicaciones">Ver todas</a></article>
-                    <article><i class="metric-purple">â–£</i><span>Videos</span><strong>{{ stats.videos }}</strong><a href="#publicaciones">Ver todos</a></article>
-                    <article><i class="metric-gold">â˜…</i><span>Excelentes</span><strong>{{ stats.excellent }}</strong><a href="#publicaciones">Ver todos</a></article>
-                    <article><i class="metric-orange">â—‰</i><span>Vistas</span><strong>{{ stats.views }}</strong><a href="#publicaciones">Ver todas</a></article>
-                    <article><i class="metric-cyan">â—‡</i><span>Alianzas</span><strong>{{ stats.alliances }}</strong><a href="#alianzas">Ver todas</a></article>
+                    <article><i class="metric-blue">PUB</i><span>Publicaciones</span><strong>{{ stats.posts }}</strong><a href="#publicaciones">Ver todas</a></article>
+                    <article><i class="metric-green">IMG</i><span>Fotos</span><strong>{{ stats.images }}</strong><a href="#publicaciones">Ver todas</a></article>
+                    <article><i class="metric-purple">VID</i><span>Videos</span><strong>{{ stats.videos }}</strong><a href="#publicaciones">Ver todos</a></article>
+                    <article><i class="metric-gold">OK</i><span>Excelentes</span><strong>{{ stats.excellent }}</strong><a href="#publicaciones">Ver todos</a></article>
+                    <article><i class="metric-orange">VER</i><span>Vistas</span><strong>{{ stats.views }}</strong><a href="#publicaciones">Ver todas</a></article>
+                    <article><i class="metric-cyan">ALI</i><span>Alianzas</span><strong>{{ stats.alliances }}</strong><a href="#alianzas">Ver todas</a></article>
                 </section>
 
                 <article class="business-composer-card" id="publicaciones">
                     <div>
-                        <h2>Crear publicaciÃ³n empresarial</h2>
-                        <p>Comparte novedades, proyectos, logros y mÃ¡s sobre tu empresa.</p>
+                        <h2>Crear publicaci&oacute;n empresarial</h2>
+                        <p>Comparte novedades, proyectos, logros y m&aacute;s sobre tu empresa.</p>
                     </div>
                     <form method="post" enctype="multipart/form-data" class="business-upload-form">
                         {% csrf_token %}
@@ -90,8 +90,8 @@
                         <label>Descripcion{{ post_form.caption }}</label>
                         <label>Tipo{{ post_form.media_type }}</label>
                         <label>Archivo{{ post_form.media }}</label>
-                        <div class="upload-choice upload-photo"><span>â–§</span><strong>Subir foto</strong><small>PNG, JPG hasta 10MB</small></div>
-                        <div class="upload-choice upload-video"><span>â–£</span><strong>Subir video</strong><small>MP4 hasta 50MB</small></div>
+                        <div class="upload-choice upload-photo"><span>IMG</span><strong>Subir foto</strong><small>PNG, JPG hasta 10MB</small></div>
+                        <div class="upload-choice upload-video"><span>VID</span><strong>Subir video</strong><small>MP4 hasta 50MB</small></div>
                         <div class="form-actions"><button class="btn btn-primary" type="submit">Publicar novedad</button></div>
                     </form>
                 </article>
@@ -101,8 +101,8 @@
                     {% for post in posts %}
                         <article class="business-post-card enterprise-post">
                             <div class="business-post-head">
-                                {% if post.company.logo %}<img src="{{ post.company.logo.url }}" alt="{{ post.company.name }}">{% endif %}
-                                <div><strong>{{ post.company.name }}</strong><span>{{ post.created_at|timesince }} Â· pÃºblico</span></div>
+                                {% if post.company.logo %}<img src="{{ post.company.logo.url }}" alt="{{ post.company.name }}" data-fallback-text="{{ post.company.name|slice:':2' }}">{% endif %}
+                                <div><strong>{{ post.company.name }}</strong><span>{{ post.created_at|timesince }} &middot; p&uacute;blico</span></div>
                             </div>
                             <h2>{{ post.title }}</h2>
                             {% if post.caption %}<p>{{ post.caption }}</p>{% endif %}
@@ -133,7 +133,7 @@
                     {% for company in companies %}
                         <div class="managed-company-item {% if company.id == active_company.id %}active{% endif %}">
                             <a href="{% url 'dashboard-companies' %}?company={{ company.id }}">
-                                {% if company.logo %}<img src="{{ company.logo.url }}" alt="{{ company.name }}">{% else %}<span>{{ company.name|slice:":2" }}</span>{% endif %}
+                                {% if company.logo %}<img src="{{ company.logo.url }}" alt="{{ company.name }}" data-fallback-text="{{ company.name|slice:':2' }}">{% else %}<span>{{ company.name|slice:":2" }}</span>{% endif %}
                                 <strong>{{ company.name }}</strong>
                             </a>
                             <div>
@@ -155,11 +155,11 @@
                     <div class="side-card-head"><h2>Empresas sugeridas</h2><a href="#">Ver todas</a></div>
                     {% for company in suggested_companies %}
                         <div class="side-company-item">
-                            {% if company.logo %}<img src="{{ company.logo.url }}" alt="{{ company.name }}">{% else %}<div>{{ company.name|slice:":2" }}</div>{% endif %}
+                            {% if company.logo %}<img src="{{ company.logo.url }}" alt="{{ company.name }}" data-fallback-text="{{ company.name|slice:':2' }}">{% else %}<div>{{ company.name|slice:":2" }}</div>{% endif %}
                             <section>
                                 <strong>{{ company.name }}</strong>
                                 <span>{{ company.category|default:"Empresa sugerida" }}</span>
-                                <small class="efficient-badge {{ company.efficient_badge_class }}">â˜… {{ company.efficient_count }}</small>
+                                <small class="efficient-badge {{ company.efficient_badge_class }}">&#9733; {{ company.efficient_count }}</small>
                             </section>
                             <form method="post">
                                 {% csrf_token %}
@@ -177,9 +177,9 @@
                     <div class="allied-avatar-grid">
                         {% for alliance in accepted_alliances %}
                             {% if alliance.requester_id == active_company.id %}
-                                <div>{% if alliance.receiver.logo %}<img src="{{ alliance.receiver.logo.url }}" alt="{{ alliance.receiver.name }}">{% endif %}<span>{{ alliance.receiver.name }}</span></div>
+                                <div>{% if alliance.receiver.logo %}<img src="{{ alliance.receiver.logo.url }}" alt="{{ alliance.receiver.name }}" data-fallback-text="{{ alliance.receiver.name|slice:':2' }}">{% endif %}<span>{{ alliance.receiver.name }}</span></div>
                             {% else %}
-                                <div>{% if alliance.requester.logo %}<img src="{{ alliance.requester.logo.url }}" alt="{{ alliance.requester.name }}">{% endif %}<span>{{ alliance.requester.name }}</span></div>
+                                <div>{% if alliance.requester.logo %}<img src="{{ alliance.requester.logo.url }}" alt="{{ alliance.requester.name }}" data-fallback-text="{{ alliance.requester.name|slice:':2' }}">{% endif %}<span>{{ alliance.requester.name }}</span></div>
                             {% endif %}
                         {% empty %}<p>Aun no hay alianzas aceptadas.</p>{% endfor %}
                     </div>
