@@ -9,169 +9,196 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
-import android.widget.Button;
+import android.webkit.CookieManager;
+import android.webkit.DownloadListener;
+import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends Activity {
     private static final int BLUE = Color.rgb(0, 87, 184);
     private static final int BLUE_DARK = Color.rgb(0, 56, 117);
     private static final int GOLD = Color.rgb(216, 164, 65);
     private static final int WHITE = Color.WHITE;
-    private static final int MUTED = Color.rgb(99, 113, 137);
-    private static final String WEB_URL = "https://cardbook-45cf0409dc07.herokuapp.com/";
-    private static final String API_URL = WEB_URL + "api/v1/";
+    private static final String BASE_URL = "https://cardbook-45cf0409dc07.herokuapp.com/";
+
+    private WebView webView;
+    private ProgressBar progressBar;
+    private TextView titleView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        renderHome();
+        renderWebApp();
+        if (savedInstanceState == null) {
+            webView.loadUrl(BASE_URL);
+        } else {
+            webView.restoreState(savedInstanceState);
+        }
     }
 
-    private void renderHome() {
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        webView.saveState(outState);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (webView != null && webView.canGoBack()) {
+            webView.goBack();
+            return;
+        }
+        super.onBackPressed();
+    }
+
+    private void renderWebApp() {
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(Color.rgb(244, 246, 249));
 
-        TextView header = new TextView(this);
-        header.setText("Cardbook");
-        header.setTextColor(WHITE);
-        header.setTextSize(24);
-        header.setTypeface(Typeface.DEFAULT_BOLD);
-        header.setGravity(Gravity.CENTER_VERTICAL);
-        header.setPadding(dp(22), dp(18), dp(22), dp(18));
-        header.setBackground(gradient(BLUE_DARK, BLUE));
-        root.addView(header, new LinearLayout.LayoutParams(-1, dp(74)));
+        LinearLayout appBar = new LinearLayout(this);
+        appBar.setOrientation(LinearLayout.HORIZONTAL);
+        appBar.setGravity(Gravity.CENTER_VERTICAL);
+        appBar.setPadding(dp(16), dp(10), dp(12), dp(10));
+        appBar.setBackground(gradient(BLUE_DARK, BLUE));
 
-        ScrollView scroll = new ScrollView(this);
-        LinearLayout body = new LinearLayout(this);
-        body.setOrientation(LinearLayout.VERTICAL);
-        body.setPadding(dp(20), dp(22), dp(20), dp(24));
-        scroll.addView(body);
-        root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
+        titleView = new TextView(this);
+        titleView.setText("Cardbook");
+        titleView.setTextColor(WHITE);
+        titleView.setTextSize(20);
+        titleView.setTypeface(Typeface.DEFAULT_BOLD);
+        titleView.setSingleLine(true);
+        appBar.addView(titleView, new LinearLayout.LayoutParams(0, dp(48), 1));
 
-        body.addView(heroCard());
-        body.addView(actionGrid());
-        body.addView(infoCard("API conectada", "La app consume la API REST de Cardbook para empresas, perfiles digitales, Book, publicaciones y alianzas."));
-        body.addView(infoCard("Version inicial", "Este APK abre los servicios principales y queda preparado para seguir integrando CRUD nativo pantalla por pantalla."));
+        appBar.addView(navButton("Inicio", new View.OnClickListener() {
+            @Override public void onClick(View view) { webView.loadUrl(BASE_URL); }
+        }));
+        appBar.addView(navButton("Login", new View.OnClickListener() {
+            @Override public void onClick(View view) { webView.loadUrl(BASE_URL + "login/"); }
+        }));
 
+        progressBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
+        progressBar.setMax(100);
+        progressBar.setProgress(0);
+        progressBar.setVisibility(View.GONE);
+
+        FrameLayout webFrame = new FrameLayout(this);
+        webView = new WebView(this);
+        configureWebView();
+        webFrame.addView(webView, new FrameLayout.LayoutParams(-1, -1));
+
+        root.addView(appBar, new LinearLayout.LayoutParams(-1, dp(68)));
+        root.addView(progressBar, new LinearLayout.LayoutParams(-1, dp(3)));
+        root.addView(webFrame, new LinearLayout.LayoutParams(-1, 0, 1));
         setContentView(root);
     }
 
-    private View heroCard() {
-        LinearLayout card = panel(BLUE_DARK);
-        TextView badge = small("APP ANDROID");
-        badge.setTextColor(GOLD);
-        TextView title = new TextView(this);
-        title.setText("Tarjetas digitales inteligentes");
-        title.setTextColor(WHITE);
-        title.setTextSize(31);
-        title.setTypeface(Typeface.DEFAULT_BOLD);
-        title.setPadding(0, dp(8), 0, dp(8));
-        TextView copy = paragraph("Gestiona Cardbook desde tu telefono: empresas, tarjetas, QR, Book y alianzas en una experiencia movil.");
-        copy.setTextColor(Color.argb(220, 255, 255, 255));
-        card.addView(badge);
-        card.addView(title);
-        card.addView(copy);
-        card.addView(button("Abrir plataforma", GOLD, BLUE_DARK, new View.OnClickListener() {
-            @Override public void onClick(View v) { openUrl(WEB_URL); }
-        }));
-        return card;
-    }
-
-    private View actionGrid() {
-        LinearLayout wrap = new LinearLayout(this);
-        wrap.setOrientation(LinearLayout.VERTICAL);
-        wrap.setPadding(0, dp(10), 0, 0);
-        wrap.addView(row(button("Dashboard", BLUE, WHITE, new View.OnClickListener() {
-            @Override public void onClick(View v) { openUrl(WEB_URL + "dashboard/"); }
-        }), button("Book", BLUE, WHITE, new View.OnClickListener() {
-            @Override public void onClick(View v) { openUrl(WEB_URL + "dashboard/book/"); }
-        })));
-        wrap.addView(row(button("API", WHITE, BLUE_DARK, new View.OnClickListener() {
-            @Override public void onClick(View v) { openUrl(API_URL); }
-        }), button("Login", WHITE, BLUE_DARK, new View.OnClickListener() {
-            @Override public void onClick(View v) { openUrl(WEB_URL + "login/"); }
-        })));
-        return wrap;
-    }
-
-    private LinearLayout row(View a, View b) {
-        LinearLayout row = new LinearLayout(this);
-        row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setPadding(0, 0, 0, dp(10));
-        row.addView(a, new LinearLayout.LayoutParams(0, dp(54), 1));
-        View gap = new View(this);
-        row.addView(gap, new LinearLayout.LayoutParams(dp(10), 1));
-        row.addView(b, new LinearLayout.LayoutParams(0, dp(54), 1));
-        return row;
-    }
-
-    private View infoCard(String titleText, String bodyText) {
-        LinearLayout card = panel(WHITE);
-        TextView title = new TextView(this);
-        title.setText(titleText);
-        title.setTextColor(BLUE_DARK);
-        title.setTextSize(18);
-        title.setTypeface(Typeface.DEFAULT_BOLD);
-        TextView body = paragraph(bodyText);
-        body.setTextColor(MUTED);
-        card.addView(title);
-        card.addView(body);
-        return card;
-    }
-
-    private LinearLayout panel(int color) {
-        LinearLayout card = new LinearLayout(this);
-        card.setOrientation(LinearLayout.VERTICAL);
-        card.setPadding(dp(20), dp(18), dp(20), dp(18));
-        card.setBackground(rounded(color, 1, Color.argb(30, 0, 87, 184), dp(12)));
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
-        params.setMargins(0, 0, 0, dp(14));
-        card.setLayoutParams(params);
-        card.setElevation(dp(2));
-        return card;
-    }
-
-    private TextView paragraph(String text) {
+    private TextView navButton(String text, View.OnClickListener listener) {
         TextView view = new TextView(this);
         view.setText(text);
-        view.setTextSize(15);
-        view.setLineSpacing(2, 1.05f);
-        view.setPadding(0, dp(4), 0, dp(14));
-        return view;
-    }
-
-    private TextView small(String text) {
-        TextView view = new TextView(this);
-        view.setText(text);
-        view.setTextSize(12);
+        view.setTextColor(WHITE);
+        view.setTextSize(13);
         view.setTypeface(Typeface.DEFAULT_BOLD);
+        view.setGravity(Gravity.CENTER);
+        view.setPadding(dp(12), 0, dp(12), 0);
+        view.setBackground(rounded(Color.argb(32, 255, 255, 255), Color.argb(70, 255, 255, 255)));
+        view.setOnClickListener(listener);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-2, dp(40));
+        params.setMargins(dp(8), 0, 0, 0);
+        view.setLayoutParams(params);
         return view;
     }
 
-    private Button button(String text, int bg, int fg, View.OnClickListener listener) {
-        Button button = new Button(this);
-        button.setText(text);
-        button.setTextColor(fg);
-        button.setTypeface(Typeface.DEFAULT_BOLD);
-        button.setTextSize(14);
-        button.setAllCaps(false);
-        button.setBackground(rounded(bg, 0, bg, dp(999)));
-        button.setOnClickListener(listener);
-        return button;
+    private void configureWebView() {
+        CookieManager cookieManager = CookieManager.getInstance();
+        cookieManager.setAcceptCookie(true);
+        cookieManager.setAcceptThirdPartyCookies(webView, true);
+
+        WebSettings settings = webView.getSettings();
+        settings.setJavaScriptEnabled(true);
+        settings.setDomStorageEnabled(true);
+        settings.setDatabaseEnabled(true);
+        settings.setLoadWithOverviewMode(true);
+        settings.setUseWideViewPort(true);
+        settings.setBuiltInZoomControls(false);
+        settings.setDisplayZoomControls(false);
+        settings.setMediaPlaybackRequiresUserGesture(false);
+
+        webView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public void onProgressChanged(WebView view, int newProgress) {
+                progressBar.setVisibility(newProgress >= 100 ? View.GONE : View.VISIBLE);
+                progressBar.setProgress(newProgress);
+                super.onProgressChanged(view, newProgress);
+            }
+
+            @Override
+            public void onReceivedTitle(WebView view, String title) {
+                if (title != null && title.trim().length() > 0) {
+                    titleView.setText("Cardbook");
+                }
+                super.onReceivedTitle(view, title);
+            }
+        });
+
+        webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                return handleUrl(request.getUrl().toString());
+            }
+
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                return handleUrl(url);
+            }
+        });
+
+        webView.setDownloadListener(new DownloadListener() {
+            @Override
+            public void onDownloadStart(String url, String userAgent, String contentDisposition, String mimetype, long contentLength) {
+                openExternal(url);
+                Toast.makeText(MainActivity.this, "Descarga abierta en el navegador", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
-    private void openUrl(String url) {
-        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+    private boolean handleUrl(String url) {
+        if (url == null) return false;
+        if (url.startsWith(BASE_URL) || url.startsWith("https://cardbook-45cf0409dc07.herokuapp.com")) {
+            return false;
+        }
+        if (url.startsWith("tel:") || url.startsWith("mailto:") || url.startsWith("sms:") || url.startsWith("https://wa.me/")) {
+            openExternal(url);
+            return true;
+        }
+        if (url.startsWith("http://") || url.startsWith("https://")) {
+            openExternal(url);
+            return true;
+        }
+        return false;
     }
 
-    private GradientDrawable rounded(int color, int strokeWidth, int strokeColor, int radius) {
+    private void openExternal(String url) {
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+        } catch (Exception ignored) {
+            Toast.makeText(this, "No se pudo abrir el enlace", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private GradientDrawable rounded(int color, int strokeColor) {
         GradientDrawable drawable = new GradientDrawable();
         drawable.setColor(color);
-        drawable.setCornerRadius(radius);
-        if (strokeWidth > 0) drawable.setStroke(dp(strokeWidth), strokeColor);
+        drawable.setCornerRadius(dp(999));
+        drawable.setStroke(dp(1), strokeColor);
         return drawable;
     }
 

@@ -22,19 +22,25 @@ android-cardbook/
 http://10.0.2.2:8000
 ```
 
-4. Para generar el APK:
+4. Para generar el APK con Android Studio/Gradle:
 
 ```bash
 ./gradlew assembleDebug
 ```
 
-5. Copia el APK generado a:
+5. Si no tienes Gradle configurado, usa el build manual incluido:
+
+```powershell
+.\build_apk.ps1
+```
+
+Ese script usa el Android SDK local y copia el APK final a:
 
 ```text
 static/downloads/cardbook.apk
 ```
 
-La pagina `/android/` del sitio web servira esa descarga desde el home.
+La pagina `/android/` del sitio web servira esa descarga desde el home. La version actual de la app carga Cardbook dentro de un WebView nativo para mantener login, dashboard, Book, tarjetas y descarga dentro de la app.
 
 ## Cambiar API para produccion
 

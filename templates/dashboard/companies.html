@@ -1,4 +1,4 @@
-{% extends "dashboard/base_dashboard.html" %}
+﻿{% extends "dashboard/base_dashboard.html" %}
 {% block title %}Empresas - Cardbook{% endblock %}
 {% block topbar_title %}Empresas{% endblock %}
 {% block topbar_subtitle %}Centro empresarial privado de Cardbook{% endblock %}
@@ -9,13 +9,26 @@
         <span>Empresas</span>
         <strong>Inicio</strong>
     </div>
-
     {% if active_company %}
+        <div class="company-crud-toolbar">
+            <div>
+                <span>Gestion de empresas</span>
+                <strong>{{ companies|length }} empresa{{ companies|length|pluralize }}</strong>
+            </div>
+            <nav aria-label="Acciones de empresa">
+                <a class="company-crud-primary" href="{% url 'dashboard-company-create' %}">Nueva empresa</a>
+                <a href="{% url 'dashboard-company-update' active_company.id %}">Editar</a>
+                <form method="post" action="{% url 'dashboard-company-delete' active_company.id %}" onsubmit="return confirm('Esta empresa se ocultara del dashboard. Deseas continuar?');">
+                    {% csrf_token %}
+                    <button type="submit">Eliminar</button>
+                </form>
+            </nav>
+        </div>
         <article class="business-hero-card">
             <div class="business-hero-left">
                 <div class="business-hero-logo">
                     {% if active_company.logo %}<img src="{{ active_company.logo.url }}" alt="{{ active_company.name }}">{% else %}<span>{{ active_company.name|slice:":2" }}</span>{% endif %}
-                    <a href="{% url 'dashboard-company-update' active_company.id %}" aria-label="Editar empresa">✎</a>
+                    <a href="{% url 'dashboard-company-update' active_company.id %}" aria-label="Editar empresa">âœŽ</a>
                 </div>
                 <div class="business-hero-copy">
                     <div class="business-active-pill">Empresa activa</div>
@@ -29,15 +42,15 @@
                     <h1>{{ active_company.name }}</h1>
                     <p>{{ active_company.description|default:"Empresa dedicada a crear presencia digital profesional dentro de Cardbook." }}</p>
                     <div class="business-hero-meta">
-                        <span>⌖ {{ active_company.city|default:"Ubicacion no definida" }}</span>
-                        <span>▣ {{ active_company.category|default:"Sin categoria" }}</span>
-                        {% if active_company.website %}<span>↗ {{ active_company.website }}</span>{% endif %}
+                        <span>âŒ– {{ active_company.city|default:"Ubicacion no definida" }}</span>
+                        <span>â–£ {{ active_company.category|default:"Sin categoria" }}</span>
+                        {% if active_company.website %}<span>â†— {{ active_company.website }}</span>{% endif %}
                     </div>
                 </div>
             </div>
             <div class="business-hero-right">
                 <div class="business-rating-block">
-                    <strong>★ {{ stats.efficient }}</strong>
+                    <strong>â˜… {{ stats.efficient }}</strong>
                     <span>reconocimientos eficientes</span>
                 </div>
                 <div class="business-hero-actions">
@@ -45,7 +58,7 @@
                         {% csrf_token %}
                         <input type="hidden" name="action" value="efficient">
                         <input type="hidden" name="company" value="{{ active_company.id }}">
-                        <button type="submit">★ Reconocer excelente</button>
+                        <button type="submit">â˜… Reconocer excelente</button>
                     </form>
                     <a href="#sugeridas">Solicitar alianza</a>
                     <button type="button" data-share>Compartir</button>
@@ -56,18 +69,18 @@
         <section class="business-page-grid">
             <main class="business-page-main">
                 <section class="business-metric-row">
-                    <article><i class="metric-blue">▤</i><span>Publicaciones</span><strong>{{ stats.posts }}</strong><a href="#publicaciones">Ver todas</a></article>
-                    <article><i class="metric-green">▧</i><span>Fotos</span><strong>{{ stats.images }}</strong><a href="#publicaciones">Ver todas</a></article>
-                    <article><i class="metric-purple">▣</i><span>Videos</span><strong>{{ stats.videos }}</strong><a href="#publicaciones">Ver todos</a></article>
-                    <article><i class="metric-gold">★</i><span>Excelentes</span><strong>{{ stats.excellent }}</strong><a href="#publicaciones">Ver todos</a></article>
-                    <article><i class="metric-orange">◉</i><span>Vistas</span><strong>{{ stats.views }}</strong><a href="#publicaciones">Ver todas</a></article>
-                    <article><i class="metric-cyan">◇</i><span>Alianzas</span><strong>{{ stats.alliances }}</strong><a href="#alianzas">Ver todas</a></article>
+                    <article><i class="metric-blue">â–¤</i><span>Publicaciones</span><strong>{{ stats.posts }}</strong><a href="#publicaciones">Ver todas</a></article>
+                    <article><i class="metric-green">â–§</i><span>Fotos</span><strong>{{ stats.images }}</strong><a href="#publicaciones">Ver todas</a></article>
+                    <article><i class="metric-purple">â–£</i><span>Videos</span><strong>{{ stats.videos }}</strong><a href="#publicaciones">Ver todos</a></article>
+                    <article><i class="metric-gold">â˜…</i><span>Excelentes</span><strong>{{ stats.excellent }}</strong><a href="#publicaciones">Ver todos</a></article>
+                    <article><i class="metric-orange">â—‰</i><span>Vistas</span><strong>{{ stats.views }}</strong><a href="#publicaciones">Ver todas</a></article>
+                    <article><i class="metric-cyan">â—‡</i><span>Alianzas</span><strong>{{ stats.alliances }}</strong><a href="#alianzas">Ver todas</a></article>
                 </section>
 
                 <article class="business-composer-card" id="publicaciones">
                     <div>
-                        <h2>Crear publicación empresarial</h2>
-                        <p>Comparte novedades, proyectos, logros y más sobre tu empresa.</p>
+                        <h2>Crear publicaciÃ³n empresarial</h2>
+                        <p>Comparte novedades, proyectos, logros y mÃ¡s sobre tu empresa.</p>
                     </div>
                     <form method="post" enctype="multipart/form-data" class="business-upload-form">
                         {% csrf_token %}
@@ -77,8 +90,8 @@
                         <label>Descripcion{{ post_form.caption }}</label>
                         <label>Tipo{{ post_form.media_type }}</label>
                         <label>Archivo{{ post_form.media }}</label>
-                        <div class="upload-choice upload-photo"><span>▧</span><strong>Subir foto</strong><small>PNG, JPG hasta 10MB</small></div>
-                        <div class="upload-choice upload-video"><span>▣</span><strong>Subir video</strong><small>MP4 hasta 50MB</small></div>
+                        <div class="upload-choice upload-photo"><span>â–§</span><strong>Subir foto</strong><small>PNG, JPG hasta 10MB</small></div>
+                        <div class="upload-choice upload-video"><span>â–£</span><strong>Subir video</strong><small>MP4 hasta 50MB</small></div>
                         <div class="form-actions"><button class="btn btn-primary" type="submit">Publicar novedad</button></div>
                     </form>
                 </article>
@@ -89,7 +102,7 @@
                         <article class="business-post-card enterprise-post">
                             <div class="business-post-head">
                                 {% if post.company.logo %}<img src="{{ post.company.logo.url }}" alt="{{ post.company.name }}">{% endif %}
-                                <div><strong>{{ post.company.name }}</strong><span>{{ post.created_at|timesince }} · público</span></div>
+                                <div><strong>{{ post.company.name }}</strong><span>{{ post.created_at|timesince }} Â· pÃºblico</span></div>
                             </div>
                             <h2>{{ post.title }}</h2>
                             {% if post.caption %}<p>{{ post.caption }}</p>{% endif %}
@@ -114,8 +127,30 @@
                     {% endfor %}
                 </section>
             </main>
-
             <aside class="business-page-side">
+                <article class="business-side-card">
+                    <div class="side-card-head"><h2>Mis empresas</h2><a href="{% url 'dashboard-company-create' %}">Nueva</a></div>
+                    {% for company in companies %}
+                        <div class="managed-company-item {% if company.id == active_company.id %}active{% endif %}">
+                            <a href="{% url 'dashboard-companies' %}?company={{ company.id }}">
+                                {% if company.logo %}<img src="{{ company.logo.url }}" alt="{{ company.name }}">{% else %}<span>{{ company.name|slice:":2" }}</span>{% endif %}
+                                <strong>{{ company.name }}</strong>
+                            </a>
+                            <div>
+                                <a href="{% url 'dashboard-company-update' company.id %}">Editar</a>
+                                {% if company.id != active_company.id or companies|length > 1 %}
+                                    <form method="post" action="{% url 'dashboard-company-delete' company.id %}" onsubmit="return confirm('Esta empresa se ocultara del dashboard. Deseas continuar?');">
+                                        {% csrf_token %}
+                                        <button type="submit">Eliminar</button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% empty %}
+                        <p>No tienes empresas registradas.</p>
+                    {% endfor %}
+                </article>
+
                 <article class="business-side-card" id="sugeridas">
                     <div class="side-card-head"><h2>Empresas sugeridas</h2><a href="#">Ver todas</a></div>
                     {% for company in suggested_companies %}
@@ -124,7 +159,7 @@
                             <section>
                                 <strong>{{ company.name }}</strong>
                                 <span>{{ company.category|default:"Empresa sugerida" }}</span>
-                                <small class="efficient-badge {{ company.efficient_badge_class }}">★ {{ company.efficient_count }}</small>
+                                <small class="efficient-badge {{ company.efficient_badge_class }}">â˜… {{ company.efficient_count }}</small>
                             </section>
                             <form method="post">
                                 {% csrf_token %}
@@ -166,7 +201,9 @@
             </aside>
         </section>
     {% else %}
-        <div class="panel"><p>No tienes empresas todavia. Crea tu primera empresa para activar la red empresarial.</p></div>
+        <div class="empty-company-state panel"><p>No tienes empresas todavia. Crea tu primera empresa para activar la red empresarial.</p><a class="btn btn-primary" href="{% url 'dashboard-company-create' %}">Crear empresa</a></div>
     {% endif %}
 </section>
 {% endblock %}
+
+

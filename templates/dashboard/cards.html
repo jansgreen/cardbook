@@ -1,8 +1,75 @@
-﻿{% extends "dashboard/base_dashboard.html" %}
+{% extends "dashboard/base_dashboard.html" %}
 {% block title %}Perfiles del negocio - Cardbook{% endblock %}
 {% block topbar_title %}Perfil del negocio{% endblock %}
 {% block topbar_subtitle %}Gestiona perfiles publicos, QR, redes y enlaces compartibles{% endblock %}
 {% block dashboard_content %}
-<section class="dashboard-heading action-heading"><div><p>Presencia digital</p><h1>Mis perfiles del negocio</h1></div><a class="btn btn-primary" href="{% url 'dashboard-card-create' %}">Nuevo perfil</a></section>
-<div class="cards-table">{% for card in cards %}<article class="dash-card"><div class="dash-card-top"><h2>{{ card.user.get_full_name|default:card.user.username }}</h2><span>{{ card.company.name }}</span></div><p>{{ card.job_title|default:"Sin cargo" }}</p><div class="card-meta"><span>{{ card.email|default:"Sin email" }}</span><span>{{ card.phone_number|default:"Sin telefono" }}</span></div><div class="dash-card-actions"><a href="{% url 'public-card-web' card.slug %}">Abrir</a><a href="{% url 'dashboard-card-update' card.id %}">Editar</a><form method="post" action="{% url 'dashboard-card-delete' card.id %}">{% csrf_token %}<button type="submit">Eliminar</button></form></div></article>{% empty %}<div class="panel"><p>No hay tarjetas activas.</p></div>{% endfor %}</div>
+<section class="card-command">
+    <div class="card-command-head">
+        <div>
+            <p>Presencia digital</p>
+            <h1>Perfiles del negocio</h1>
+            <span>{{ cards|length }} perfil{{ cards|length|pluralize:"es" }} activo{{ cards|length|pluralize }}</span>
+        </div>
+        <a class="btn btn-primary" href="{% url 'dashboard-card-create' %}">Nuevo perfil</a>
+    </div>
+
+    <div class="profile-card-grid">
+        {% for card in cards %}
+            <article class="profile-management-card">
+                <div class="profile-card-cover">
+                    <div class="profile-card-company">
+                        {% if card.company.logo %}
+                            <img src="{{ card.company.logo.url }}" alt="{{ card.company.name }}">
+                        {% else %}
+                            <span>{{ card.company.name|slice:":2" }}</span>
+                        {% endif %}
+                        <strong>{{ card.company.name }}</strong>
+                    </div>
+                    <div class="profile-card-avatar">
+                        {% if card.photo %}
+                            <img src="{{ card.photo.url }}" alt="{{ card.user.get_full_name|default:card.user.username }}">
+                        {% else %}
+                            <span>{{ card.user.get_full_name|default:card.user.username|slice:":2" }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="profile-card-body">
+                    <div>
+                        <h2>{{ card.user.get_full_name|default:card.user.username }}</h2>
+                        <p>{{ card.job_title|default:"Sin cargo definido" }}</p>
+                    </div>
+
+                    <div class="profile-card-meta">
+                        <span>{{ card.email|default:"Sin email" }}</span>
+                        <span>{{ card.phone_number|default:"Sin telefono" }}</span>
+                        <span>{{ card.website|default:"Sin website" }}</span>
+                    </div>
+
+                    <div class="profile-card-badges">
+                        <span>QR {{ card.get_qr_shape_display }}</span>
+                        <span>{{ card.get_name_font_display }}</span>
+                        <span>{{ card.get_name_size_display }}</span>
+                    </div>
+
+                    <div class="management-actions">
+                        <a href="{% url 'public-card-web' card.slug %}">Abrir</a>
+                        <a href="{% url 'dashboard-card-update' card.id %}">Editar</a>
+                        <form method="post" action="{% url 'dashboard-card-delete' card.id %}" onsubmit="return confirm('Este perfil se ocultara del dashboard. Deseas continuar?');">
+                            {% csrf_token %}
+                            <button type="submit">Eliminar</button>
+                        </form>
+                    </div>
+                </div>
+            </article>
+        {% empty %}
+            <article class="empty-management-state">
+                <p>No hay perfiles del negocio activos.</p>
+                <h2>Crea tu primer perfil publico</h2>
+                <span>Publica datos de contacto, redes sociales, QR personalizado y enlaces listos para compartir.</span>
+                <a class="btn btn-primary" href="{% url 'dashboard-card-create' %}">Nuevo perfil</a>
+            </article>
+        {% endfor %}
+    </div>
+</section>
 {% endblock %}
