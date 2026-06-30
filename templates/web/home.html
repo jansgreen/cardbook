@@ -78,20 +78,37 @@
     </div>
 </section>
 
-
-<section class="section android-download-section" id="android">
-    <div class="container android-download-panel fade-in">
-        <div>
-            <p class="eyebrow">App Android</p>
-            <h2>Lleva Cardbook en el bolsillo</h2>
-            <p>Accede a tus empresas, perfiles digitales, tarjetas de presentacion, Book y alianzas desde la app movil conectada a esta plataforma.</p>
+<section class="mobile-app-banner-section" id="android">
+    <div class="container mobile-app-banner fade-in">
+        <div class="mobile-app-copy">
+            <span class="app-badge">Android app</span>
+            <p class="eyebrow">Cardbook movil</p>
+            <h2>Descarga Cardbook para Android</h2>
+            <p>Gestiona empresas, perfiles digitales, tarjetas de presentacion, Book, publicaciones y alianzas desde tu telefono, conectado a la misma API de esta plataforma.</p>
+            <div class="mobile-app-actions">
+                <a class="btn btn-primary" href="{% url 'web-android' %}">Descargar app</a>
+                <a class="btn btn-secondary" href="{% url 'web-android-download' %}">APK Android</a>
+            </div>
         </div>
-        <div class="android-download-actions">
-            <a class="btn btn-primary" href="{% url 'web-android' %}">Descargar app</a>
-            <a class="btn btn-outline" href="{% url 'web-login' %}">Entrar a mi cuenta</a>
+        <div class="mobile-app-preview" aria-label="Vista previa de la app Cardbook Android">
+            <div class="mobile-phone-shell">
+                <div class="mobile-phone-status"><span></span><strong>Cardbook</strong><span></span></div>
+                <div class="mobile-phone-card active">
+                    <small>Resumen</small>
+                    <strong>Mis tarjetas</strong>
+                    <span>Perfiles, QR y Book</span>
+                </div>
+                <div class="mobile-phone-grid">
+                    <span>Empresas</span>
+                    <span>Tarjetas</span>
+                    <span>Book</span>
+                    <span>Alianzas</span>
+                </div>
+            </div>
         </div>
     </div>
 </section>
+
 <section class="section cta-section">
     <div class="container cta-panel fade-in">
         <h2>Convierte cada contacto en una oportunidad medible</h2>
@@ -99,4 +116,3 @@
     </div>
 </section>
 {% endblock %}
-

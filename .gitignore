@@ -11,3 +11,5 @@ cb_env/
 
 media/
 staticfiles/
+android-cardbook/manual-build/
+android-cardbook/debug.keystore
