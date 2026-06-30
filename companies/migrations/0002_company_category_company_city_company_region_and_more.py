@@ -19,12 +19,6 @@ def populate_company_slugs(apps, schema_editor):
         company.save(update_fields=["slug"])
 
 
-def drop_slug_like_index(apps, schema_editor):
-    if schema_editor.connection.vendor != "postgresql":
-        return
-    schema_editor.execute("DROP INDEX IF EXISTS companies_company_slug_cddc66aa_like")
-
-
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -55,10 +49,9 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='company',
             name='slug',
-            field=models.SlugField(blank=True, max_length=255),
+            field=models.CharField(blank=True, max_length=255),
         ),
         migrations.RunPython(populate_company_slugs, migrations.RunPython.noop),
-        migrations.RunPython(drop_slug_like_index, migrations.RunPython.noop),
         migrations.AlterField(
             model_name='company',
             name='slug',
