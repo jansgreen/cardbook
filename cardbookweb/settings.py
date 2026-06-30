@@ -1,4 +1,6 @@
 ﻿import os
+
+import dj_database_url
 from datetime import timedelta
 from pathlib import Path
 
@@ -66,7 +68,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "cardbookweb.wsgi.application"
 
-if os.environ.get("POSTGRES_DB"):
+DATABASE_URL = os.environ.get("DATABASE_URL")
+if DATABASE_URL:
+    DATABASES = {
+        "default": dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
+    }
+elif os.environ.get("POSTGRES_DB"):
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -135,6 +142,7 @@ CORS_ALLOWED_ORIGINS = [
     for origin in os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",")
     if origin.strip()
 ]
+
 
 
 
