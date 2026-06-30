@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     "company_ratings",
     "alliances",
     "book",
+    "mobile",
     "web",
     "dashboard",
     "publiccards",
@@ -139,7 +140,7 @@ SIMPLE_JWT = {
 CORS_ALLOW_ALL_ORIGINS = DEBUG
 CORS_ALLOWED_ORIGINS = [
     origin.strip()
-    for origin in os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",")
+    for origin in os.environ.get("CORS_ALLOWED_ORIGINS", os.environ.get("ALLOWED_ORIGINS", "")).split(",")
     if origin.strip()
 ]
 

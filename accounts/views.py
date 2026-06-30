@@ -34,7 +34,17 @@ class LoginView(APIView):
         serializer = TokenObtainPairSerializer(data=request.data)
         if not serializer.is_valid():
             return error_response("Invalid credentials.", serializer.errors, status.HTTP_401_UNAUTHORIZED)
-        return success_response("Login successful.", serializer.validated_data)
+        user = serializer.user
+        tokens = serializer.validated_data
+        return success_response(
+            "Login successful.",
+            {
+                "user": ProfileSerializer(user, context={"request": request}).data,
+                "tokens": tokens,
+                "access": tokens["access"],
+                "refresh": tokens["refresh"],
+            },
+        )
 
 
 class LogoutView(APIView):

@@ -43,7 +43,10 @@ Returns the API status and the main endpoint groups.
 ```http
 POST /api/v1/accounts/register/
 POST /api/v1/accounts/login/
+POST /api/v1/accounts/token/refresh/
+POST /api/v1/accounts/token/verify/
 POST /api/v1/accounts/logout/
+GET /api/v1/accounts/me/
 GET /api/v1/accounts/profile/
 PATCH /api/v1/accounts/profile/
 ```
@@ -71,7 +74,9 @@ Register response includes:
     "tokens": {
       "refresh": "...",
       "access": "..."
-    }
+    },
+    "access": "...",
+    "refresh": "..."
   }
 }
 ```
@@ -83,6 +88,40 @@ Login:
   "username": "demo",
   "password": "StrongPassword123!"
 }
+```
+
+Login response:
+
+```json
+{
+  "success": true,
+  "message": "Login successful.",
+  "data": {
+    "user": {},
+    "tokens": {
+      "refresh": "...",
+      "access": "..."
+    }
+  }
+}
+```
+
+Refresh token:
+
+```http
+POST /api/v1/accounts/token/refresh/
+```
+
+```json
+{
+  "refresh": "..."
+}
+```
+
+Current user:
+
+```http
+GET /api/v1/accounts/me/
 ```
 
 ## Companies
@@ -108,6 +147,58 @@ Create company:
 ```
 
 `DELETE` performs a soft delete by setting `is_active=false`.
+
+## Mobile Bootstrap
+
+Flutter should start with these endpoints:
+
+```http
+GET /api/v1/mobile/config/
+GET /api/v1/mobile/dashboard/
+```
+
+`/api/v1/mobile/config/` is public and returns API URLs, media base URL, Android version URL, and download URL.
+
+`/api/v1/mobile/dashboard/` requires JWT and returns a compact home payload:
+
+```json
+{
+  "success": true,
+  "message": "Mobile dashboard retrieved successfully.",
+  "data": {
+    "user": {},
+    "summary": {
+      "companies": 0,
+      "digital_cards": 0,
+      "business_cards": 0,
+      "book_items": 0,
+      "posts": 0,
+      "alliances": 0,
+      "pending_alliances": 0,
+      "views": 0,
+      "clicks": 0,
+      "excellent": 0,
+      "notifications": 0
+    },
+    "companies": [],
+    "digital_cards": [],
+    "business_cards": [],
+    "recent_posts": [],
+    "suggested_companies": [],
+    "quick_links": {}
+  }
+}
+```
+
+Recommended Flutter boot flow:
+
+1. `GET /api/v1/mobile/config/`.
+2. If no stored token, show login/register.
+3. `POST /api/v1/accounts/login/`.
+4. Store `data.tokens.access` and `data.tokens.refresh` in secure storage.
+5. `GET /api/v1/accounts/me/`.
+6. `GET /api/v1/mobile/dashboard/`.
+7. On `401`, call `/api/v1/accounts/token/refresh/` and retry once.
 
 ## Members
 
