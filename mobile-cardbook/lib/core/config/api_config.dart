@@ -1,0 +1,8 @@
+class ApiConfig {
+  static const baseUrl = String.fromEnvironment(
+    'CARDBOOK_API_BASE_URL',
+    defaultValue: 'https://cardbook-45cf0409dc07.herokuapp.com',
+  );
+
+  static String get apiBase => '${baseUrl.replaceAll(RegExp(r'/$'), '')}/api/v1';
+}
