@@ -56,14 +56,16 @@
                     <div class="print-side-column">
                         <div class="print-media">
                             {% if business_card.profile.photo %}
-                                <img class="print-profile-photo" src="{{ business_card.profile.photo.url }}" alt="Foto de {{ business_card.display_name }}">
+                                <img class="print-profile-photo" src="{{ business_card.profile.photo.url }}" alt="Foto de {{ business_card.display_name }}" data-fallback-text="{{ business_card.display_name|slice:':2' }}">
                             {% elif business_card.profile.user.avatar %}
-                                <img class="print-profile-photo" src="{{ business_card.profile.user.avatar.url }}" alt="Foto de {{ business_card.display_name }}">
+                                <img class="print-profile-photo" src="{{ business_card.profile.user.avatar.url }}" alt="Foto de {{ business_card.display_name }}" data-fallback-text="{{ business_card.display_name|slice:':2' }}">
+                            {% else %}
+                                <span class="print-profile-photo image-fallback">{{ business_card.display_name|slice:":2" }}</span>
                             {% endif %}
                             {% if business_card.profile.company.logo %}
-                                <img class="print-logo" src="{{ business_card.profile.company.logo.url }}" alt="{{ business_card.company_name }}">
+                                <img class="print-logo" src="{{ business_card.profile.company.logo.url }}" alt="{{ business_card.company_name }}" data-fallback-text="{{ business_card.company_name|slice:':2' }}">
                             {% else %}
-                                <img class="print-logo" src="{% static 'img/logo.png' %}" alt="Cardbook">
+                                <img class="print-logo" src="{% static 'img/logo.png' %}" alt="Cardbook" data-fallback-text="CB">
                             {% endif %}
                         </div>
                         {% if business_card.include_qr %}
@@ -93,7 +95,7 @@
                         <div class="public-allies-list">
                             {% for ally in allied_companies|slice:":3" %}
                                 <a href="{% url 'public-company-detail' ally.slug %}">
-                                    {% if ally.logo %}<img src="{{ ally.logo.url }}" alt="{{ ally.name }}">{% endif %}
+                                    {% if ally.logo %}<img src="{{ ally.logo.url }}" alt="{{ ally.name }}" data-fallback-text="{{ ally.name|slice:':2' }}">{% endif %}
                                     <span>{{ ally.name }}</span>
                                 </a>
                             {% endfor %}
@@ -110,7 +112,7 @@
                         <input type="hidden" name="next" value="{{ request.get_full_path }}">
                         <button type="submit">Guardar en Book</button>
                     </form>
-                    <button type="button" data-share>{{ labels.share }}</button>
+                    <button type="button" data-share data-share-title="{{ business_card.display_name }}" data-share-text="Tarjeta de presentacion de Cardbook">{{ labels.share }}</button>
                     {% if can_print %}<a href="{% url 'public-business-card-print' business_card.slug %}?paper=letter">{{ labels.print }}</a>{% endif %}
                     {% if request.user.is_authenticated %}<a href="{% url 'dashboard-home' %}">{{ labels.dashboard }}</a>{% endif %}
                 </div>

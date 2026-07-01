@@ -10,12 +10,7 @@ class AppGradientBackground extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF111B5E), AppColors.ink, Color(0xFF061322)],
-          stops: [0, .42, 1],
-        ),
+        gradient: AppGradients.page,
       ),
       child: child,
     );

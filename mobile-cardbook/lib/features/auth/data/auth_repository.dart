@@ -33,5 +33,23 @@ class AuthRepository {
     return data['user'] as Map<String, dynamic>? ?? {};
   }
 
-  Future<void> logout() => _tokenStorage.clear();
+  Future<bool> hasStoredSession() async {
+    final access = await _tokenStorage.readAccess();
+    return access != null && access.isNotEmpty;
+  }
+
+  Future<void> logout() async {
+    final refresh = await _tokenStorage.readRefresh();
+    if (refresh != null && refresh.isNotEmpty) {
+      try {
+        await _apiClient.dio.post<Map<String, dynamic>>(
+          '/accounts/logout/',
+          data: {'refresh': refresh},
+        );
+      } catch (_) {
+        // Local logout still matters if the server token blacklist fails.
+      }
+    }
+    await _tokenStorage.clear();
+  }
 }

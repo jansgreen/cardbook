@@ -12,8 +12,8 @@
         <section class="public-card-layout">
             <article class="public-card">
                 <header class="card-cover">
-                    {% if card.company.logo %}<img class="company-logo" src="{{ card.company.logo.url }}" alt="{{ card.company.name }}">{% else %}<img class="company-logo" src="{% static 'img/logo.png' %}" alt="Cardbook">{% endif %}
-                    {% if card.photo %}<img class="profile-photo" src="{{ card.photo.url }}" alt="Foto de perfil">{% elif card.user.avatar %}<img class="profile-photo" src="{{ card.user.avatar.url }}" alt="Foto de perfil">{% else %}<div class="profile-photo text-avatar">{{ card.user.username|slice:":2" }}</div>{% endif %}
+                    {% if card.company.logo %}<img class="company-logo" src="{{ card.company.logo.url }}" alt="{{ card.company.name }}" data-fallback-text="{{ card.company.name|slice:':2' }}">{% else %}<img class="company-logo" src="{% static 'img/logo.png' %}" alt="Cardbook" data-fallback-text="CB">{% endif %}
+                    {% if card.photo %}<img class="profile-photo" src="{{ card.photo.url }}" alt="Foto de perfil" data-fallback-text="{{ card.user.get_full_name|default:card.user.username|slice:':2' }}">{% elif card.user.avatar %}<img class="profile-photo" src="{{ card.user.avatar.url }}" alt="Foto de perfil" data-fallback-text="{{ card.user.get_full_name|default:card.user.username|slice:':2' }}">{% else %}<div class="profile-photo text-avatar">{{ card.user.username|slice:":2" }}</div>{% endif %}
                 </header>
                 <section class="card-main">
                     <p class="company-name">{{ card.company.name }}</p>
@@ -32,7 +32,7 @@
                         {% if card.phone_number %}<a href="tel:{{ card.phone_number }}">Llamar</a>{% endif %}
                         {% if card.email %}<a href="mailto:{{ card.email }}">Email</a>{% endif %}
                         {% if card.website %}<a href="{{ card.website }}" target="_blank" rel="noopener">Website</a>{% endif %}
-                        <button type="button" data-share>Compartir</button>
+                        <button type="button" data-share data-share-title="{% if translation %}{{ translation.full_name }}{% else %}{{ card.user.get_full_name|default:card.user.username }}{% endif %}" data-share-text="Perfil digital de Cardbook">Compartir</button>
                     </div>
                     <div class="detail-list">
                         {% if card.phone_number %}<p><strong>Telefono</strong><span>{{ card.phone_number }}</span></p>{% endif %}
@@ -96,14 +96,14 @@
                         <div class="public-allies-list">
                             {% for ally in allied_companies|slice:":4" %}
                                 <a href="{% url 'public-company-detail' ally.slug %}">
-                                    {% if ally.logo %}<img src="{{ ally.logo.url }}" alt="{{ ally.name }}">{% endif %}
+                                    {% if ally.logo %}<img src="{{ ally.logo.url }}" alt="{{ ally.name }}" data-fallback-text="{{ ally.name|slice:':2' }}">{% endif %}
                                     <span>{{ ally.name }}</span>
                                 </a>
                             {% endfor %}
                         </div>
                     </div>
                 {% endif %}
-                <button type="button" data-share>Compartir tarjeta</button>
+                <button type="button" data-share data-share-title="{% if translation %}{{ translation.full_name }}{% else %}{{ card.user.get_full_name|default:card.user.username }}{% endif %}" data-share-text="Perfil digital de Cardbook">Compartir perfil</button>
             </aside>
         </section>
     </main>

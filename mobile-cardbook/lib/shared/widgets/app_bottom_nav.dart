@@ -14,7 +14,7 @@ class AppBottomNav extends StatelessWidget {
       _NavItem('Empresas', Icons.business_center_outlined, '/companies'),
       _NavItem('', Icons.add, '/cards'),
       _NavItem('Notificaciones', Icons.notifications_none, '/notifications'),
-      _NavItem('Perfil', Icons.person_outline, '/book'),
+      _NavItem('Perfil', Icons.person_outline, '/profile'),
     ];
 
     return SafeArea(
@@ -23,9 +23,16 @@ class AppBottomNav extends StatelessWidget {
         margin: const EdgeInsets.fromLTRB(18, 0, 18, 12),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
-          color: AppColors.panel.withOpacity(.94),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: AppColors.stroke),
+          color: AppColors.panel.withOpacity(.96),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(color: AppColors.stroke.withOpacity(.9)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(.34),
+              blurRadius: 28,
+              offset: const Offset(0, 16),
+            ),
+          ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -74,7 +81,14 @@ class _BottomNavButton extends StatelessWidget {
           height: 54,
           decoration: const BoxDecoration(
             shape: BoxShape.circle,
-            gradient: LinearGradient(colors: [AppColors.purple, AppColors.blue]),
+            gradient: AppGradients.primary,
+            boxShadow: [
+              BoxShadow(
+                color: Color(0x663B36FF),
+                blurRadius: 18,
+                offset: Offset(0, 8),
+              ),
+            ],
           ),
           child: Icon(item.icon, color: Colors.white),
         ),
@@ -84,7 +98,7 @@ class _BottomNavButton extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: SizedBox(
-        width: 64,
+        width: 62,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

@@ -10,8 +10,8 @@ function Invoke-Step($Label, $Executable, [string[]]$Arguments) {
 
 $Project = Split-Path -Parent $MyInvocation.MyCommand.Path
 $RepoRoot = Split-Path -Parent $Project
-$VersionCode = if ($env:CARDBOOK_ANDROID_VERSION_CODE) { $env:CARDBOOK_ANDROID_VERSION_CODE } else { "3" }
-$VersionName = if ($env:CARDBOOK_ANDROID_VERSION_NAME) { $env:CARDBOOK_ANDROID_VERSION_NAME } else { "0.3.0" }
+$VersionCode = if ($env:CARDBOOK_ANDROID_VERSION_CODE) { $env:CARDBOOK_ANDROID_VERSION_CODE } else { "4" }
+$VersionName = if ($env:CARDBOOK_ANDROID_VERSION_NAME) { $env:CARDBOOK_ANDROID_VERSION_NAME } else { "0.3.1" }
 $Sdk = Join-Path $env:LOCALAPPDATA "Android\Sdk"
 $Platform = Join-Path $Sdk "platforms\android-35\android.jar"
 $BuildTools = Join-Path $Sdk "build-tools\35.0.0"

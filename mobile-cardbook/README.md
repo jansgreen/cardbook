@@ -39,3 +39,65 @@ El token se guarda con `flutter_secure_storage` y se envia como:
 ```text
 Authorization: Bearer <access_token>
 ```
+
+## Builds
+
+Debug APK en PowerShell:
+
+```powershell
+.\tool\build_debug.ps1
+```
+
+Release APK:
+
+```powershell
+.\tool\build_release.ps1
+```
+
+Release AAB para Play Store:
+
+```powershell
+.\tool\build_release.ps1 -AppBundle
+```
+
+En Bash:
+
+```bash
+./tool/build_release.sh
+./tool/build_release.sh https://cardbook-45cf0409dc07.herokuapp.com aab
+```
+
+Mas detalle en `docs/phase_10_release_build.md`.
+
+## Auditoria pre-lanzamiento
+
+```powershell
+.\tool\release_audit.ps1
+```
+
+Este comando revisa Django, metadata de Google Play, paginas legales, endpoints publicos y entorno Flutter/Android.
+
+## Predeploy Heroku
+
+```powershell
+.\tool\predeploy_heroku.ps1
+```
+
+Este comando corre `manage.py check`, `collectstatic` y la auditoria de release antes de subir cambios a Heroku.
+
+## Health checks
+
+```text
+/health/
+/health/ready/
+```
+
+Estos endpoints ayudan a confirmar que Heroku esta ejecutando la version correcta y que la base de datos responde.
+
+## Smoke test de produccion
+
+```powershell
+.\tool\smoke_heroku.ps1
+```
+
+Este comando revisa la URL publica despues del deploy: health checks, API raiz, pagina Android, version Android, privacidad y terminos.

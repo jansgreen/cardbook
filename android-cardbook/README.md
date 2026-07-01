@@ -2,7 +2,7 @@
 
 Aplicacion Android para Cardbook. La version actual usa un WebView nativo endurecido para entregar todas las funciones web existentes: autenticacion, dashboard, empresas, perfiles digitales, tarjetas de presentacion, Book, publicaciones y alianzas.
 
-Version actual: `0.3.0` (`versionCode` 3), `minSdkVersion` 26, `targetSdkVersion` 35.
+Version actual: `0.3.1` (`versionCode` 4), `minSdkVersion` 26, `targetSdkVersion` 35.
 
 ## Incluido ahora
 

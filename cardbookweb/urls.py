@@ -4,6 +4,8 @@ from django.contrib import admin
 from django.http import JsonResponse
 from django.urls import include, path
 
+from .health import HealthView, ReadinessView
+
 
 def api_root(request):
     return JsonResponse({
@@ -26,6 +28,8 @@ def api_root(request):
 
 
 urlpatterns = [
+    path("health/", HealthView.as_view(), name="health"),
+    path("health/ready/", ReadinessView.as_view(), name="health-ready"),
     path("admin/", admin.site.urls),
     path("api/v1/", api_root, name="api-root"),
     path("api/v1/accounts/", include("accounts.urls")),

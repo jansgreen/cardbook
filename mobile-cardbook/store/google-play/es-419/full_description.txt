@@ -1,0 +1,14 @@
+Cardbook es una plataforma para pequenas empresas y profesionales que necesitan compartir su informacion de contacto de forma moderna, ordenada y facil de actualizar.
+
+Con Cardbook puedes administrar empresas, crear perfiles de negocio, generar tarjetas digitales, guardar negocios en Book y conectar con otras empresas mediante alianzas.
+
+Funciones principales:
+- Gestion de empresas.
+- Perfiles digitales para compartir.
+- Tarjetas de presentacion de negocio.
+- Book para guardar tarjetas y perfiles de otros negocios.
+- Solicitudes de alianzas empresariales.
+- Acciones nativas para llamar, enviar email, abrir sitios web, WhatsApp y mapas.
+- Actualizaciones desde la app.
+
+Cardbook conecta la app movil con una API REST segura para mantener la informacion sincronizada con la plataforma web.

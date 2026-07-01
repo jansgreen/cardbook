@@ -17,31 +17,41 @@ class MetricCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (icon != null)
-              Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  color: accent.withOpacity(.18),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon, color: accent, size: 18),
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.panelHigh.withOpacity(.62),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: accent.withOpacity(.18)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (icon != null)
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: accent.withOpacity(.16),
+                borderRadius: BorderRadius.circular(11),
               ),
-            const Spacer(),
-            Text(label, style: const TextStyle(color: AppColors.muted, fontSize: 12)),
-            const SizedBox(height: 6),
-            Text(
-              value,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
+              child: Icon(icon, color: accent, size: 18),
             ),
-          ],
-        ),
+          const Spacer(),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(color: AppColors.muted, fontSize: 11, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+          ),
+        ],
       ),
     );
   }

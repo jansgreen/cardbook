@@ -5,4 +5,5 @@ class ApiConfig {
   );
 
   static String get apiBase => '${baseUrl.replaceAll(RegExp(r'/$'), '')}/api/v1';
+  static String get publicBase => baseUrl.replaceAll(RegExp(r'/$'), '');
 }

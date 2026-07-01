@@ -1,0 +1,29 @@
+name: Cardbook Smoke Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      public_base_url:
+        description: Public URL to test
+        required: true
+        default: https://cardbook-45cf0409dc07.herokuapp.com
+      expected_version:
+        description: Expected app version
+        required: false
+        default: ""
+
+jobs:
+  smoke:
+    name: Production smoke test
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run smoke test
+        shell: pwsh
+        run: |
+          .\mobile-cardbook\tool\smoke_heroku.ps1 `
+            -PublicBaseUrl "${{ inputs.public_base_url }}" `
+            -ExpectedVersion "${{ inputs.expected_version }}"
+

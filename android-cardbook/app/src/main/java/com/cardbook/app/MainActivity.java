@@ -1,9 +1,12 @@
 package com.cardbook.app;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
@@ -34,6 +37,13 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Locale;
 
 public class MainActivity extends Activity {
@@ -45,6 +55,7 @@ public class MainActivity extends Activity {
     private static final int WHITE = Color.WHITE;
     private static final String BASE_URL = "https://cardbook-45cf0409dc07.herokuapp.com/";
     private static final String BASE_HOST = "cardbook-45cf0409dc07.herokuapp.com";
+    private static final String VERSION_URL = BASE_URL + "android/version/";
 
     private FrameLayout container;
     private WebView webView;
@@ -59,6 +70,7 @@ public class MainActivity extends Activity {
         renderShell();
         if (savedInstanceState == null) {
             webView.loadUrl(BASE_URL);
+            checkForUpdates();
         } else {
             webView.restoreState(savedInstanceState);
             hideSplash();
@@ -112,34 +124,6 @@ public class MainActivity extends Activity {
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(Color.rgb(244, 246, 249));
 
-        LinearLayout appBar = new LinearLayout(this);
-        appBar.setOrientation(LinearLayout.HORIZONTAL);
-        appBar.setGravity(Gravity.CENTER_VERTICAL);
-        int statusBarHeight = getStatusBarHeight();
-        appBar.setPadding(dp(14), statusBarHeight + dp(8), dp(12), dp(8));
-        appBar.setBackground(gradient(BLUE_DARK, BLUE));
-
-        ImageView mark = new ImageView(this);
-        mark.setImageResource(getResources().getIdentifier("cardbook_logo", "drawable", getPackageName()));
-        mark.setPadding(dp(2), dp(2), dp(2), dp(2));
-        appBar.addView(mark, new LinearLayout.LayoutParams(dp(42), dp(42)));
-
-        titleView = new TextView(this);
-        titleView.setText("Cardbook");
-        titleView.setTextColor(WHITE);
-        titleView.setTextSize(19);
-        titleView.setTypeface(Typeface.DEFAULT_BOLD);
-        titleView.setSingleLine(true);
-        titleView.setPadding(dp(10), 0, 0, 0);
-        appBar.addView(titleView, new LinearLayout.LayoutParams(0, dp(48), 1));
-
-        appBar.addView(navButton("Inicio", new View.OnClickListener() {
-            @Override public void onClick(View view) { webView.loadUrl(BASE_URL); }
-        }));
-        appBar.addView(navButton("Panel", new View.OnClickListener() {
-            @Override public void onClick(View view) { webView.loadUrl(BASE_URL + "dashboard/"); }
-        }));
-
         progressBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
         progressBar.setMax(100);
         progressBar.setProgress(0);
@@ -153,7 +137,6 @@ public class MainActivity extends Activity {
         splashView = createSplashView();
         container.addView(splashView, new FrameLayout.LayoutParams(-1, -1));
 
-        root.addView(appBar, new LinearLayout.LayoutParams(-1, dp(64) + statusBarHeight));
         root.addView(progressBar, new LinearLayout.LayoutParams(-1, dp(3)));
         root.addView(container, new LinearLayout.LayoutParams(-1, 0, 1));
         setContentView(root);
@@ -333,6 +316,113 @@ public class MainActivity extends Activity {
                 + "}"
             + "})();";
         view.evaluateJavascript(js, null);
+    }
+
+    private void checkForUpdates() {
+        if (!isNetworkAvailable()) {
+            return;
+        }
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                HttpURLConnection connection = null;
+                try {
+                    URL url = new URL(VERSION_URL);
+                    connection = (HttpURLConnection) url.openConnection();
+                    connection.setConnectTimeout(6000);
+                    connection.setReadTimeout(6000);
+                    connection.setRequestMethod("GET");
+                    connection.setRequestProperty("Accept", "application/json");
+
+                    int statusCode = connection.getResponseCode();
+                    if (statusCode < 200 || statusCode >= 300) {
+                        return;
+                    }
+
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"));
+                    StringBuilder payload = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        payload.append(line);
+                    }
+                    reader.close();
+
+                    JSONObject data = new JSONObject(payload.toString());
+                    final int latestCode = data.optInt("latest_version_code", 0);
+                    final int minSupportedCode = data.optInt("min_supported_version_code", 0);
+                    final boolean forceUpdate = data.optBoolean("force_update", false) || getCurrentVersionCode() < minSupportedCode;
+                    final String versionName = data.optString("latest_version_name", "");
+                    final String downloadUrl = data.optString("download_url", BASE_URL + "android/download/");
+                    final String message = data.optString("message", "Nueva version de Cardbook disponible.");
+                    final String changelog = buildChangelog(data.optJSONArray("changelog"));
+
+                    if (latestCode > getCurrentVersionCode()) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                showUpdateDialog(versionName, message, changelog, downloadUrl, forceUpdate);
+                            }
+                        });
+                    }
+                } catch (Exception ignored) {
+                    // La app debe seguir funcionando aunque el chequeo de version falle.
+                } finally {
+                    if (connection != null) {
+                        connection.disconnect();
+                    }
+                }
+            }
+        }).start();
+    }
+
+    private void showUpdateDialog(String versionName, String message, String changelog, final String downloadUrl, boolean forceUpdate) {
+        String title = versionName.trim().length() > 0
+            ? "Actualizacion disponible " + versionName
+            : "Actualizacion disponible";
+        String body = message;
+        if (changelog.trim().length() > 0) {
+            body += "\n\n" + changelog;
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+            .setTitle(title)
+            .setMessage(body)
+            .setPositiveButton("Actualizar", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    openExternal(downloadUrl);
+                }
+            });
+
+        if (!forceUpdate) {
+            builder.setNegativeButton("Luego", null);
+        }
+
+        AlertDialog dialog = builder.create();
+        dialog.setCanceledOnTouchOutside(!forceUpdate);
+        dialog.setCancelable(!forceUpdate);
+        dialog.show();
+    }
+
+    private String buildChangelog(JSONArray changelog) {
+        if (changelog == null || changelog.length() == 0) {
+            return "";
+        }
+        StringBuilder builder = new StringBuilder("Novedades:");
+        for (int i = 0; i < changelog.length(); i++) {
+            builder.append("\n- ").append(changelog.optString(i));
+        }
+        return builder.toString();
+    }
+
+    private int getCurrentVersionCode() {
+        try {
+            PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), 0);
+            return info.versionCode;
+        } catch (Exception ignored) {
+            return 0;
+        }
     }
 
     private void openExternal(String url) {

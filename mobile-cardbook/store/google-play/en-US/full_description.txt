@@ -1,0 +1,14 @@
+Cardbook helps small businesses and professionals manage and share business contact information through a modern digital card experience.
+
+With Cardbook you can manage companies, create business profiles, build digital business cards, save other businesses in Book and connect with companies through alliances.
+
+Main features:
+- Company management.
+- Shareable digital profiles.
+- Business presentation cards.
+- Book for saved companies and digital cards.
+- Business alliance requests.
+- Native actions for phone, email, websites, WhatsApp and maps.
+- In-app update status.
+
+Cardbook connects the mobile app with a secure REST API to keep information synchronized with the web platform.

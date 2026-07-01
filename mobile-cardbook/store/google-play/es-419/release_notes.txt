@@ -1,0 +1,3 @@
+Primera version nativa de Cardbook para Android.
+
+Incluye gestion de empresas, perfiles de negocio, tarjetas de presentacion, Book, alianzas, perfil de usuario y consulta de actualizaciones.

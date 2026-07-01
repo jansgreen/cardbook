@@ -1,0 +1,3 @@
+First native Cardbook Android version.
+
+Includes company management, business profiles, presentation cards, Book, alliances, user profile and update status.

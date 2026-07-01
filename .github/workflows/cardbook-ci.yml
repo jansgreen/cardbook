@@ -1,0 +1,71 @@
+name: Cardbook CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  backend:
+    name: Django backend
+    runs-on: ubuntu-latest
+    env:
+      DJANGO_DEBUG: "False"
+      DJANGO_SECRET_KEY: ci-cardbook-secret-key
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Django system check
+        run: python manage.py check
+
+      - name: Collect static files
+        run: python manage.py collectstatic --noinput
+
+  flutter:
+    name: Flutter mobile
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile-cardbook
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Generate Flutter platform folders when missing
+        run: flutter create .
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Analyze Flutter app
+        run: flutter analyze
+
+      - name: Run Flutter tests
+        run: flutter test
+

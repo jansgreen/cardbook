@@ -1,7 +1,17 @@
-﻿from django.urls import path
+from django.urls import path
 
 from accounts.web_views import WebLoginView, WebLogoutView, WebRegisterView
-from .views import AboutView, AndroidApkDownloadView, AndroidView, ContactView, HomeView, PricingView
+from .views import (
+    AboutView,
+    AndroidApkDownloadView,
+    AndroidVersionView,
+    AndroidView,
+    ContactView,
+    HomeView,
+    PricingView,
+    PrivacyView,
+    TermsView,
+)
 
 
 urlpatterns = [
@@ -12,6 +22,9 @@ urlpatterns = [
     path("about/", AboutView.as_view(), name="web-about"),
     path("pricing/", PricingView.as_view(), name="web-pricing"),
     path("contact/", ContactView.as_view(), name="web-contact"),
+    path("privacy/", PrivacyView.as_view(), name="web-privacy"),
+    path("terms/", TermsView.as_view(), name="web-terms"),
     path("android/", AndroidView.as_view(), name="web-android"),
     path("android/download/", AndroidApkDownloadView.as_view(), name="web-android-download"),
+    path("android/version/", AndroidVersionView.as_view(), name="web-android-version"),
 ]

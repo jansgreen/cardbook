@@ -7,9 +7,17 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+APP_VERSION = os.environ.get("CARDBOOK_APP_VERSION", "0.14.0")
+RELEASE_COMMIT = os.environ.get("HEROKU_SLUG_COMMIT", os.environ.get("CARDBOOK_RELEASE_COMMIT", "local"))
+DEPLOY_ENV = os.environ.get("CARDBOOK_DEPLOY_ENV", "local")
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-insecure-cardbook-local-dev-key")
 DEBUG = os.environ.get("DJANGO_DEBUG", "True") == "True"
 ALLOWED_HOSTS = [host.strip() for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if host.strip()]
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
+    if origin.strip()
+]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -144,7 +152,9 @@ CORS_ALLOWED_ORIGINS = [
     if origin.strip()
 ]
 
-
-
-
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SECURE_SSL_REDIRECT = os.environ.get("DJANGO_SECURE_SSL_REDIRECT", "False") == "True"
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+X_FRAME_OPTIONS = "DENY"
 
