@@ -13,7 +13,7 @@ class AppBottomNav extends StatelessWidget {
       _NavItem('Inicio', Icons.home_outlined, '/'),
       _NavItem('Empresas', Icons.business_center_outlined, '/companies'),
       _NavItem('', Icons.add, '/cards'),
-      _NavItem('Notificaciones', Icons.notifications_none, '/notifications'),
+      _NavItem('Book', Icons.bookmarks_outlined, '/book'),
       _NavItem('Perfil', Icons.person_outline, '/profile'),
     ];
 

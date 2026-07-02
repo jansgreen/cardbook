@@ -1,9 +1,9 @@
 ﻿{
     "source":  "flutter",
     "package":  "com.cardbook.app",
-    "version_name":  "0.1.0",
-    "version_code":  1,
+    "version_name":  "0.1.1",
+    "version_code":  2,
     "api_base_url":  "https://cardbook-45cf0409dc07.herokuapp.com",
-    "apk_size":  53835272,
-    "built_at":  "2026-07-01T13:04:35.5659530Z"
+    "apk_size":  53868228,
+    "built_at":  "2026-07-02T12:56:10.8161434Z"
 }

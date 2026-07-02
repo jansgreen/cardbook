@@ -154,6 +154,16 @@ class _DigitalCardFormScreenState extends ConsumerState<DigitalCardFormScreen> {
                     error: (_, __) => const AsyncStateView.error('No pudimos cargar tus empresas.'),
                     data: (items) => Column(
                       children: [
+                        if (items.isEmpty) ...[
+                          const AsyncStateView.empty('Primero crea una empresa para asociar este perfil.'),
+                          const SizedBox(height: 12),
+                          OutlinedButton.icon(
+                            onPressed: _saving ? null : () => context.push('/companies/form'),
+                            icon: const Icon(Icons.add_business_rounded),
+                            label: const Text('Crear empresa'),
+                          ),
+                          const SizedBox(height: 14),
+                        ],
                         DropdownButtonFormField<int>(
                           value: _companyId,
                           items: [

@@ -33,6 +33,37 @@ class AuthRepository {
     return data['user'] as Map<String, dynamic>? ?? {};
   }
 
+  Future<Map<String, dynamic>> register({
+    required String username,
+    required String email,
+    required String password,
+    required String passwordConfirm,
+    String firstName = '',
+    String lastName = '',
+  }) async {
+    final response = await _apiClient.dio.post<Map<String, dynamic>>(
+      '/accounts/register/',
+      data: {
+        'username': username,
+        'email': email,
+        'password': password,
+        'password_confirm': passwordConfirm,
+        'first_name': firstName,
+        'last_name': lastName,
+        'preferred_language': 'es',
+      },
+    );
+    final data = response.data?['data'] as Map<String, dynamic>? ?? {};
+    final tokens = data['tokens'] as Map<String, dynamic>? ?? {};
+    final access = tokens['access'] as String?;
+    final refresh = tokens['refresh'] as String?;
+    if (access == null || refresh == null) {
+      throw StateError('La API no devolvio tokens validos.');
+    }
+    await _tokenStorage.save(access: access, refresh: refresh);
+    return data['user'] as Map<String, dynamic>? ?? {};
+  }
+
   Future<bool> hasStoredSession() async {
     final access = await _tokenStorage.readAccess();
     return access != null && access.isNotEmpty;

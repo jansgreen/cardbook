@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_cardbook/features/cards/data/cards_repository.dart';
+import 'package:mobile_cardbook/features/companies/data/companies_repository.dart';
 import 'package:mobile_cardbook/shared/theme/app_theme.dart';
 import 'package:mobile_cardbook/shared/widgets/app_gradient_background.dart';
 import 'package:mobile_cardbook/shared/widgets/async_state_view.dart';
@@ -29,6 +30,7 @@ class _BusinessCardFormScreenState extends ConsumerState<BusinessCardFormScreen>
   late final TextEditingController _tagline;
   late final TextEditingController _services;
   int? _profileId;
+  int? _companyId;
   bool _saving = false;
   String? _error;
 
@@ -39,6 +41,7 @@ class _BusinessCardFormScreenState extends ConsumerState<BusinessCardFormScreen>
     super.initState();
     final card = widget.card ?? const <String, dynamic>{};
     _profileId = _intValue(card['profile']);
+    _companyId = _intValue(card['company']);
     _displayName = TextEditingController(text: _text(card['display_name']));
     _jobTitle = TextEditingController(text: _text(card['job_title']));
     _companyName = TextEditingController(text: _text(card['company_name']));
@@ -66,8 +69,8 @@ class _BusinessCardFormScreenState extends ConsumerState<BusinessCardFormScreen>
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_profileId == null) {
-      setState(() => _error = 'Selecciona un perfil de negocio.');
+    if (_companyId == null) {
+      setState(() => _error = 'Selecciona una empresa.');
       return;
     }
     setState(() {
@@ -75,21 +78,22 @@ class _BusinessCardFormScreenState extends ConsumerState<BusinessCardFormScreen>
       _error = null;
     });
 
-    final payload = {
-      'profile': _profileId,
-      'display_name': _displayName.text.trim(),
-      'job_title': _jobTitle.text.trim(),
-      'company_name': _companyName.text.trim(),
-      'phone_number': _phone.text.trim(),
-      'email': _email.text.trim(),
-      'website': _url(_website.text),
-      'address': _address.text.trim(),
-      'tagline': _tagline.text.trim(),
-      'services': _services.text.trim(),
-    };
-
     try {
       final repository = ref.read(cardRepositoryProvider);
+      final profileId = await _resolveProfileId(repository);
+      final payload = {
+        'profile': profileId,
+        'display_name': _displayName.text.trim(),
+        'job_title': _jobTitle.text.trim(),
+        'company_name': _companyName.text.trim(),
+        'phone_number': _phone.text.trim(),
+        'email': _email.text.trim(),
+        'website': _url(_website.text),
+        'address': _address.text.trim(),
+        'tagline': _tagline.text.trim(),
+        'services': _services.text.trim(),
+      };
+
       if (_isEditing) {
         final id = widget.card?['id'];
         if (id is! int) throw StateError('Tarjeta invalida.');
@@ -108,9 +112,33 @@ class _BusinessCardFormScreenState extends ConsumerState<BusinessCardFormScreen>
     }
   }
 
+  Future<int> _resolveProfileId(CardRepository repository) async {
+    if (_profileId != null) return _profileId!;
+    final profiles = ref.read(digitalCardsProvider).value ?? const <Map<String, dynamic>>[];
+    for (final profile in profiles) {
+      if (_intValue(profile['company']) == _companyId) {
+        final id = _intValue(profile['id']);
+        if (id != null) return id;
+      }
+    }
+
+    final profile = await repository.createDigital({
+      'company': _companyId,
+      'job_title': _jobTitle.text.trim(),
+      'phone_number': _phone.text.trim(),
+      'email': _email.text.trim(),
+      'website': _url(_website.text),
+    });
+    ref.invalidate(digitalCardsProvider);
+    final id = _intValue(profile['id']);
+    if (id == null) throw StateError('No se pudo crear el perfil base.');
+    _profileId = id;
+    return id;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final profiles = ref.watch(digitalCardsProvider);
+    final companies = ref.watch(companiesProvider);
 
     return Scaffold(
       body: AppGradientBackground(
@@ -156,23 +184,50 @@ class _BusinessCardFormScreenState extends ConsumerState<BusinessCardFormScreen>
                 ),
                 const SizedBox(height: 18),
                 GlassCard(
-                  child: profiles.when(
+                  child: companies.when(
                     loading: () => const SizedBox(height: 120, child: AsyncStateView.loading()),
-                    error: (_, __) => const AsyncStateView.error('No pudimos cargar tus perfiles.'),
+                    error: (_, __) => const AsyncStateView.error('No pudimos cargar tus empresas.'),
                     data: (items) => Column(
                       children: [
+                        if (items.isEmpty) ...[
+                          const AsyncStateView.empty('Primero crea una empresa para asociar esta tarjeta.'),
+                          const SizedBox(height: 12),
+                          OutlinedButton.icon(
+                            onPressed: _saving ? null : () => context.push('/companies/form'),
+                            icon: const Icon(Icons.add_business_rounded),
+                            label: const Text('Crear empresa'),
+                          ),
+                          const SizedBox(height: 14),
+                        ],
                         DropdownButtonFormField<int>(
-                          value: _profileId,
+                          value: _companyId,
                           items: [
-                            for (final profile in items)
+                            for (final company in items)
                               DropdownMenuItem<int>(
-                                value: _intValue(profile['id']),
-                                child: Text(_profileLabel(profile)),
+                                value: _intValue(company['id']),
+                                child: Text(_text(company['name'])),
                               ),
                           ],
-                          onChanged: _saving ? null : (value) => setState(() => _profileId = value),
-                          validator: (value) => value == null ? 'Selecciona un perfil.' : null,
-                          decoration: const InputDecoration(labelText: 'Perfil de negocio'),
+                          onChanged: _saving
+                              ? null
+                              : (value) {
+                                  Map<String, dynamic>? selected;
+                                  for (final item in items) {
+                                    if (_intValue(item['id']) == value) {
+                                      selected = item;
+                                      break;
+                                    }
+                                  }
+                                  setState(() {
+                                    _companyId = value;
+                                    _profileId = null;
+                                    if (_companyName.text.trim().isEmpty && selected != null) {
+                                      _companyName.text = _text(selected['name']);
+                                    }
+                                  });
+                                },
+                          validator: (value) => value == null ? 'Selecciona una empresa.' : null,
+                          decoration: const InputDecoration(labelText: 'Empresa'),
                         ),
                         const SizedBox(height: 14),
                         _Field(controller: _displayName, label: 'Nombre visible', isRequired: true),
@@ -246,15 +301,6 @@ class _Field extends StatelessWidget {
       ),
     );
   }
-}
-
-String _profileLabel(Map<String, dynamic> profile) {
-  final job = _text(profile['job_title']);
-  final email = _text(profile['email']);
-  if (job.isNotEmpty && email.isNotEmpty) return '$job - $email';
-  if (job.isNotEmpty) return job;
-  if (email.isNotEmpty) return email;
-  return 'Perfil ${profile['id']}';
 }
 
 String _text(dynamic value) => value?.toString().trim() ?? '';

@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:mobile_cardbook/features/auth/presentation/login_screen.dart';
+import 'package:mobile_cardbook/features/auth/presentation/register_screen.dart';
 import 'package:mobile_cardbook/features/book/presentation/book_screen.dart';
 import 'package:mobile_cardbook/features/cards/presentation/business_card_form_screen.dart';
 import 'package:mobile_cardbook/features/cards/presentation/card_detail_screen.dart';
@@ -17,6 +18,7 @@ final appRouter = GoRouter(
   initialLocation: '/login',
   routes: [
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+    GoRoute(path: '/register', builder: (context, state) => const RegisterScreen()),
     GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
     GoRoute(path: '/companies', builder: (context, state) => const CompaniesScreen()),
     GoRoute(

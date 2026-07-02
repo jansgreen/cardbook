@@ -125,6 +125,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           : const Icon(Icons.arrow_forward_rounded),
                       label: Text(_loading ? 'Entrando...' : 'Entrar a Cardbook'),
                     ),
+                    const SizedBox(height: 12),
+                    Center(
+                      child: TextButton(
+                        onPressed: _loading ? null : () => context.go('/register'),
+                        child: const Text('Crear cuenta nueva'),
+                      ),
+                    ),
                   ],
                 ),
               ),
