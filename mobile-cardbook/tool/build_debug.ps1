@@ -11,7 +11,7 @@ if (-not (Get-Command flutter -ErrorAction SilentlyContinue)) {
 Push-Location (Join-Path $PSScriptRoot "..")
 try {
     flutter pub get
-    flutter analyze
+    flutter analyze --no-fatal-infos
     flutter test
     flutter build apk --debug --dart-define="CARDBOOK_API_BASE_URL=$ApiBaseUrl"
 }

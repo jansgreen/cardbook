@@ -54,6 +54,8 @@ Release APK:
 .\tool\build_release.ps1
 ```
 
+Ese comando tambien publica el APK Flutter en `static/downloads/cardbook.apk` y crea la metadata que habilita `/android/download/`.
+
 Release AAB para Play Store:
 
 ```powershell

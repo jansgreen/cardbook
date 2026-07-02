@@ -34,13 +34,19 @@
         <div>
             <p class="eyebrow">Incluido</p>
             <h2>La app usa la misma API de la plataforma</h2>
-            <p>La APK publicada carga Cardbook de forma nativa con WebView, conserva sesion, comparte tarjetas con Android y abre telefono, correo, WhatsApp, mapas y descargas desde apps del sistema.</p>
+            <p>La APK publicada debe ser la version Flutter nativa de Cardbook, conectada a la API REST de la plataforma.</p>
             {% if apk_ready %}
                 <div class="android-build-card">
                     <span>Version {{ apk_version_name }} ({{ apk_version_code }})</span>
                     <span>Android SDK {{ apk_min_sdk }} - {{ apk_target_sdk }}</span>
                     <span>{{ apk_size }}</span>
                     <a class="btn btn-primary" href="{% url 'web-android-download' %}">Descargar APK</a>
+                </div>
+            {% else %}
+                <div class="android-build-card">
+                    <span>APK Flutter pendiente</span>
+                    <span>El archivo WebView anterior ya no se considera publicable.</span>
+                    <span>Ejecuta el build Flutter release para habilitar descarga.</span>
                 </div>
             {% endif %}
         </div>

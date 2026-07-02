@@ -72,7 +72,7 @@ class AppTheme {
         bodyColor: AppColors.text,
         displayColor: AppColors.text,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: AppColors.panel,
         elevation: 0,
         margin: EdgeInsets.zero,

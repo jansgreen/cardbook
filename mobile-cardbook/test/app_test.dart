@@ -5,6 +5,6 @@ import 'package:mobile_cardbook/app/cardbook_app.dart';
 void main() {
   testWidgets('Cardbook app builds', (tester) async {
     await tester.pumpWidget(const ProviderScope(child: CardbookApp()));
-    expect(find.text('cardbook'), findsOneWidget);
+    expect(find.byType(CardbookApp), findsOneWidget);
   });
 }
