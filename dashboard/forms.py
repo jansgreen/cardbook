@@ -2,8 +2,15 @@
 
 from business_feed.models import BusinessPost
 from cards.models import BusinessCard, DigitalCard
+from cards.services import (
+    can_create_profile_for_company,
+    can_use_profile_for_business_card,
+    profile_creation_companies,
+    usable_profiles_for_business_cards,
+)
 from companies.models import Company
 from companies.permissions import can_access_company
+from accesscontrol.services import PERM_CREATE_CARDBOOK_BUSINESS_CARDS, user_has_access_permission
 
 
 class CompanyForm(forms.ModelForm):
@@ -31,10 +38,25 @@ class BusinessPostForm(forms.ModelForm):
         fields = ["company", "title", "caption", "media", "media_type"]
         widgets = {
             "company": forms.Select(attrs={"class": "form-control"}),
-            "title": forms.TextInput(attrs={"class": "form-control", "placeholder": "Nueva actualizacion, servicio o logro"}),
-            "caption": forms.Textarea(attrs={"class": "form-control", "rows": 3, "placeholder": "Describe la novedad de tu empresa"}),
-            "media": forms.ClearableFileInput(attrs={"class": "form-control"}),
-            "media_type": forms.Select(attrs={"class": "form-control"}),
+            "title": forms.TextInput(attrs={
+                "class": "form-control post-title-input",
+                "placeholder": "Nueva actualizacion, servicio o logro",
+                "maxlength": "100",
+                "data-max-length": "100",
+            }),
+            "caption": forms.Textarea(attrs={
+                "class": "form-control post-description-input",
+                "rows": 7,
+                "placeholder": "Escribe aqui la novedad de tu empresa...",
+                "maxlength": "200",
+                "data-max-length": "200",
+            }),
+            "media": forms.ClearableFileInput(attrs={
+                "class": "form-control post-file-input",
+                "data-post-file": "true",
+                "accept": "image/png,image/jpeg,image/jpg",
+            }),
+            "media_type": forms.Select(attrs={"class": "form-control post-type-select", "data-post-type": "true"}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -47,9 +69,41 @@ class BusinessPostForm(forms.ModelForm):
 
     def clean_company(self):
         company = self.cleaned_data["company"]
-        if not can_access_company(self.user, company):
+        if not can_access_company(self.user, company) and not user_has_access_permission(
+            self.user,
+            PERM_CREATE_CARDBOOK_BUSINESS_CARDS,
+            company,
+        ):
             raise forms.ValidationError("No perteneces a esta empresa.")
         return company
+
+    def clean_title(self):
+        title = self.cleaned_data.get("title", "").strip()
+        if len(title) > 100:
+            raise forms.ValidationError("El titulo no puede superar 100 caracteres.")
+        return title
+
+    def clean_caption(self):
+        caption = (self.cleaned_data.get("caption") or "").strip()
+        if len(caption) > 200:
+            raise forms.ValidationError("La descripcion no puede superar 200 caracteres.")
+        return caption
+
+    def clean_media(self):
+        media = self.cleaned_data.get("media")
+        media_type = self.data.get(self.add_prefix("media_type")) or self.data.get("media_type")
+        if not media:
+            raise forms.ValidationError("Selecciona un archivo para la publicacion.")
+        max_size = 50 * 1024 * 1024 if media_type == BusinessPost.MEDIA_VIDEO else 10 * 1024 * 1024
+        if media.size > max_size:
+            limit = "50MB" if media_type == BusinessPost.MEDIA_VIDEO else "10MB"
+            raise forms.ValidationError(f"El archivo no puede superar {limit}.")
+        content_type = getattr(media, "content_type", "")
+        if media_type == BusinessPost.MEDIA_VIDEO and not content_type.startswith("video/"):
+            raise forms.ValidationError("Para publicaciones de video debes subir un archivo de video.")
+        if media_type == BusinessPost.MEDIA_IMAGE and not content_type.startswith("image/"):
+            raise forms.ValidationError("Para publicaciones de imagen debes subir un archivo de imagen.")
+        return media
 
 
 class DigitalCardForm(forms.ModelForm):
@@ -122,14 +176,11 @@ class DigitalCardForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user")
         super().__init__(*args, **kwargs)
-        self.fields["company"].queryset = (
-            Company.objects.filter(is_active=True, owner=self.user)
-            | Company.objects.filter(is_active=True, members__user=self.user, members__is_active=True)
-        ).distinct()
+        self.fields["company"].queryset = profile_creation_companies(self.user)
 
     def clean_company(self):
         company = self.cleaned_data["company"]
-        if not can_access_company(self.user, company):
+        if not can_create_profile_for_company(self.user, company):
             raise forms.ValidationError("No perteneces a esta empresa.")
         return company
 
@@ -198,13 +249,7 @@ class BusinessCardForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user")
         super().__init__(*args, **kwargs)
-        profiles = DigitalCard.objects.filter(
-            is_active=True,
-            company__in=(
-                Company.objects.filter(is_active=True, owner=self.user)
-                | Company.objects.filter(is_active=True, members__user=self.user, members__is_active=True)
-            ).distinct(),
-        ).select_related("company", "user")
+        profiles = usable_profiles_for_business_cards(self.user)
         self.fields["profile"].queryset = profiles
         self.fields["profile"].label_from_instance = lambda obj: f"{obj.user.get_full_name() or obj.user.username} - {obj.company.name}"
 
@@ -220,6 +265,6 @@ class BusinessCardForm(forms.ModelForm):
 
     def clean_profile(self):
         profile = self.cleaned_data["profile"]
-        if not can_access_company(self.user, profile.company):
-            raise forms.ValidationError("No perteneces a esta empresa.")
+        if not can_use_profile_for_business_card(self.user, profile):
+            raise forms.ValidationError("No tienes permiso para usar este perfil.")
         return profile

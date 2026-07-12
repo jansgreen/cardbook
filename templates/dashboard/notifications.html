@@ -1,0 +1,73 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}Notificaciones - Cardbook{% endblock %}
+{% block topbar_title %}Notificaciones{% endblock %}
+{% block topbar_subtitle %}Eventos importantes de agentes, comisiones y actividad reciente{% endblock %}
+
+{% block dashboard_content %}
+<section class="notifications-page">
+    <div class="notifications-hero">
+        <div>
+            <p>Centro de eventos</p>
+            <h1>Notificaciones</h1>
+            <span>Revisa alertas operativas, ventas de agentes, comisiones y cambios relevantes de la plataforma.</span>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit">Marcar todo como leido</button>
+        </form>
+    </div>
+
+    <div class="notifications-summary">
+        <article>
+            <span>No leidas</span>
+            <strong>{{ unread_count }}</strong>
+        </article>
+        <article>
+            <span>Mostradas</span>
+            <strong>{{ notifications|length }}</strong>
+        </article>
+        <article>
+            <span>Canales activos</span>
+            <strong>{{ event_types|length }}</strong>
+        </article>
+    </div>
+
+    <section class="panel notifications-panel">
+        <div class="panel-head">
+            <div>
+                <h2>Bandeja reciente</h2>
+                <p>Los eventos mas nuevos aparecen primero.</p>
+            </div>
+        </div>
+
+        {% if notifications %}
+            <div class="notification-list">
+                {% for notification in notifications %}
+                    <article class="notification-row {% if not notification.read_at %}unread{% endif %}">
+                        <div class="notification-icon">{{ notification.event_type|slice:":2"|upper }}</div>
+                        <div class="notification-copy">
+                            <div class="notification-title-line">
+                                <strong>{{ notification.title }}</strong>
+                                {% if not notification.read_at %}<span>Nuevo</span>{% endif %}
+                            </div>
+                            {% if notification.message %}<p>{{ notification.message }}</p>{% endif %}
+                            <small>{{ notification.get_event_type_display }} · {{ notification.created_at|date:"d M Y H:i" }}</small>
+                        </div>
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="notification_id" value="{{ notification.id }}">
+                            <button type="submit" {% if notification.read_at %}disabled{% endif %}>Marcar leida</button>
+                        </form>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-panel">
+                <strong>No hay notificaciones todavia.</strong>
+                <span>Cuando existan comisiones, ventas de agentes o eventos importantes, apareceran aqui.</span>
+            </div>
+        {% endif %}
+    </section>
+</section>
+{% endblock %}

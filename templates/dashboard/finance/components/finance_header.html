@@ -1,0 +1,21 @@
+<header class="finance-header">
+    <div>
+        <p class="finance-eyebrow">Revenue & Commission Analytics</p>
+        <h1>{{ title|default:"Finanzas" }}</h1>
+        <p>{{ subtitle|default:"Ingresos, suscripciones, agentes y comisiones de Cardbook." }}</p>
+    </div>
+    <div class="finance-actions">
+        <select aria-label="Periodo">
+            <option>Ultimos 30 dias</option>
+            <option>Hoy</option>
+            <option>Ultimos 7 dias</option>
+            <option>Este mes</option>
+            <option>Este ano</option>
+            <option>Personalizado</option>
+        </select>
+        <button type="button">Exportar reporte</button>
+        {% if can_open_stripe %}
+            <a href="{{ stripe_dashboard_url }}" target="_blank" rel="noopener">Abrir Stripe</a>
+        {% endif %}
+    </div>
+</header>

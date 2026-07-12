@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% block title %}Empresas - Cardbook{% endblock %}
+{% block content %}
+<section class="page-hero companies-hero">
+    <div class="container">
+        <p class="eyebrow">Directorio Cardbook</p>
+        <h1>Empresas en Cardbook</h1>
+        <p>Explora negocios activos, perfiles digitales, tarjetas de presentacion y websites creados dentro de Cardbook.</p>
+        <form class="company-search" method="get" role="search">
+            <label for="company-search-input">Buscar empresas</label>
+            <div class="company-search-bar">
+                <input id="company-search-input" type="search" name="q" value="{{ query }}" placeholder="Nombre, categoria, ciudad, servicio o profesional">
+                <details class="company-filter-menu" {% if filters_active %}open{% endif %}>
+                    <summary aria-label="Abrir filtros">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M4 6h16M7 12h10M10 18h4" />
+                        </svg>
+                        <span>Filtros</span>
+                    </summary>
+                    <div class="company-filter-panel">
+                        <div class="company-filter-grid">
+                            <label>
+                                <span>Mostrar</span>
+                                <select name="type">
+                                    <option value="cards" {% if result_type == "cards" %}selected{% endif %}>Tarjetas de negocios</option>
+                                    <option value="jobs" {% if result_type == "jobs" %}selected{% endif %}>White Card Job</option>
+                                    <option value="websites" {% if result_type == "websites" %}selected{% endif %}>Websites publicados</option>
+                                    <option value="all" {% if result_type == "all" %}selected{% endif %}>Todo</option>
+                                </select>
+                            </label>
+
+                            <label>
+                                <span>Categoria de empresa</span>
+                                <select name="category">
+                                    <option value="">Todas</option>
+                                    {% for item in company_categories %}
+                                        <option value="{{ item }}" {% if selected_category == item %}selected{% endif %}>{{ item }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+
+                            <label>
+                                <span>Ciudad</span>
+                                <select name="location">
+                                    <option value="">Todas</option>
+                                    {% for item in company_locations %}
+                                        <option value="{{ item }}" {% if selected_location == item %}selected{% endif %}>{{ item }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+
+                            <label>
+                                <span>Categoria laboral</span>
+                                <select name="job_category">
+                                    <option value="">Todas</option>
+                                    {% for item in job_categories %}
+                                        <option value="{{ item }}" {% if selected_job_category == item %}selected{% endif %}>{{ item }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+                        </div>
+
+                        <div class="company-filter-options">
+                            <label><input type="checkbox" name="has_qr" value="1" {% if has_qr %}checked{% endif %}> Con QR</label>
+                            <label><input type="checkbox" name="has_website" value="1" {% if has_website %}checked{% endif %}> Con website</label>
+                            <label><input type="checkbox" name="has_photo" value="1" {% if has_photo %}checked{% endif %}> Con foto</label>
+                        </div>
+
+                        <div class="company-filter-actions">
+                            <button class="btn btn-primary" type="submit">Aplicar filtros</button>
+                            <a class="btn btn-secondary" href="{% url 'web-companies' %}">Limpiar</a>
+                        </div>
+                    </div>
+                </details>
+                <button class="btn btn-primary" type="submit">Buscar</button>
+                {% if query %}<a class="btn btn-secondary" href="{% url 'web-companies' %}">Limpiar</a>{% endif %}
+            </div>
+        </form>
+    </div>
+</section>
+
+<section class="section companies-directory-section">
+    <div class="container-fluid companies-fluid-container">
+        <div class="companies-directory-head">
+            <div>
+                <p class="eyebrow">Resultados</p>
+                <h2>{{ card_total }} tarjetas de negocios</h2>
+            </div>
+            <span>{{ company_total }} empresas activas{% if show_jobs %} · {{ white_card_total }} white cards{% endif %}{% if show_websites %} · {{ website_total }} websites{% endif %}</span>
+        </div>
+
+        {% if show_cards %}
+            <div class="company-business-card-grid">
+                {% for card in business_cards %}
+                    {% cycle 'card-style-classic' 'card-style-split' 'card-style-diagonal' 'card-style-glass' 'card-style-band' 'card-style-premium' as card_style silent %}
+                    <article class="company-business-card-preview {{ card_style }} fade-in" style="--bc-bg: {{ card.background_color|default:'#003875' }}; --bc-accent: {{ card.accent_color|default:'#d8a441' }}; --bc-text: {{ card.text_color|default:'#ffffff' }};">
+                        <a class="business-card-full-link" href="{% url 'public-business-card' card.slug %}" aria-label="Ver tarjeta de {{ card.display_name }}"></a>
+                        <div class="company-business-card-glow"></div>
+
+                        <div class="company-business-card-top">
+                            <div class="company-business-card-heading">
+                                <p>{{ card.company_name|default:card.company.name|truncatechars:32 }}</p>
+                                <h3 class="name-font-{{ card.name_font }} name-size-{{ card.name_size }}">{{ card.display_name|truncatechars:54 }}</h3>
+                                <span>{{ card.job_title|default:card.profile.job_title|default:"Perfil profesional"|truncatechars:36 }}</span>
+                            </div>
+
+                            <div class="company-business-card-media">
+                                {% if card.profile.photo %}
+                                    <img class="company-business-card-photo" src="{{ card.profile.photo.url }}" alt="{{ card.display_name }}">
+                                {% endif %}
+                                {% if card.company.logo %}
+                                    <img class="company-business-card-logo" src="{{ card.company.logo.url }}" alt="{{ card.company.name }}">
+                                {% else %}
+                                    <span class="company-business-card-logo-text">{{ card.company.name|slice:":2" }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="company-business-card-bottom">
+                            <div class="company-business-card-contact">
+                                {% if card.phone_number or card.profile.phone_number %}
+                                    <p><span>Tel</span>{{ card.phone_number|default:card.profile.phone_number }}</p>
+                                {% endif %}
+                                {% if card.email or card.profile.email %}
+                                    <p><span>Email</span>{{ card.email|default:card.profile.email|truncatechars:34 }}</p>
+                                {% endif %}
+                                {% if card.website or card.profile.website %}
+                                    <p><span>Web</span>{{ card.website|default:card.profile.website|truncatechars:36 }}</p>
+                                {% endif %}
+                            </div>
+
+                            {% if card.include_qr %}
+                                <div class="company-business-card-qr">
+                                    <strong>Escanea mi perfil</strong>
+                                    <img src="{% url 'public-card-qr' card.profile.slug %}" alt="QR de {{ card.display_name }}">
+                                </div>
+                            {% endif %}
+                        </div>
+                    </article>
+                {% empty %}
+                    <article class="panel empty-companies-panel">
+                        <h2>No encontramos tarjetas</h2>
+                        <p>Prueba con otro nombre, empresa, ciudad, categoria o servicio.</p>
+                        <a class="btn btn-primary" href="{% url 'web-companies' %}">Ver todas</a>
+                    </article>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if show_jobs %}
+            <div class="white-card-results-head">
+                <p class="eyebrow">White Card Job</p>
+                <h2>Profesionales disponibles</h2>
+            </div>
+            <div class="white-card-public-grid">
+                {% for job_card in white_cards %}
+                    <article class="white-card-public-item">
+                        <a href="{% url 'public-white-card-job' job_card.username %}" aria-label="Ver white card de {{ job_card.display_name }}"></a>
+                        <div class="white-card-public-photo">
+                            {% if job_card.photo %}
+                                <img src="{{ job_card.photo.url }}" alt="{{ job_card.display_name }}">
+                            {% else %}
+                                <span>{{ job_card.display_name|slice:":2" }}</span>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <p>{{ job_card.title }}</p>
+                            <h3>{{ job_card.display_name }}</h3>
+                            <strong>{{ job_card.specialty.name }}</strong>
+                            <span>{{ job_card.short_description|truncatechars:120 }}</span>
+                        </div>
+                        <small>{{ job_card.specialty.category }}{% if job_card.city %} · {{ job_card.city }}{% endif %}</small>
+                    </article>
+                {% empty %}
+                    <article class="panel empty-companies-panel">
+                        <h2>No encontramos White Card Job</h2>
+                        <p>Prueba con otra categoria laboral, ciudad o palabra clave.</p>
+                    </article>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if show_websites %}
+            <div class="white-card-results-head">
+                <p class="eyebrow">Website Builder</p>
+                <h2>Sitios publicados</h2>
+            </div>
+            <div class="marketplace-website-grid">
+                {% for website in websites %}
+                    <article class="marketplace-website-card">
+                        <a class="marketplace-website-link" href="{% url 'websitebuilder-public-home' website.slug %}" aria-label="Ver website de {{ website.company.name }}"></a>
+                        <div class="marketplace-website-top" style="--site-primary: {{ website.primary_color }}; --site-accent: {{ website.accent_color }};">
+                            {% if website.logo %}
+                                <img src="{{ website.logo.url }}" alt="{{ website.title }}">
+                            {% elif website.company.logo %}
+                                <img src="{{ website.company.logo.url }}" alt="{{ website.company.name }}">
+                            {% else %}
+                                <span>{{ website.company.name|slice:":2" }}</span>
+                            {% endif %}
+                            <strong>Publicado</strong>
+                        </div>
+                        <div class="marketplace-website-body">
+                            <p>{{ website.company.category|default:"Empresa Cardbook" }}</p>
+                            <h3>{{ website.title }}</h3>
+                            <span>{{ website.meta_description|default:website.company.description|truncatechars:130 }}</span>
+                        </div>
+                        <div class="marketplace-website-meta">
+                            <small>{{ website.page_total }} paginas</small>
+                            <small>{{ website.company.city|default:website.company.region|default:"Online" }}</small>
+                        </div>
+                    </article>
+                {% empty %}
+                    <article class="panel empty-companies-panel">
+                        <h2>No encontramos websites</h2>
+                        <p>Prueba con otra empresa, categoria, ciudad o palabra clave.</p>
+                    </article>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

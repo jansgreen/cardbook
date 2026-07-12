@@ -1,0 +1,164 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block title %}Referidos - Cardbook{% endblock %}
+{% block topbar_title %}Referidos{% endblock %}
+{% block topbar_subtitle %}Agentes, empresas referidas y comisiones{% endblock %}
+{% block dashboard_content %}
+<section class="referrals-dashboard">
+    <div class="referrals-hero">
+        <div>
+            <p>Referral & Agent System</p>
+            <h1>{% if agent %}Mi panel de agente{% else %}Programa de agentes{% endif %}</h1>
+            <span>Gestiona codigos, enlaces, empresas referidas, comisiones y pagos desde un flujo auditable.</span>
+        </div>
+        {% if agent %}
+            <button type="button" class="referral-copy-button" data-copy="{{ referral_link }}">Copiar Link</button>
+        {% endif %}
+    </div>
+
+    {% if agent %}
+        <section class="referral-agent-card">
+            <div>
+                <span>Mi codigo</span>
+                <strong>{{ agent.referral_code }}</strong>
+                <code>{{ referral_link }}</code>
+            </div>
+            <div>
+                <span>Agent ID</span>
+                <strong>{{ agent.agent_id }}</strong>
+                <small>{{ agent.commission_percentage }}% comision</small>
+            </div>
+        </section>
+
+        <section class="referral-stats-grid">
+            <article><span>Empresas registradas</span><strong>{{ agent_stats.registered_companies }}</strong></article>
+            <article><span>Referidos</span><strong>{{ agent_stats.referrals }}</strong></article>
+            <article><span>Tarjetas creadas</span><strong>{{ agent_stats.card_sales }}</strong></article>
+            <article><span>Planes vendidos</span><strong>{{ agent_stats.sold_plans }}</strong></article>
+            <article><span>Pendiente</span><strong>{{ agent_stats.pending_commissions }}</strong></article>
+            <article><span>Pagado</span><strong>{{ agent_stats.paid_commissions }}</strong></article>
+        </section>
+
+        <section class="referral-two-column">
+            <article class="referral-panel">
+                <div class="referral-panel-head"><h2>Empresas referidas</h2><span>Historial</span></div>
+                {% for referral in my_referrals %}
+                    <div class="referral-row">
+                        <div>
+                            <strong>{{ referral.referred_company.name|default:"Empresa pendiente" }}</strong>
+                            <span>{{ referral.referred_user.email|default:referral.referred_user.username }}</span>
+                        </div>
+                        <small>{{ referral.created_at|date:"M d, Y" }}</small>
+                    </div>
+                {% empty %}
+                    <p>Aun no tienes referidos registrados.</p>
+                {% endfor %}
+            </article>
+            <article class="referral-panel">
+                <div class="referral-panel-head"><h2>Tarjetas creadas</h2><span>Agente</span></div>
+                {% for sale in my_card_sales %}
+                    <div class="referral-row">
+                        <div>
+                            <strong>{{ sale.company.name }}</strong>
+                            <span>{{ sale.get_sale_type_display }} - {{ sale.commission_amount }} {{ sale.currency }}</span>
+                        </div>
+                        <small class="commission-status {{ sale.status }}">{{ sale.status }}</small>
+                    </div>
+                {% empty %}
+                    <p>Aun no tienes tarjetas creadas como agente.</p>
+                {% endfor %}
+            </article>
+            <article class="referral-panel">
+                <div class="referral-panel-head"><h2>Comisiones</h2><span>Estado</span></div>
+                {% for commission in my_commissions %}
+                    <div class="referral-row">
+                        <div>
+                            <strong>{{ commission.company.name }}</strong>
+                            <span>{{ commission.plan_name }} - {{ commission.commission_amount }} {{ commission.currency }}</span>
+                        </div>
+                        <small class="commission-status {{ commission.status }}">{{ commission.status }}</small>
+                    </div>
+                {% empty %}
+                    <p>Aun no tienes comisiones.</p>
+                {% endfor %}
+            </article>
+        </section>
+    {% else %}
+        <article class="referral-empty-agent">
+            <p>Sin perfil de agente</p>
+            <h2>Tu usuario todavia no tiene un perfil de agente activo.</h2>
+            <span>Un administrador puede invitarte o crear tu AgentProfile desde el admin/API.</span>
+        </article>
+    {% endif %}
+
+    {% if is_referral_admin %}
+        <section class="referral-admin-section">
+            <div class="referral-section-title">
+                <p>Administrador</p>
+                <h2>Panel global de referidos</h2>
+                <a href="{% url 'api-referral-report-csv' %}">Exportar CSV</a>
+            </div>
+            <section class="referral-stats-grid admin">
+                <article><span>Total agentes</span><strong>{{ admin_stats.total_agents }}</strong></article>
+                <article><span>Empresas registradas</span><strong>{{ admin_stats.registered_companies }}</strong></article>
+                <article><span>Empresas premium</span><strong>{{ admin_stats.premium_companies }}</strong></article>
+                <article><span>Comisiones pendientes</span><strong>{{ admin_stats.pending_commissions }}</strong></article>
+                <article><span>Comisiones pagadas</span><strong>{{ admin_stats.paid_commissions }}</strong></article>
+                <article><span>Ingresos generados</span><strong>{{ admin_stats.generated_revenue }}</strong></article>
+            </section>
+            <section class="referral-two-column">
+                <article class="referral-panel">
+                    <div class="referral-panel-head"><h2>Top agentes</h2><span>Referidos</span></div>
+                    {% for admin_agent in admin_agents %}
+                        <div class="referral-row">
+                            <div>
+                                <strong>{{ admin_agent.user.get_full_name|default:admin_agent.user.username }}</strong>
+                                <span>{{ admin_agent.agent_id }} - {{ admin_agent.referral_code }}</span>
+                            </div>
+                            <small>{{ admin_agent.referral_total }}</small>
+                        </div>
+                    {% empty %}
+                        <p>No hay agentes registrados.</p>
+                    {% endfor %}
+                </article>
+                <article class="referral-panel">
+                    <div class="referral-panel-head"><h2>Ventas de tarjetas</h2><span>Agentes</span></div>
+                    {% for sale in admin_card_sales %}
+                        <div class="referral-row">
+                            <div>
+                                <strong>{{ sale.company.name }}</strong>
+                                <span>{{ sale.agent.agent_id }} - {{ sale.get_sale_type_display }} - {{ sale.commission_amount }} {{ sale.currency }}</span>
+                            </div>
+                            <small class="commission-status {{ sale.status }}">{{ sale.status }}</small>
+                        </div>
+                    {% empty %}
+                        <p>No hay ventas de tarjetas registradas.</p>
+                    {% endfor %}
+                </article>
+                <article class="referral-panel">
+                    <div class="referral-panel-head"><h2>Comisiones recientes</h2><span>Control</span></div>
+                    {% for commission in admin_commissions %}
+                        <div class="referral-row">
+                            <div>
+                                <strong>{{ commission.company.name }}</strong>
+                                <span>{{ commission.agent.agent_id }} - {{ commission.commission_amount }} {{ commission.currency }}</span>
+                            </div>
+                            <small class="commission-status {{ commission.status }}">{{ commission.status }}</small>
+                        </div>
+                    {% empty %}
+                        <p>No hay comisiones registradas.</p>
+                    {% endfor %}
+                </article>
+            </section>
+        </section>
+    {% endif %}
+</section>
+<script>
+document.querySelectorAll("[data-copy]").forEach((button) => {
+    button.addEventListener("click", async () => {
+        await navigator.clipboard.writeText(button.dataset.copy);
+        button.textContent = "Link copiado";
+        setTimeout(() => { button.textContent = "Copiar Link"; }, 1600);
+    });
+});
+</script>
+{% endblock %}

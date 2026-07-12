@@ -1,7 +1,3 @@
-import re
-
-import qrcode
-from django.http import HttpResponse
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
@@ -13,12 +9,12 @@ from django.core.exceptions import PermissionDenied
 from analytics.models import CardView
 from alliances.models import CompanyAlliance
 from book.models import SavedBusiness
+from cardbookweb.qr import qr_svg_response, style_from_object
 from cards.models import BusinessCard, DigitalCard
 from companies.models import Company
 from cards.permissions import can_manage_card
 
 
-HEX_COLOR_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
 LANGUAGE_OPTIONS = [
     ("es", "Español"),
     ("en", "English"),
@@ -73,76 +69,10 @@ BUSINESS_LABELS = {
 }
 
 
-def _safe_hex_color(value, fallback):
-    return value if value and HEX_COLOR_RE.match(value) else fallback
-
-
-def _is_finder_zone(row, col, size):
-    return (
-        (row < 9 and col < 9)
-        or (row < 9 and col >= size - 8)
-        or (row >= size - 8 and col < 9)
-    )
-
-
-def render_styled_qr_svg(data, card):
-    dot_color = _safe_hex_color(card.qr_dot_color, "#003875")
-    marker_color = _safe_hex_color(card.qr_marker_color, "#0057b8")
-    background_color = _safe_hex_color(card.qr_background_color, "#ffffff")
-    valid_shapes = {
-        DigitalCard.QR_SHAPE_DIAMOND,
-        DigitalCard.QR_SHAPE_DOT,
-        DigitalCard.QR_SHAPE_SQUARE,
-    }
-    shape = card.qr_shape if card.qr_shape in valid_shapes else DigitalCard.QR_SHAPE_DIAMOND
-
-    qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_H, box_size=10, border=4)
-    qr.add_data(data)
-    qr.make(fit=True)
-    matrix = qr.get_matrix()
-
-    module = 10
-    matrix_size = len(matrix)
-    canvas_size = matrix_size * module
-    elements = [
-        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {canvas_size} {canvas_size}" role="img">',
-        f'<rect width="{canvas_size}" height="{canvas_size}" rx="22" fill="{background_color}"/>',
-    ]
-
-    for row, line in enumerate(matrix):
-        for col, enabled in enumerate(line):
-            if not enabled:
-                continue
-
-            x = col * module
-            y = row * module
-            cx = x + module / 2
-            cy = y + module / 2
-
-            if _is_finder_zone(row, col, matrix_size):
-                elements.append(
-                    f'<rect x="{x + 1}" y="{y + 1}" width="8" height="8" rx="1.6" fill="{marker_color}"/>'
-                )
-            elif shape == DigitalCard.QR_SHAPE_DOT:
-                elements.append(f'<circle cx="{cx}" cy="{cy}" r="3.8" fill="{dot_color}"/>')
-            elif shape == DigitalCard.QR_SHAPE_SQUARE:
-                elements.append(
-                    f'<rect x="{x + 1.5}" y="{y + 1.5}" width="7" height="7" rx="1.2" fill="{dot_color}"/>'
-                )
-            else:
-                elements.append(
-                    f'<rect x="{cx - 3.6}" y="{cy - 3.6}" width="7.2" height="7.2" rx=".8" '
-                    f'fill="{dot_color}" transform="rotate(45 {cx} {cy})"/>'
-                )
-
-    elements.append("</svg>")
-    return "".join(elements)
-
-
 def card_qr_svg(request, slug):
     card = get_object_or_404(DigitalCard.objects.filter(is_active=True), slug=slug)
     card_url = request.build_absolute_uri(reverse("public-card-web", kwargs={"slug": card.slug}))
-    return HttpResponse(render_styled_qr_svg(card_url, card), content_type="image/svg+xml")
+    return qr_svg_response(card_url, style_from_object(card))
 
 
 def save_to_book(request):

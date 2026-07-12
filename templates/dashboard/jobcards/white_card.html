@@ -1,0 +1,238 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block title %}White Card Job - Cardbook{% endblock %}
+{% block topbar_title %}White Card Job{% endblock %}
+{% block topbar_subtitle %}Tu tarjeta profesional para buscar empleo{% endblock %}
+{% block dashboard_content %}
+<section class="white-card-dashboard">
+    <div class="white-card-hero">
+        <div>
+            <p>Tarjeta laboral profesional</p>
+            <h1>White Card Job</h1>
+            <span>Crea una tarjeta limpia y visual para que empresas relacionadas con tu especialidad puedan encontrarte rapido.</span>
+        </div>
+        {% if job_card %}
+            <a href="{{ public_url }}" target="_blank" rel="noopener">Vista publica</a>
+        {% endif %}
+    </div>
+
+    <section class="white-card-crud-strip">
+        <article class="{% if not job_card %}active{% endif %}">
+            <span>01</span>
+            <strong>Crear</strong>
+            <small>Categoria, trabajo y datos base.</small>
+        </article>
+        <article class="{% if job_card %}active{% endif %}">
+            <span>02</span>
+            <strong>Editar</strong>
+            <small>Actualiza tu perfil laboral.</small>
+        </article>
+        <article>
+            <span>03</span>
+            <strong>Publicar</strong>
+            <small>Disponible para empresas.</small>
+        </article>
+        <article>
+            <span>04</span>
+            <strong>Eliminar</strong>
+            <small>Desactiva la tarjeta publica.</small>
+        </article>
+    </section>
+
+    <div class="white-card-dashboard-grid">
+        <form class="panel dashboard-form white-card-form {% if not can_create_job_card %}locked{% endif %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="white-card-form-head">
+                    <div>
+                        <span>Panel CRUD</span>
+                        <h2>{% if job_card %}Editar mi tarjeta{% else %}Crear mi tarjeta{% endif %}</h2>
+                    </div>
+                    {% if job_card %}
+                        <a href="{{ public_url }}" target="_blank" rel="noopener">Ver publica</a>
+                    {% endif %}
+                </div>
+                {% if not can_create_job_card %}
+                    <div class="white-card-locked-alert">
+                        <strong>Creacion bloqueada para esta cuenta</strong>
+                        <span>White Card Job esta pensado para usuarios sin empresa. Si ya tenias una tarjeta, puedes conservarla y editarla; para crear una nueva usa una cuenta sin empresa.</span>
+                    </div>
+                {% endif %}
+                {{ form.non_field_errors }}
+
+                <div class="white-card-form-section">
+                    <div class="white-card-section-title">
+                        <span>Trabajo objetivo</span>
+                        <h3>Selecciona donde quieres laborar</h3>
+                    </div>
+                    <label>
+                        <span>{{ form.category.label }}</span>
+                        {{ form.category }}
+                        {{ form.category.errors }}
+                    </label>
+                    <label>
+                        <span>{{ form.specialty.label }}</span>
+                        {{ form.specialty }}
+                        {% if form.specialty.help_text %}<small>{{ form.specialty.help_text }}</small>{% endif %}
+                        {{ form.specialty.errors }}
+                    </label>
+                    <label>
+                        <span>{{ form.title.label }}</span>
+                        {{ form.title }}
+                        {{ form.title.errors }}
+                    </label>
+                    <label class="checkbox-field">
+                        <span>{{ form.is_available.label }}</span>
+                        {{ form.is_available }}
+                        {{ form.is_available.errors }}
+                    </label>
+                </div>
+
+                <div class="white-card-form-section">
+                    <div class="white-card-section-title">
+                        <span>Datos publicos</span>
+                        <h3>Informacion de contacto</h3>
+                    </div>
+                    <label>
+                        <span>{{ form.photo.label }}</span>
+                        {{ form.photo }}
+                        {{ form.photo.errors }}
+                    </label>
+                    <label>
+                        <span>{{ form.phone_number.label }}</span>
+                        {{ form.phone_number }}
+                        {{ form.phone_number.errors }}
+                    </label>
+                    <label>
+                        <span>{{ form.address.label }}</span>
+                        {{ form.address }}
+                        {{ form.address.errors }}
+                    </label>
+                    <label>
+                        <span>{{ form.linkedin_url.label }}</span>
+                        {{ form.linkedin_url }}
+                        {{ form.linkedin_url.errors }}
+                    </label>
+                    <label>
+                        <span>{{ form.resume_url.label }}</span>
+                        {{ form.resume_url }}
+                        {{ form.resume_url.errors }}
+                    </label>
+                </div>
+
+                <div class="white-card-form-section wide">
+                    <div class="white-card-section-title">
+                        <span>Presentacion</span>
+                        <h3>Lo que vera la empresa</h3>
+                    </div>
+                    <label class="wide">
+                        <span>{{ form.short_description.label }}</span>
+                        {{ form.short_description }}
+                        {{ form.short_description.errors }}
+                    </label>
+                    <label>
+                        <span>{{ form.languages.label }}</span>
+                        {{ form.languages }}
+                        {{ form.languages.errors }}
+                    </label>
+                    <label>
+                        <span>{{ form.technologies.label }}</span>
+                        {{ form.technologies }}
+                        {{ form.technologies.errors }}
+                    </label>
+                    <label>
+                        <span>{{ form.certifications.label }}</span>
+                        {{ form.certifications }}
+                        {{ form.certifications.errors }}
+                    </label>
+                </div>
+
+                <div class="form-actions">
+                    {% if job_card %}
+                        <button class="btn-danger" name="action" value="delete_card" type="submit" formnovalidate>Eliminar tarjeta</button>
+                    {% endif %}
+                    <button class="btn-primary" type="submit" {% if not can_create_job_card %}disabled{% endif %}>Guardar tarjeta</button>
+                </div>
+            </form>
+
+            <aside class="white-card-preview-panel">
+                {% if job_card %}
+                    <article class="white-job-card dashboard-preview">
+                        <div class="white-job-status-ribbon">
+                            <span class="job-title-ribbon">{{ job_card.title }}</span>
+                            <span class="verified-pill">Verificado</span>
+                        </div>
+                        <section class="white-job-layout compact">
+                            <aside class="white-job-left">
+                                {% if job_card.photo %}
+                                    <img class="white-job-photo" src="{{ job_card.photo.url }}" alt="{{ job_card.display_name }}">
+                                {% else %}
+                                    <div class="white-job-photo placeholder">{{ job_card.display_name|slice:":2" }}</div>
+                                {% endif %}
+                            </aside>
+                            <section class="white-job-center">
+                                <h1>{{ job_card.display_name }}</h1>
+                                <div class="white-job-role"><strong>{{ job_card.specialty.name }}</strong><em>{% if job_card.is_available %}Disponible{% else %}No disponible{% endif %}</em></div>
+                                <p class="white-job-description">{{ job_card.short_description|truncatechars:150 }}</p>
+                                <div class="white-card-preview-qr">
+                                    <img src="{% url 'public-white-card-job-qr' job_card.username %}" alt="QR de {{ job_card.display_name }}">
+                                    <span>QR publico</span>
+                                </div>
+                            </section>
+                        </section>
+                    </article>
+                    <div class="white-card-stats">
+                        <article><span>Vistas tarjeta</span><strong>{{ job_card.card_views }}</strong></article>
+                        <article><span>Vistas perfil</span><strong>{{ job_card.profile_views }}</strong></article>
+                        <article><span>Guardados</span><strong>{{ saved_total }}</strong></article>
+                    </div>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="toggle_availability">
+                        <button class="btn-secondary" type="submit">{% if job_card.is_available %}Marcar no disponible{% else %}Marcar disponible{% endif %}</button>
+                    </form>
+                {% else %}
+                    <article class="panel">
+                        <h2>Vista previa</h2>
+                        <p>Completa el formulario para generar tu White Card Job con el estilo profesional del sistema.</p>
+                    </article>
+                {% endif %}
+            </aside>
+        </div>
+</section>
+{{ specialties_by_category|json_script:"job-specialties-data" }}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    const categorySelect = document.querySelector("[data-job-category]");
+    const specialtySelect = document.querySelector("[data-job-specialty]");
+    const dataNode = document.getElementById("job-specialties-data");
+    if (!categorySelect || !specialtySelect || !dataNode) return;
+    const specialties = JSON.parse(dataNode.textContent);
+    const currentSpecialty = specialtySelect.value;
+
+    function refreshSpecialties() {
+        const category = categorySelect.value;
+        const options = specialties[category] || [];
+        const selected = specialtySelect.value || currentSpecialty;
+        specialtySelect.innerHTML = "";
+
+        const placeholder = document.createElement("option");
+        placeholder.value = "";
+        placeholder.textContent = category ? "Selecciona el trabajo" : "Primero selecciona categoria";
+        specialtySelect.appendChild(placeholder);
+
+        options.forEach((item) => {
+            const option = document.createElement("option");
+            option.value = item.id;
+            option.textContent = item.name;
+            if (String(item.id) === String(selected)) option.selected = true;
+            specialtySelect.appendChild(option);
+        });
+    }
+
+    categorySelect.addEventListener("change", refreshSpecialties);
+    refreshSpecialties();
+})();
+</script>
+{% endblock %}

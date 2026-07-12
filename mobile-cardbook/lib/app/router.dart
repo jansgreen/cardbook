@@ -10,9 +10,11 @@ import 'package:mobile_cardbook/features/companies/presentation/company_detail_s
 import 'package:mobile_cardbook/features/companies/presentation/company_form_screen.dart';
 import 'package:mobile_cardbook/features/companies/presentation/companies_screen.dart';
 import 'package:mobile_cardbook/features/home/presentation/home_screen.dart';
+import 'package:mobile_cardbook/features/jobs/presentation/jobs_screen.dart';
 import 'package:mobile_cardbook/features/notifications/presentation/notifications_screen.dart';
 import 'package:mobile_cardbook/features/profile/presentation/profile_edit_screen.dart';
 import 'package:mobile_cardbook/features/profile/presentation/profile_screen.dart';
+import 'package:mobile_cardbook/features/websites/presentation/websites_screen.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/login',
@@ -56,6 +58,8 @@ final appRouter = GoRouter(
       },
     ),
     GoRoute(path: '/book', builder: (context, state) => const BookScreen()),
+    GoRoute(path: '/jobs', builder: (context, state) => const JobsScreen()),
+    GoRoute(path: '/websites', builder: (context, state) => const WebsitesScreen()),
     GoRoute(path: '/notifications', builder: (context, state) => const NotificationsScreen()),
     GoRoute(path: '/profile', builder: (context, state) => const ProfileScreen()),
     GoRoute(

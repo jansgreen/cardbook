@@ -1,0 +1,10 @@
+{% load websitebuilder_tags forms_builder_tags %}
+<{{ section.html_tag|default:"section" }} class="wb-section wb-contact-form-section">
+    <div class="wb-container">
+        <div class="wb-section-head">
+            <h2>{{ section|translated_title:language }}</h2>
+            <p>{{ section|translated_subtitle:language }}</p>
+        </div>
+        {% render_section_form section %}
+    </div>
+</{{ section.html_tag|default:"section" }}>

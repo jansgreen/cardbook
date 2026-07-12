@@ -1,0 +1,24 @@
+<div class="access-hero">
+    <div class="access-hero__content">
+        <span class="access-eyebrow">Seguridad empresarial</span>
+        <h1>Accesos y roles</h1>
+        <p>Administra miembros, roles, grupos, permisos, agentes y comisiones desde un panel profesional.</p>
+    </div>
+
+    <div class="access-hero__actions">
+        <form method="get" class="access-company-form">
+            <label for="access-company">Empresa activa</label>
+            <select id="access-company" name="company" class="form-control" onchange="this.form.submit()">
+                {% for company in companies %}
+                    <option value="{{ company.id }}" {% if active_company and active_company.id == company.id %}selected{% endif %}>
+                        {{ company.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </form>
+
+        <button class="access-btn access-btn--primary" type="button" data-modal-open="modal-grant">
+            + Nuevo acceso
+        </button>
+    </div>
+</div>

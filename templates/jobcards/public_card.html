@@ -1,0 +1,86 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ job_card.display_name }} - White Card Job</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+</head>
+<body class="white-job-public-body">
+    <main class="white-job-public-shell">
+        <article class="white-job-card">
+            <div class="white-job-status-ribbon">
+                <span class="job-title-ribbon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2h4a2 2 0 0 1 2 2v3H3V8a2 2 0 0 1 2-2h4Zm2 0h2V4h-2v2ZM3 13h18v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7Z"/></svg>
+                    {{ job_card.title|default:"Busco Trabajo" }}
+                </span>
+                <span class="verified-pill">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 8 4v6c0 5-3.4 9.4-8 10-4.6-.6-8-5-8-10V6l8-4Zm-1 14 6-6-1.4-1.4L11 13.2 8.9 11 7.5 12.4 11 16Z"/></svg>
+                    Verificado por Cardbook
+                </span>
+            </div>
+
+            <section class="white-job-layout">
+                <aside class="white-job-left">
+                    {% if job_card.photo %}
+                        <img class="white-job-photo" src="{{ job_card.photo.url }}" alt="{{ job_card.display_name }}">
+                    {% else %}
+                        <div class="white-job-photo placeholder">{{ job_card.display_name|slice:":2" }}</div>
+                    {% endif %}
+                    <div class="white-job-contact">
+                        {% if job_card.phone_number %}<a href="tel:{{ job_card.phone_number }}"><span>☎</span>{{ job_card.phone_number }}</a>{% endif %}
+                        {% if job_card.address %}<span><b>⌖</b>{{ job_card.address }}</span>{% endif %}
+                        {% if job_card.user.email %}<a href="mailto:{{ job_card.user.email }}"><span>✉</span>{{ job_card.user.email }}</a>{% endif %}
+                        {% if job_card.linkedin_url %}<a href="{{ job_card.linkedin_url }}" target="_blank" rel="noopener"><span>in</span>LinkedIn</a>{% endif %}
+                        {% if job_card.resume_url %}<a href="{{ job_card.resume_url }}" target="_blank" rel="noopener"><span>DR</span>Ver resumen</a>{% endif %}
+                    </div>
+                </aside>
+
+                <section class="white-job-center">
+                    <h1>{{ job_card.display_name }} <span>✓</span></h1>
+                    <div class="white-job-role">
+                        <strong>{{ job_card.specialty.name }}</strong>
+                        {% if job_card.is_available %}<em>Disponible</em>{% else %}<em class="muted">No disponible</em>{% endif %}
+                    </div>
+                    <p class="white-job-description">{{ job_card.short_description }}</p>
+                    <div class="white-job-facts">
+                        <div><span>Especialidad</span><strong>{{ job_card.specialty.name }}</strong></div>
+                        <div><span>Idiomas</span><strong>{{ job_card.languages|default:"Espanol" }}</strong></div>
+                        {% if job_card.technologies %}<div><span>Skills</span><strong>{{ job_card.technologies }}</strong></div>{% endif %}
+                        {% if job_card.certifications %}<div><span>Certifica</span><strong>{{ job_card.certifications }}</strong></div>{% endif %}
+                    </div>
+                </section>
+
+                <aside class="white-job-right">
+                    <h2>Fortalezas principales</h2>
+                    <ul>
+                        <li>Especialidad verificada en Cardbook</li>
+                        {% if job_card.technologies %}<li>{{ job_card.technologies }}</li>{% endif %}
+                        {% if job_card.certifications %}<li>{{ job_card.certifications }}</li>{% endif %}
+                        <li>Perfil rapido para evaluacion inicial</li>
+                    </ul>
+                    <div class="white-job-qr-panel">
+                        <span>Escanea esta White Card</span>
+                        <img src="{% url 'public-white-card-job-qr' job_card.username %}" alt="QR de {{ job_card.display_name }}">
+                        <small>Comparte este perfil sin convertirlo en resumen.</small>
+                    </div>
+                </aside>
+            </section>
+
+            <nav class="white-job-actions" aria-label="Acciones de candidato">
+                <button type="button" disabled>Guardar candidato</button>
+                <a class="primary" href="#perfil">Ver perfil completo</a>
+                {% if job_card.resume_url %}<a href="{{ job_card.resume_url }}" target="_blank" rel="noopener">Ver resumen</a>{% endif %}
+                {% if job_card.linkedin_url %}<a href="{{ job_card.linkedin_url }}" target="_blank" rel="noopener">Ver LinkedIn</a>{% endif %}
+            </nav>
+            <footer class="white-job-footer" id="perfil">
+                <span>Perfil verificado</span>
+                <span>Miembro de Cardbook</span>
+                <span>Se unio en {{ job_card.created_at|date:"F Y" }}</span>
+            </footer>
+        </article>
+    </main>
+</body>
+</html>

@@ -1,0 +1,27 @@
+<div class="access-modal" id="modal-member" aria-hidden="true">
+    <div class="access-modal__backdrop" data-modal-close></div>
+    <div class="access-modal__dialog" role="dialog" aria-modal="true">
+        <div class="access-modal__head">
+            <div>
+                <h2>Invitar miembro</h2>
+                <p>Agrega un usuario al equipo operativo de la empresa.</p>
+            </div>
+            <button class="access-modal__close" type="button" data-modal-close>×</button>
+        </div>
+
+        <form class="dashboard-form access-form" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="invite">
+            {{ invite_form.non_field_errors }}
+
+            <label><span>{{ invite_form.company.label }}</span>{{ invite_form.company }}{{ invite_form.company.errors }}</label>
+            <label><span>{{ invite_form.email.label }}</span>{{ invite_form.email }}{{ invite_form.email.errors }}</label>
+            <label><span>{{ invite_form.role.label }}</span>{{ invite_form.role }}{{ invite_form.role.errors }}</label>
+
+            <div class="access-modal__actions">
+                <button class="access-btn" type="button" data-modal-close>Cancelar</button>
+                <button class="access-btn access-btn--primary" type="submit">Guardar miembro</button>
+            </div>
+        </form>
+    </div>
+</div>

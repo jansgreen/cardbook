@@ -1,14 +1,120 @@
 {% extends "dashboard/base_dashboard.html" %}
 {% block title %}Book - Cardbook{% endblock %}
 {% block topbar_title %}Book{% endblock %}
-{% block topbar_subtitle %}Negocios, perfiles y tarjetas que guardaste{% endblock %}
+{% block topbar_subtitle %}Candidatos, negocios, perfiles y tarjetas guardadas{% endblock %}
 {% block dashboard_content %}
 <section class="dashboard-heading action-heading">
     <div>
-        <p>Contactos empresariales</p>
+        <p>Red profesional</p>
         <h1>Book</h1>
     </div>
-    <span class="status-pill">{{ book_count }} guardados</span>
+    <span class="status-pill">{{ book_count }} negocios guardados</span>
+</section>
+
+<section class="book-hiring-shell">
+    <div class="book-hiring-head">
+        <div>
+            <h2>Para contratar</h2>
+            <p>Candidatos sugeridos segun las especialidades, servicios y ubicacion de tu empresa.</p>
+        </div>
+        {% if companies %}
+            <form method="get" class="book-company-filter">
+                <label for="book-company">Empresa</label>
+                <select id="book-company" name="company" onchange="this.form.submit()">
+                    {% for company in companies %}
+                        <option value="{{ company.id }}" {% if active_company and active_company.id == company.id %}selected{% endif %}>{{ company.name }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        {% endif %}
+    </div>
+
+    <div class="job-candidate-grid">
+        {% for candidate in hiring_candidates %}
+            <article class="job-candidate-card">
+                <div class="job-candidate-main">
+                    {% if candidate.photo %}
+                        <img src="{{ candidate.photo.url }}" alt="{{ candidate.display_name }}">
+                    {% else %}
+                        <div class="job-candidate-placeholder">{{ candidate.display_name|slice:":2" }}</div>
+                    {% endif %}
+                    <div>
+                        <span>{{ candidate.title|default:"Busco Trabajo" }}</span>
+                        <h3>{{ candidate.display_name }}</h3>
+                        <strong>{{ candidate.specialty.name }}</strong>
+                        <p>{{ candidate.short_description|truncatechars:130 }}</p>
+                    </div>
+                </div>
+                <div class="job-candidate-meta">
+                    {% if candidate.city %}<span>{{ candidate.city }}</span>{% endif %}
+                    {% if candidate.phone_number %}<span>{{ candidate.phone_number }}</span>{% endif %}
+                    {% if candidate.is_available %}<span>Disponible</span>{% endif %}
+                </div>
+                <div class="job-candidate-actions">
+                    {% if candidate.linkedin_url %}<a href="{{ candidate.linkedin_url }}" target="_blank" rel="noopener">LinkedIn</a>{% endif %}
+                    {% if candidate.resume_url %}<a href="{{ candidate.resume_url }}" target="_blank" rel="noopener">Resumen</a>{% endif %}
+                    <a href="{% url 'public-white-card-job' candidate.username %}" target="_blank" rel="noopener">Ver perfil</a>
+                    <form method="post" action="{% url 'dashboard-jobcard-save' candidate.id %}">
+                        {% csrf_token %}
+                        {% if active_company %}<input type="hidden" name="company" value="{{ active_company.id }}">{% endif %}
+                        <button type="submit">Guardar</button>
+                    </form>
+                </div>
+            </article>
+        {% empty %}
+            <article class="panel">
+                <h2>No hay candidatos sugeridos todavia</h2>
+                <p>Agrega especialidades, categoria o servicios a tu empresa para mejorar las recomendaciones de White Card Job.</p>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="book-hiring-shell">
+    <div class="book-hiring-head">
+        <div>
+            <h2>Guardados</h2>
+            <p>Candidatos que tu empresa guardo para revisar luego.</p>
+        </div>
+        <span class="status-pill">{{ saved_candidates|length }} candidatos</span>
+    </div>
+    <div class="job-candidate-grid saved">
+        {% for saved in saved_candidates %}
+            <article class="job-candidate-card saved">
+                <div class="job-candidate-main">
+                    {% if saved.job_card.photo %}
+                        <img src="{{ saved.job_card.photo.url }}" alt="{{ saved.job_card.display_name }}">
+                    {% else %}
+                        <div class="job-candidate-placeholder">{{ saved.job_card.display_name|slice:":2" }}</div>
+                    {% endif %}
+                    <div>
+                        <span>Guardado {{ saved.created_at|date:"d M Y" }}</span>
+                        <h3>{{ saved.job_card.display_name }}</h3>
+                        <strong>{{ saved.job_card.specialty.name }}</strong>
+                        <p>{{ saved.job_card.short_description|truncatechars:130 }}</p>
+                    </div>
+                </div>
+                <div class="job-candidate-actions">
+                    <a href="{% url 'public-white-card-job' saved.job_card.username %}" target="_blank" rel="noopener">Ver perfil</a>
+                    {% if saved.job_card.resume_url %}<a href="{{ saved.job_card.resume_url }}" target="_blank" rel="noopener">Resumen</a>{% endif %}
+                    <form method="post" action="{% url 'dashboard-jobcard-saved-delete' saved.id %}">
+                        {% csrf_token %}
+                        <button type="submit">Eliminar</button>
+                    </form>
+                </div>
+            </article>
+        {% empty %}
+            <article class="panel">
+                <h2>No tienes candidatos guardados</h2>
+                <p>Los candidatos que guardes desde "Para contratar" apareceran aqui.</p>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="dashboard-heading">
+    <p>Tarjetas empresariales</p>
+    <h1>Negocios guardados</h1>
 </section>
 
 <section class="book-grid">

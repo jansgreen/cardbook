@@ -1,0 +1,30 @@
+<div class="access-modal" id="modal-role" aria-hidden="true">
+    <div class="access-modal__backdrop" data-modal-close></div>
+    <div class="access-modal__dialog" role="dialog" aria-modal="true">
+        <div class="access-modal__head">
+            <div>
+                <h2>Crear rol</h2>
+                <p>Ejemplo: Agente Cardbook, Manager o Staff.</p>
+            </div>
+            <button class="access-modal__close" type="button" data-modal-close>×</button>
+        </div>
+
+        <form class="dashboard-form access-form" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create_role">
+            {{ role_form.non_field_errors }}
+
+            <label><span>Nombre</span>{{ role_form.name }}{{ role_form.name.errors }}</label>
+            <label><span>Descripción</span>{{ role_form.description }}{{ role_form.description.errors }}</label>
+            <label><span>Permisos</span>{{ role_form.permissions }}{{ role_form.permissions.errors }}</label>
+            <label><span>Comisión por defecto</span>{{ role_form.default_commission_percent }}{{ role_form.default_commission_percent.errors }}</label>
+            <label class="checkbox-field"><span>Rol de agente</span>{{ role_form.is_agent_role }}</label>
+            <label class="checkbox-field"><span>Activo</span>{{ role_form.is_active }}</label>
+
+            <div class="access-modal__actions">
+                <button class="access-btn" type="button" data-modal-close>Cancelar</button>
+                <button class="access-btn access-btn--primary" type="submit">Crear rol</button>
+            </div>
+        </form>
+    </div>
+</div>

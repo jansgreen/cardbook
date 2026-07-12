@@ -1,0 +1,66 @@
+{% extends "dashboard/finance/base_finance.html" %}
+
+{% block title %}{{ title }} | Cardbook Finanzas{% endblock %}
+
+{% block content %}
+    {% include "dashboard/finance/components/finance_header.html" %}
+
+    <section class="finance-metric-grid finance-metric-grid-compact">
+        {% for card in summary_cards %}
+            {% include "dashboard/finance/components/metric_card.html" with label=card.0 value=card.1 caption=card.2 %}
+        {% endfor %}
+    </section>
+
+    {% if section == "commissions" %}
+        {% include "dashboard/finance/tables/commissions_table.html" %}
+    {% elif section == "audit" %}
+        {% include "dashboard/finance/tables/audit_table.html" %}
+    {% elif section == "reports" %}
+        <section class="finance-report-grid">
+            {% for report in report_exports %}
+                <article class="finance-report-card">
+                    <div>
+                        <span>CSV</span>
+                        <h2>{{ report.name }}</h2>
+                        <p>{{ report.description }}</p>
+                    </div>
+                    <div class="finance-report-actions">
+                        <a href="{% url 'finance-report-csv' report.key %}">Descargar CSV</a>
+                    </div>
+                </article>
+            {% endfor %}
+        </section>
+    {% elif reports %}
+        <section class="finance-report-grid">
+            {% for report in reports %}
+                <article class="finance-report-card">
+                    <div>
+                        <span>Reporte</span>
+                        <h2>{{ report.name }}</h2>
+                        <p>Formatos disponibles: {{ report.formats|join:", " }}</p>
+                    </div>
+                    <div class="finance-report-actions">
+                        <button type="button">Generar</button>
+                        <button type="button" class="secondary">Descargar</button>
+                    </div>
+                </article>
+            {% endfor %}
+        </section>
+    {% else %}
+        <section class="finance-panel">
+            <div class="finance-panel-head">
+                <div>
+                    <h2>{{ title }}</h2>
+                    <p class="finance-muted">Busca, filtra, ordena y exporta desde esta vista administrativa.</p>
+                </div>
+                <div class="finance-table-tools">
+                    <input type="search" placeholder="Buscar...">
+                    <button type="button">Filtros</button>
+                    <button type="button">CSV</button>
+                    <button type="button">Excel</button>
+                </div>
+            </div>
+            {% include "dashboard/finance/tables/generic_table.html" %}
+        </section>
+    {% endif %}
+{% endblock %}

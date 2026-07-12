@@ -8,6 +8,7 @@ from .views import (
     AndroidView,
     ContactView,
     HomeView,
+    PublicCompaniesView,
     PricingView,
     PrivacyView,
     TermsView,
@@ -16,6 +17,7 @@ from .views import (
 
 urlpatterns = [
     path("", HomeView.as_view(), name="web-home"),
+    path("empresas/", PublicCompaniesView.as_view(), name="web-companies"),
     path("login/", WebLoginView.as_view(), name="web-login"),
     path("register/", WebRegisterView.as_view(), name="web-register"),
     path("logout/", WebLogoutView.as_view(), name="web-logout"),

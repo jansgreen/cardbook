@@ -1,0 +1,33 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Finanzas | Cardbook{% endblock %}
+{% block topbar_title %}Finanzas{% endblock %}
+{% block topbar_subtitle %}Ingresos, suscripciones, agentes y comisiones{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/dashboard/finance.css' %}">
+{% endblock %}
+
+{% block dashboard_content %}
+<section class="finance-shell">
+    <nav class="finance-tabs" aria-label="Navegacion financiera">
+        <a href="/dashboard/finance/" class="{% if section == 'overview' %}active{% endif %}">Resumen</a>
+        <a href="/dashboard/finance/revenue/" class="{% if section == 'revenue' %}active{% endif %}">Ingresos</a>
+        <a href="/dashboard/finance/subscriptions/" class="{% if section == 'subscriptions' %}active{% endif %}">Suscripciones</a>
+        <a href="/dashboard/finance/companies/" class="{% if section == 'companies' %}active{% endif %}">Empresas</a>
+        <a href="/dashboard/finance/referrals/" class="{% if section == 'referrals' %}active{% endif %}">Agentes</a>
+        <a href="/dashboard/finance/commissions/" class="{% if section == 'commissions' %}active{% endif %}">Comisiones</a>
+        <a href="/dashboard/finance/payments/" class="{% if section == 'payments' %}active{% endif %}">Pagos</a>
+        <a href="/dashboard/finance/refunds/" class="{% if section == 'refunds' %}active{% endif %}">Reembolsos</a>
+        <a href="/dashboard/finance/reports/" class="{% if section == 'reports' %}active{% endif %}">Reportes</a>
+        <a href="/dashboard/finance/audit/" class="{% if section == 'audit' %}active{% endif %}">Auditoria</a>
+    </nav>
+    {% block content %}{% endblock %}
+</section>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/dashboard/finance.js' %}"></script>
+    <script src="{% static 'js/dashboard/finance_charts.js' %}"></script>
+{% endblock %}

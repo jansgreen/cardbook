@@ -1,0 +1,33 @@
+<div class="access-summary-grid">
+    <article class="access-summary-card">
+        <span class="access-summary-card__icon">USR</span>
+        <div>
+            <p>Miembros activos</p>
+            <strong>{{ members|length }}</strong>
+        </div>
+    </article>
+
+    <article class="access-summary-card">
+        <span class="access-summary-card__icon">ROL</span>
+        <div>
+            <p>Roles creados</p>
+            <strong>{{ access_roles|length }}</strong>
+        </div>
+    </article>
+
+    <article class="access-summary-card">
+        <span class="access-summary-card__icon">PERM</span>
+        <div>
+            <p>Permisos activos</p>
+            <strong>{{ access_permissions|length }}</strong>
+        </div>
+    </article>
+
+    <article class="access-summary-card">
+        <span class="access-summary-card__icon">ACC</span>
+        <div>
+            <p>Accesos asignados</p>
+            <strong>{{ access_grants|length }}</strong>
+        </div>
+    </article>
+</div>

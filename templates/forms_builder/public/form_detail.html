@@ -1,0 +1,23 @@
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ form_definition.name }} - {{ form_definition.company.name }}</title>
+    <link rel="stylesheet" href="{% static 'css/websitebuilder.css' %}">
+</head>
+<body class="wb-body">
+    <main class="wb-section">
+        <div class="wb-container">
+            <div class="wb-standalone-form">
+                <div class="wb-section-head">
+                    <h1>{{ form_definition.name }}</h1>
+                    <p>{{ form_definition.description }}</p>
+                </div>
+                {% include "forms_builder/public/embed.html" %}
+            </div>
+        </div>
+    </main>
+</body>
+</html>

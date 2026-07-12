@@ -3,8 +3,18 @@ import json
 
 from django.conf import settings
 from django.http import FileResponse, Http404, JsonResponse
+from django.db.models import Count, Q
 from django.urls import reverse
 from django.views.generic import TemplateView
+from rest_framework import permissions
+from rest_framework.views import APIView
+
+from cards.models import BusinessCard
+from cardbookweb.responses import success_response
+from companies.models import Company
+from jobcards.models import Specialty, WhiteCardJob
+from websitebuilder.models import Website
+from websitebuilder.services import website_public_url
 
 
 ANDROID_VERSION_NAME = "0.3.1"
@@ -39,6 +49,263 @@ def get_flutter_apk_info():
 
 class HomeView(TemplateView):
     template_name = "web/home.html"
+
+
+class PublicCompaniesView(TemplateView):
+    template_name = "web/companies.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        query = (self.request.GET.get("q") or "").strip()
+        result_type = (self.request.GET.get("type") or "cards").strip()
+        category = (self.request.GET.get("category") or "").strip()
+        location = (self.request.GET.get("location") or "").strip()
+        job_category = (self.request.GET.get("job_category") or "").strip()
+        has_qr = self.request.GET.get("has_qr") == "1"
+        has_website = self.request.GET.get("has_website") == "1"
+        has_photo = self.request.GET.get("has_photo") == "1"
+
+        business_cards = BusinessCard.objects.filter(
+            is_active=True,
+            profile__is_active=True,
+            profile__company__is_active=True,
+        ).select_related(
+            "profile",
+            "profile__company",
+            "profile__user",
+        )
+        if query:
+            business_cards = business_cards.filter(
+                Q(display_name__icontains=query)
+                | Q(company_name__icontains=query)
+                | Q(job_title__icontains=query)
+                | Q(email__icontains=query)
+                | Q(phone_number__icontains=query)
+                | Q(website__icontains=query)
+                | Q(services__icontains=query)
+                | Q(profile__company__name__icontains=query)
+                | Q(profile__company__category__icontains=query)
+                | Q(profile__company__city__icontains=query)
+                | Q(profile__company__region__icontains=query)
+                | Q(profile__company__services__icontains=query)
+                | Q(profile__company__description__icontains=query)
+            )
+        if category:
+            business_cards = business_cards.filter(profile__company__category=category)
+        if location:
+            business_cards = business_cards.filter(
+                Q(profile__company__city=location) | Q(profile__company__region=location)
+            )
+        if job_category:
+            business_cards = business_cards.filter(profile__company__job_specialties__specialty__category=job_category)
+        if has_qr:
+            business_cards = business_cards.filter(include_qr=True)
+        if has_website:
+            business_cards = business_cards.filter(Q(website__isnull=False) | Q(profile__website__isnull=False)).exclude(
+                website="", profile__website=""
+            )
+        if has_photo:
+            business_cards = business_cards.exclude(profile__photo="")
+
+        white_cards = WhiteCardJob.objects.filter(is_active=True, is_available=True).select_related("user", "specialty")
+        if query:
+            white_cards = white_cards.filter(
+                Q(user__first_name__icontains=query)
+                | Q(user__last_name__icontains=query)
+                | Q(user__username__icontains=query)
+                | Q(title__icontains=query)
+                | Q(specialty__name__icontains=query)
+                | Q(specialty__category__icontains=query)
+                | Q(short_description__icontains=query)
+                | Q(technologies__icontains=query)
+                | Q(address__icontains=query)
+            )
+        if job_category:
+            white_cards = white_cards.filter(specialty__category=job_category)
+        if location:
+            white_cards = white_cards.filter(address__icontains=location)
+        if has_photo:
+            white_cards = white_cards.exclude(photo="")
+
+        websites = Website.objects.filter(
+            is_active=True,
+            is_published=True,
+            company__is_active=True,
+        ).select_related("company", "theme").annotate(page_total=Count("pages", distinct=True))
+        if query:
+            websites = websites.filter(
+                Q(title__icontains=query)
+                | Q(meta_title__icontains=query)
+                | Q(meta_description__icontains=query)
+                | Q(company__name__icontains=query)
+                | Q(company__category__icontains=query)
+                | Q(company__services__icontains=query)
+                | Q(company__description__icontains=query)
+                | Q(company__city__icontains=query)
+                | Q(company__region__icontains=query)
+            )
+        if category:
+            websites = websites.filter(company__category=category)
+        if location:
+            websites = websites.filter(Q(company__city=location) | Q(company__region=location))
+
+        show_cards = result_type in ("cards", "all", "companies")
+        show_jobs = result_type in ("jobs", "all")
+        show_websites = result_type in ("websites", "all")
+        company_total = business_cards.values("profile__company").distinct().count()
+        context["business_cards"] = (
+            business_cards.distinct().order_by("profile__company__name", "display_name") if show_cards else BusinessCard.objects.none()
+        )
+        context["white_cards"] = white_cards.distinct().order_by("-updated_at") if show_jobs else WhiteCardJob.objects.none()
+        context["websites"] = websites.distinct().order_by("company__name", "title") if show_websites else Website.objects.none()
+        context["query"] = query
+        context["company_total"] = company_total
+        context["card_total"] = context["business_cards"].count()
+        context["white_card_total"] = context["white_cards"].count()
+        context["website_total"] = context["websites"].count()
+        context["result_type"] = result_type
+        context["selected_category"] = category
+        context["selected_location"] = location
+        context["selected_job_category"] = job_category
+        context["has_qr"] = has_qr
+        context["has_website"] = has_website
+        context["has_photo"] = has_photo
+        context["show_cards"] = show_cards
+        context["show_jobs"] = show_jobs
+        context["show_websites"] = show_websites
+        context["company_categories"] = (
+            Company.objects.filter(is_active=True)
+            .exclude(category__isnull=True)
+            .exclude(category="")
+            .order_by("category")
+            .values_list("category", flat=True)
+            .distinct()
+        )
+        context["company_locations"] = (
+            Company.objects.filter(is_active=True)
+            .exclude(city__isnull=True)
+            .exclude(city="")
+            .order_by("city")
+            .values_list("city", flat=True)
+            .distinct()
+        )
+        context["job_categories"] = (
+            Specialty.objects.exclude(category="")
+            .order_by("category")
+            .values_list("category", flat=True)
+            .distinct()
+        )
+        context["filters_active"] = any([result_type != "cards", category, location, job_category, has_qr, has_website, has_photo])
+        return context
+
+
+def business_card_marketplace_item(request, card):
+    company = card.company
+    return {
+        "type": "business_card",
+        "id": card.id,
+        "title": card.display_name,
+        "subtitle": card.job_title or card.profile.job_title or "Perfil profesional",
+        "company": company.name,
+        "category": company.category,
+        "city": company.city,
+        "region": company.region,
+        "logo": request.build_absolute_uri(company.logo.url) if company.logo else "",
+        "photo": request.build_absolute_uri(card.profile.photo.url) if card.profile.photo else "",
+        "public_url": request.build_absolute_uri(reverse("public-business-card", kwargs={"slug": card.slug})),
+        "qr_svg_url": request.build_absolute_uri(reverse("public-card-qr", kwargs={"slug": card.profile.slug})),
+    }
+
+
+def white_card_marketplace_item(request, card):
+    return {
+        "type": "white_card_job",
+        "id": card.id,
+        "title": card.title,
+        "subtitle": card.specialty.name if card.specialty_id else "",
+        "company": "",
+        "category": card.specialty.category if card.specialty_id else "",
+        "city": card.address,
+        "region": "",
+        "logo": "",
+        "photo": request.build_absolute_uri(card.photo.url) if card.photo else "",
+        "public_url": request.build_absolute_uri(reverse("public-white-card-job", kwargs={"username": card.username})),
+        "qr_svg_url": request.build_absolute_uri(reverse("public-white-card-job-qr", kwargs={"username": card.username})),
+    }
+
+
+def website_marketplace_item(request, website):
+    return {
+        "type": "website",
+        "id": website.id,
+        "title": website.title,
+        "subtitle": website.meta_description or website.company.description,
+        "company": website.company.name,
+        "category": website.company.category,
+        "city": website.company.city,
+        "region": website.company.region,
+        "logo": request.build_absolute_uri(website.company.logo.url) if website.company.logo else "",
+        "photo": request.build_absolute_uri(website.logo.url) if website.logo else "",
+        "public_url": website_public_url(request, website),
+        "qr_svg_url": "",
+    }
+
+
+class PublicMarketplaceAPIView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        query = (request.query_params.get("q") or "").strip()
+        try:
+            limit = int(request.query_params.get("limit") or 24)
+        except (TypeError, ValueError):
+            limit = 24
+        limit = max(1, min(limit, 60))
+
+        cards = BusinessCard.objects.filter(is_active=True, profile__is_active=True, profile__company__is_active=True).select_related(
+            "profile",
+            "profile__company",
+            "profile__user",
+        )
+        jobs = WhiteCardJob.objects.filter(is_active=True, is_available=True).select_related("user", "specialty")
+        websites = Website.objects.filter(is_active=True, is_published=True, company__is_active=True).select_related("company", "theme")
+
+        if query:
+            cards = cards.filter(
+                Q(display_name__icontains=query)
+                | Q(company_name__icontains=query)
+                | Q(services__icontains=query)
+                | Q(profile__company__name__icontains=query)
+                | Q(profile__company__category__icontains=query)
+                | Q(profile__company__services__icontains=query)
+            )
+            jobs = jobs.filter(
+                Q(user__first_name__icontains=query)
+                | Q(user__last_name__icontains=query)
+                | Q(title__icontains=query)
+                | Q(specialty__name__icontains=query)
+                | Q(specialty__category__icontains=query)
+                | Q(short_description__icontains=query)
+            )
+            websites = websites.filter(
+                Q(title__icontains=query)
+                | Q(company__name__icontains=query)
+                | Q(company__category__icontains=query)
+                | Q(company__services__icontains=query)
+                | Q(company__description__icontains=query)
+            )
+
+        data = {
+            "summary": {
+                "business_cards": cards.count(),
+                "white_card_jobs": jobs.count(),
+                "websites": websites.count(),
+            },
+            "business_cards": [business_card_marketplace_item(request, item) for item in cards.order_by("profile__company__name", "display_name")[:limit]],
+            "white_card_jobs": [white_card_marketplace_item(request, item) for item in jobs.order_by("-updated_at")[:limit]],
+            "websites": [website_marketplace_item(request, item) for item in websites.order_by("company__name", "title")[:limit]],
+        }
+        return success_response("Marketplace retrieved successfully.", data)
 
 
 class AboutView(TemplateView):

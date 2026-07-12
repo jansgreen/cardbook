@@ -1,0 +1,9 @@
+{% load websitebuilder_tags %}
+<{{ section.html_tag|default:"section" }} class="wb-section">
+    <div class="wb-container">
+        <div class="wb-section-head">
+            <h2>{{ section|translated_title:language }}</h2>
+            <p>{{ section|translated_subtitle:language }}</p>
+        </div>
+    </div>
+</{{ section.html_tag|default:"section" }}>

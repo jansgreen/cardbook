@@ -1,0 +1,26 @@
+{% extends "website_builder/public/website_base.html" %}
+{% block website_content %}
+<main class="wb-page wb-layout-{% if page.layout %}{{ page.layout.layout_type }}{% else %}full_width{% endif %}">
+    {% for section in sections %}
+        {% if section.section_type == "hero" %}
+            {% include "website_builder/public/sections/hero.html" %}
+        {% elif section.section_type == "services" %}
+            {% include "website_builder/public/sections/services.html" %}
+        {% elif section.section_type == "gallery" %}
+            {% include "website_builder/public/sections/gallery.html" %}
+        {% elif section.section_type == "team" %}
+            {% include "website_builder/public/sections/team.html" %}
+        {% elif section.section_type == "testimonials" %}
+            {% include "website_builder/public/sections/testimonials.html" %}
+        {% elif section.section_type == "cta" %}
+            {% include "website_builder/public/sections/cta.html" %}
+        {% elif section.section_type == "contact_form" or section.section_type == "form_builder" %}
+            {% include "website_builder/public/sections/contact_form.html" %}
+        {% elif section.section_type == "footer" %}
+            {% include "website_builder/public/sections/footer.html" %}
+        {% else %}
+            {% include "website_builder/public/sections/custom.html" %}
+        {% endif %}
+    {% endfor %}
+</main>
+{% endblock %}

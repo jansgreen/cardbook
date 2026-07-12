@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from django.urls import include, path
 
 from .health import HealthView, ReadinessView
+from web.views import PublicMarketplaceAPIView
 
 
 def api_root(request):
@@ -20,7 +21,15 @@ def api_root(request):
             "posts": "/api/v1/posts/",
             "alliances": "/api/v1/alliances/",
             "book": "/api/v1/book/",
+            "jobcards": "/api/v1/jobcards/",
             "mobile": "/api/v1/mobile/",
+            "marketplace": "/api/v1/marketplace/",
+            "websites": "/api/v1/websites/",
+            "public_sites": "/api/v1/public-sites/",
+            "referrals": "/api/v1/referrals/",
+            "finance": "/api/v1/finance/overview/",
+            "billing": "/api/v1/billing/subscription/",
+            "agent_finance": "/api/v1/agent/overview/",
             "recommendations": "/api/v1/companies/recommendations/",
             "admin": "/admin/",
         },
@@ -39,9 +48,17 @@ urlpatterns = [
     path("api/v1/posts/", include("business_feed.urls")),
     path("api/v1/alliances/", include("alliances.urls")),
     path("api/v1/book/", include("book.urls")),
+    path("api/v1/jobcards/", include("jobcards.urls")),
     path("api/v1/mobile/", include("mobile.urls")),
+    path("api/v1/marketplace/", PublicMarketplaceAPIView.as_view(), name="api-marketplace"),
+    path("api/v1/", include("websitebuilder.api_urls")),
+    path("api/v1/referrals/", include("referrals.urls")),
+    path("", include("financial_analytics.urls")),
     path("dashboard/", include("dashboard.urls")),
+    path("forms/", include("forms_builder.urls")),
+    path("site/", include("websitebuilder.urls")),
     path("business/", include("publiccards.business_urls")),
+    path("job/", include("jobcards.public_urls")),
     path("c/", include("publiccards.urls")),
     path("", include("web.urls")),
 ]

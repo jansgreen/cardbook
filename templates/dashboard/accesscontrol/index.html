@@ -1,0 +1,32 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Accesos - Cardbook{% endblock %}
+{% block topbar_title %}Control de accesos{% endblock %}
+{% block topbar_subtitle %}Roles, grupos, permisos, agentes y comisiones{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard/access_control.css' %}">
+{% endblock %}
+
+{% block dashboard_content %}
+<section class="access-page">
+
+    {% include "./components/hero.html" %}
+
+    {% include "./components/summary_cards.html" %}
+
+    {% include "./components/tabs.html" %}
+
+    {% include "./components/modal_member.html" %}
+    {% include "./components/modal_permission.html" %}
+    {% include "./components/modal_role.html" %}
+    {% include "./components/modal_group.html" %}
+    {% include "./components/modal_grant.html" %}
+
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/dashboard/access_control.js' %}"></script>
+{% endblock %}

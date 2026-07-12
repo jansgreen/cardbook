@@ -1,0 +1,100 @@
+<section class="post-board">
+    <header class="post-board-header">
+        <div>
+            <p>Dashboard &gt; Empresas &gt; {{ active_company.name }} &gt; Publicaciones</p>
+            <h2>Publicaciones empresariales</h2>
+            <span>Comparte novedades, proyectos, logros y mas sobre tu empresa con tu red empresarial.</span>
+        </div>
+        <a href="#publicaciones" class="post-new-button">+ Nueva publicacion</a>
+    </header>
+
+    <div class="post-board-layout">
+        <div class="post-board-main">
+            <div class="post-tabs-row">
+                <nav>
+                    <a class="active" href="#publicaciones-recientes">Todas</a>
+                    <a href="#publicaciones-recientes">Publicadas</a>
+                    <a href="#publicaciones-recientes">Borradores</a>
+                    <a href="#publicaciones-recientes">Programadas</a>
+                    <a href="#publicaciones-recientes">Archivadas</a>
+                </nav>
+                <div class="post-search-actions">
+                    <label>
+                        <span>Buscar publicaciones</span>
+                        <input type="search" placeholder="Buscar publicaciones..." data-post-search>
+                    </label>
+                    <button type="button">Filtros</button>
+                </div>
+            </div>
+
+            <div class="post-card-grid" id="publicaciones-recientes">
+                {% for post in posts %}
+                    <article class="post-premium-card" data-post-card data-title="{{ post.title|lower }}">
+                        <div class="post-media-frame">
+                            {% if post.media_type == "video" %}
+                                <video src="{{ post.media.url }}" muted playsinline controls></video>
+                                <span class="post-kind video">VIDEO</span>
+                            {% else %}
+                                <img src="{{ post.media.url }}" alt="{{ post.title }}">
+                                <span class="post-kind image">ACTUALIZACION</span>
+                            {% endif %}
+                            <button type="button" aria-label="Mas opciones">...</button>
+                        </div>
+                        <div class="post-premium-body">
+                            <small>{{ post.created_at|date:"d M Y" }} &middot; {{ post.created_at|date:"h:i A" }}</small>
+                            <h3>{{ post.title }}</h3>
+                            {% if post.caption %}<p>{{ post.caption }}</p>{% endif %}
+                            <footer>
+                                <span class="post-status published">Publicada</span>
+                                <div>
+                                    <span>VER {{ post.view_count }}</span>
+                                    <span>OK {{ post.excellent_count }}</span>
+                                </div>
+                            </footer>
+                        </div>
+                    </article>
+                {% empty %}
+                    <article class="post-empty-state">
+                        <h3>No hay publicaciones todavia</h3>
+                        <p>Crea tu primera novedad empresarial para activar esta seccion.</p>
+                        <a href="#publicaciones">Crear publicacion</a>
+                    </article>
+                {% endfor %}
+            </div>
+            <footer class="post-board-pagination">
+                <span>Mostrando {{ posts|length }} publicaciones</span>
+                <div><button type="button">‹</button><strong>1</strong><button type="button">›</button></div>
+            </footer>
+        </div>
+
+        <aside class="post-board-side">
+            <article class="post-summary-card">
+                <h3>Resumen de publicaciones</h3>
+                <div class="post-summary-ring"><strong>{{ stats.posts }}</strong><span>Total</span></div>
+                <ul>
+                    <li><span></span>Publicadas <strong>{{ stats.posts }}</strong></li>
+                    <li><span></span>Borradores <strong>0</strong></li>
+                    <li><span></span>Programadas <strong>0</strong></li>
+                    <li><span></span>Archivadas <strong>0</strong></li>
+                </ul>
+                <div class="post-summary-metrics">
+                    <article><span>VER</span><strong>{{ stats.views }}</strong><small>Alcance total</small></article>
+                    <article><span>OK</span><strong>{{ stats.excellent }}</strong><small>Interacciones</small></article>
+                    <article><span>IMG</span><strong>{{ stats.images }}</strong><small>Fotos</small></article>
+                    <article><span>VID</span><strong>{{ stats.videos }}</strong><small>Videos</small></article>
+                </div>
+            </article>
+            <article class="post-summary-card">
+                <h3>Acciones rapidas</h3>
+                <a href="#publicaciones"><span>NEW</span><strong>Nueva publicacion</strong><small>Comparte algo nuevo</small></a>
+                <a href="#publicaciones"><span>IMG</span><strong>Subir fotos</strong><small>Comparte imagenes</small></a>
+                <a href="#publicaciones"><span>VID</span><strong>Subir video</strong><small>Comparte videos</small></a>
+                <a href="#publicaciones"><span>STA</span><strong>Ver estadisticas</strong><small>Analiza tu rendimiento</small></a>
+            </article>
+            <article class="post-summary-card post-advice-card">
+                <h3>Consejo Cardbook</h3>
+                <p>Las publicaciones con imagenes reciben mas interacciones que las publicaciones solo con texto.</p>
+            </article>
+        </aside>
+    </div>
+</section>

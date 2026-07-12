@@ -1,0 +1,24 @@
+<label class="post-field post-field-full">
+    <span>Descripcion <b>*</b></span>
+    <div class="post-rich-editor" data-rich-editor>
+        <div class="post-editor-toolbar" aria-hidden="true">
+            <button type="button">Parrafo</button>
+            <button type="button"><strong>B</strong></button>
+            <button type="button"><em>I</em></button>
+            <button type="button"><u>U</u></button>
+            <button type="button"><s>S</s></button>
+            <button type="button">Link</button>
+            <button type="button">IMG</button>
+            <button type="button">VID</button>
+            <button type="button">Lista</button>
+            <button type="button">Cita</button>
+            <button type="button">A</button>
+        </div>
+        {{ post_form.caption }}
+        <div class="post-editor-footer">
+            <span data-description-error></span>
+            <small data-counter-for="caption">0/200 caracteres</small>
+        </div>
+    </div>
+    {{ post_form.caption.errors }}
+</label>

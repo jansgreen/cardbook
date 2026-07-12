@@ -1,0 +1,58 @@
+<section class="finance-panel">
+    <div class="finance-panel-head">
+        <div>
+            <h2>Bitacora administrativa</h2>
+            <p class="finance-muted">Eventos importantes de comisiones, agentes, reportes y webhooks.</p>
+        </div>
+    </div>
+
+    <form class="finance-filter-bar finance-filter-bar-compact" method="get">
+        <label>
+            <span>Accion</span>
+            <select name="action">
+                <option value="">Todas</option>
+                {% for action in audit_actions %}
+                    <option value="{{ action }}" {% if audit_filters.action == action %}selected{% endif %}>{{ action }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>
+            <span>Actor</span>
+            <select name="actor">
+                <option value="">Todos</option>
+                {% for actor in audit_actors %}
+                    <option value="{{ actor.id }}" {% if audit_filters.actor == actor.id|stringformat:"s" %}selected{% endif %}>
+                        {{ actor.get_full_name|default:actor.username }}
+                    </option>
+                {% endfor %}
+            </select>
+        </label>
+        <div class="finance-filter-actions">
+            <button type="submit">Aplicar</button>
+            <a href="{% url 'finance-audit' %}">Limpiar</a>
+        </div>
+    </form>
+
+    <div class="finance-audit-list">
+        {% for log in audit_logs %}
+        <article class="finance-audit-item {{ log.severity }}">
+            <div class="finance-audit-icon">{{ log.action|slice:":1"|upper }}</div>
+            <div>
+                <div class="finance-audit-title">
+                    <strong>{{ log.title }}</strong>
+                    <span>{{ log.action }}</span>
+                </div>
+                {% if log.message %}<p>{{ log.message }}</p>{% endif %}
+                <small>
+                    {{ log.created_at|date:"M d, Y H:i" }}
+                    {% if log.actor %} / {{ log.actor.get_full_name|default:log.actor.username }}{% endif %}
+                    {% if log.target_type %} / {{ log.target_type }} #{{ log.target_id }}{% endif %}
+                </small>
+            </div>
+            <span class="finance-status finance-status-{{ log.severity }}">{{ log.severity }}</span>
+        </article>
+        {% empty %}
+        <p class="finance-muted">No hay eventos de auditoria con estos filtros.</p>
+        {% endfor %}
+    </div>
+</section>

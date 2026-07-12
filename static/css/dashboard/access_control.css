@@ -1,0 +1,444 @@
+:root {
+    --access-navy: #061b3a;
+    --access-blue: #2563eb;
+    --access-purple: #7c3aed;
+    --access-gold: #e3a72f;
+    --access-light: #f5f7fb;
+    --access-border: #dbe5f5;
+    --access-muted: #64748b;
+    --access-danger: #dc2626;
+    --access-success: #16a34a;
+}
+
+.access-page {
+    display: grid;
+    gap: 22px;
+}
+
+.access-hero,
+.access-panel,
+.access-summary-card,
+.access-modal__dialog {
+    background: #fff;
+    border: 1px solid var(--access-border);
+    border-radius: 22px;
+    box-shadow: 0 16px 45px rgba(6, 27, 58, 0.08);
+}
+
+.access-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 28px;
+}
+
+.access-eyebrow {
+    display: inline-flex;
+    color: var(--access-gold);
+    font-weight: 800;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: 8px;
+}
+
+.access-hero h1 {
+    margin: 0;
+    color: var(--access-navy);
+    font-size: clamp(1.8rem, 2vw, 2.4rem);
+    line-height: 1.1;
+}
+
+.access-hero p {
+    margin: 10px 0 0;
+    color: var(--access-muted);
+}
+
+.access-hero__actions {
+    display: flex;
+    align-items: flex-end;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.access-company-form {
+    display: grid;
+    gap: 6px;
+}
+
+.access-company-form label {
+    color: var(--access-muted);
+    font-size: .82rem;
+    font-weight: 700;
+}
+
+.access-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.access-summary-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 20px;
+}
+
+.access-summary-card__icon {
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: #eef4ff;
+}
+
+.access-summary-card p {
+    margin: 0;
+    color: var(--access-muted);
+    font-weight: 700;
+}
+
+.access-summary-card strong {
+    display: block;
+    margin-top: 4px;
+    color: var(--access-navy);
+    font-size: 1.8rem;
+}
+
+.access-panel {
+    overflow: hidden;
+}
+
+.access-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 16px 16px 0;
+    border-bottom: 1px solid var(--access-border);
+    overflow-x: auto;
+}
+
+.access-tab {
+    border: 0;
+    background: transparent;
+    color: #38506f;
+    font-weight: 800;
+    padding: 14px 16px;
+    border-radius: 14px 14px 0 0;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.access-tab.is-active {
+    color: var(--access-blue);
+    background: #eef4ff;
+    box-shadow: inset 0 -3px 0 var(--access-blue);
+}
+
+.access-tab-panel {
+    display: none;
+    padding: 22px;
+}
+
+.access-tab-panel.is-active {
+    display: block;
+}
+
+.access-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+.access-section-head h2 {
+    margin: 0;
+    color: var(--access-navy);
+}
+
+.access-section-head p {
+    margin: 4px 0 0;
+    color: var(--access-muted);
+}
+
+.access-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--access-border);
+    border-radius: 18px;
+}
+
+.access-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 760px;
+}
+
+.access-table th {
+    background: #f8fbff;
+    color: #314767;
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    text-align: left;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--access-border);
+}
+
+.access-table td {
+    padding: 16px;
+    border-bottom: 1px solid #edf2fb;
+    color: #10213d;
+    vertical-align: middle;
+}
+
+.access-table tr:last-child td {
+    border-bottom: 0;
+}
+
+.access-table strong {
+    color: var(--access-navy);
+}
+
+.text-right {
+    text-align: right !important;
+}
+
+.access-inline-form {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.form-control--compact {
+    min-width: 140px;
+    min-height: 38px;
+}
+
+.access-btn,
+.access-link-btn {
+    border: 1px solid var(--access-border);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--access-navy);
+    font-weight: 800;
+    padding: 10px 16px;
+    cursor: pointer;
+}
+
+.access-btn--primary {
+    background: linear-gradient(135deg, var(--access-blue), var(--access-purple));
+    color: #fff;
+    border: 0;
+    box-shadow: 0 12px 30px rgba(37, 99, 235, .25);
+}
+
+.access-btn--danger {
+    color: var(--access-danger);
+    border-color: #fecaca;
+    background: #fff5f5;
+}
+
+.access-link-btn {
+    padding: 8px 10px;
+    color: var(--access-blue);
+    border: 0;
+    background: #eef4ff;
+    border-radius: 10px;
+}
+
+.access-badge,
+.access-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: .82rem;
+    font-weight: 800;
+    background: #eef2f7;
+    color: #334155;
+}
+
+.access-badge--success {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.access-badge--danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.access-badge--gold {
+    background: #fff7df;
+    color: #8a5a00;
+}
+
+.access-chip {
+    margin: 2px;
+    background: #eef4ff;
+    color: var(--access-blue);
+}
+
+.access-muted,
+.access-empty {
+    color: var(--access-muted);
+}
+
+.access-empty {
+    text-align: center;
+    padding: 28px !important;
+}
+
+.access-mini-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--access-muted);
+    font-weight: 700;
+}
+
+/* Modal */
+.access-modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    z-index: 9999;
+}
+
+.access-modal.is-open {
+    display: block;
+}
+
+.access-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(6, 27, 58, .55);
+    backdrop-filter: blur(6px);
+}
+
+.access-modal__dialog {
+    position: relative;
+    width: min(720px, calc(100vw - 32px));
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    margin: 20px auto;
+    padding: 24px;
+}
+
+.access-modal__head {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.access-modal__head h2 {
+    margin: 0;
+    color: var(--access-navy);
+}
+
+.access-modal__head p {
+    margin: 6px 0 0;
+    color: var(--access-muted);
+}
+
+.access-modal__close {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid var(--access-border);
+    background: #fff;
+    cursor: pointer;
+    font-size: 24px;
+}
+
+.access-form {
+    display: grid;
+    gap: 14px;
+}
+
+.access-form label {
+    display: grid;
+    gap: 7px;
+    color: var(--access-navy);
+    font-weight: 800;
+}
+
+.access-form label span {
+    font-size: .9rem;
+}
+
+.access-modal__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+@media (max-width: 900px) {
+    .access-hero,
+    .access-section-head {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .access-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .access-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .access-table {
+        min-width: 0;
+    }
+
+    .access-table thead {
+        display: none;
+    }
+
+    .access-table,
+    .access-table tbody,
+    .access-table tr,
+    .access-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .access-table tr {
+        padding: 14px;
+        border-bottom: 1px solid var(--access-border);
+    }
+
+    .access-table td {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        border-bottom: 0;
+        padding: 8px 0;
+        text-align: right !important;
+    }
+
+    .access-table td::before {
+        content: attr(data-label);
+        color: var(--access-muted);
+        font-weight: 800;
+        text-align: left;
+    }
+
+    .access-modal__actions {
+        flex-direction: column-reverse;
+    }
+
+    .access-btn {
+        width: 100%;
+    }
+}

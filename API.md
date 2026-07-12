@@ -154,10 +154,19 @@ Flutter should start with these endpoints:
 
 ```http
 GET /api/v1/mobile/config/
+GET /api/v1/mobile/bootstrap/
 GET /api/v1/mobile/dashboard/
+GET /api/v1/mobile/companies/
+GET /api/v1/mobile/cards/
+GET /api/v1/mobile/book/
+GET /api/v1/mobile/jobs/
+GET /api/v1/mobile/websites/
+GET /api/v1/mobile/actions/
 ```
 
 `/api/v1/mobile/config/` is public and returns API URLs, media base URL, Android version URL, and download URL.
+
+`/api/v1/mobile/bootstrap/` requires JWT and returns the current user, mobile endpoint map, CRUD links, navigation entries, and capabilities such as whether the user can create cards, manage websites, publish websites, or create a White Card Job.
 
 `/api/v1/mobile/dashboard/` requires JWT and returns a compact home payload:
 
@@ -190,6 +199,15 @@ GET /api/v1/mobile/dashboard/
 }
 ```
 
+Mobile screen endpoints:
+
+- `/api/v1/mobile/companies/`: paginated companies available to the current user.
+- `/api/v1/mobile/cards/`: digital profiles and business presentation cards, including `public_url` and `qr_svg_url`.
+- `/api/v1/mobile/book/`: saved businesses, saved hiring candidates, and job recommendations.
+- `/api/v1/mobile/jobs/`: current user's White Card Job, available public jobs, and company recommendations.
+- `/api/v1/mobile/websites/`: websites available to the user, including `public_url` and `publish_status`.
+- `/api/v1/mobile/actions/`: native action metadata for phone, email, WhatsApp, maps, share, contact download, and QR download.
+
 Recommended Flutter boot flow:
 
 1. `GET /api/v1/mobile/config/`.
@@ -197,8 +215,38 @@ Recommended Flutter boot flow:
 3. `POST /api/v1/accounts/login/`.
 4. Store `data.tokens.access` and `data.tokens.refresh` in secure storage.
 5. `GET /api/v1/accounts/me/`.
-6. `GET /api/v1/mobile/dashboard/`.
-7. On `401`, call `/api/v1/accounts/token/refresh/` and retry once.
+6. `GET /api/v1/mobile/bootstrap/`.
+7. `GET /api/v1/mobile/dashboard/`.
+8. Load screen-specific endpoints as the user navigates.
+9. On `401`, call `/api/v1/accounts/token/refresh/` and retry once.
+
+## Public Marketplace
+
+```http
+GET /api/v1/marketplace/
+GET /api/v1/marketplace/?q=software&limit=12
+```
+
+Public endpoint. It returns marketplace-ready results for business presentation cards, White Card Jobs, and published websites.
+
+```json
+{
+  "success": true,
+  "message": "Marketplace retrieved successfully.",
+  "data": {
+    "summary": {
+      "business_cards": 27,
+      "white_card_jobs": 10,
+      "websites": 5
+    },
+    "business_cards": [],
+    "white_card_jobs": [],
+    "websites": []
+  }
+}
+```
+
+Each item includes `type`, `title`, `subtitle`, `company`, `category`, `city`, `region`, `logo`, `photo`, `public_url`, and `qr_svg_url` when applicable.
 
 ## Members
 
@@ -302,6 +350,127 @@ Register click:
 Click types: `phone`, `email`, `website`, `whatsapp`, `social`.
 
 Stats require authentication and card permissions.
+
+## Website Builder
+
+Dashboard route:
+
+```http
+GET /dashboard/companies/{company_id}/website/
+```
+
+Public site routes:
+
+```http
+GET /site/{website_slug}/
+GET /site/{website_slug}/{page_slug}/
+GET /site/{website_slug}/?lang=en
+```
+
+REST endpoints:
+
+```http
+GET|POST /api/v1/websites/
+GET|PATCH|DELETE /api/v1/websites/{id}/
+GET|POST /api/v1/pages/
+GET|PATCH|DELETE /api/v1/pages/{id}/
+GET|POST /api/v1/layouts/
+GET|PATCH|DELETE /api/v1/layouts/{id}/
+GET|POST /api/v1/sections/
+GET|PATCH|DELETE /api/v1/sections/{id}/
+GET|POST /api/v1/components/
+GET|PATCH|DELETE /api/v1/components/{id}/
+GET|POST /api/v1/blocks/
+GET|PATCH|DELETE /api/v1/blocks/{id}/
+GET /api/v1/themes/
+GET /api/v1/public-sites/{website_slug}/
+GET /api/v1/public-sites/{website_slug}/{page_slug}/
+```
+
+Translation endpoints:
+
+```http
+GET|POST /api/v1/page-translations/
+GET|PATCH|DELETE /api/v1/page-translations/{id}/
+GET|POST /api/v1/section-translations/
+GET|PATCH|DELETE /api/v1/section-translations/{id}/
+GET|POST /api/v1/component-translations/
+GET|PATCH|DELETE /api/v1/component-translations/{id}/
+GET|POST /api/v1/block-translations/
+GET|PATCH|DELETE /api/v1/block-translations/{id}/
+```
+
+Private builder endpoints require `Authorization: Bearer <access>` and company management permission. Public site endpoints do not require authentication.
+
+## Referral & Agent System
+
+Agent endpoints:
+
+```http
+POST /api/v1/referrals/agent/invite/
+GET /api/v1/referrals/agent/me/
+GET /api/v1/referrals/agent/link/
+```
+
+Register source and referrals:
+
+```http
+POST /api/v1/referrals/register-source/
+GET /api/v1/referrals/my-referrals/
+```
+
+`register-source` accepts:
+
+```json
+{
+  "referral_code": "AGT-8F92KD",
+  "source_url": "https://cardbook.com/register/?ref=AGT-8F92KD"
+}
+```
+
+Commissions:
+
+```http
+GET /api/v1/referrals/commissions/
+GET /api/v1/referrals/commissions/{id}/
+POST /api/v1/referrals/commissions/generate/
+POST /api/v1/referrals/commissions/{id}/approve/
+POST /api/v1/referrals/commissions/{id}/mark-paid/
+```
+
+Generate commission accepts:
+
+```json
+{
+  "company_id": 1,
+  "plan_name": "Plan Pro",
+  "payment_amount": "49.99",
+  "currency": "USD",
+  "payment_reference": "stripe-payment-id"
+}
+```
+
+Admin endpoints:
+
+```http
+GET /api/v1/referrals/admin/agents/
+GET /api/v1/referrals/admin/referrals/
+GET /api/v1/referrals/admin/commissions/
+GET /api/v1/referrals/admin/reports/referrals.csv
+```
+
+Web dashboard:
+
+```http
+GET /dashboard/referrals/
+```
+
+Registration also accepts referral codes through:
+
+```http
+GET /register/?ref=AGT-8F92KD
+POST /api/v1/accounts/register/?ref=AGT-8F92KD
+```
 
 ## Android Smoke Test Flow
 

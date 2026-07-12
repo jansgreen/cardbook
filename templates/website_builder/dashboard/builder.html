@@ -1,0 +1,502 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block title %}Website Builder - Cardbook{% endblock %}
+{% block topbar_title %}Website Builder{% endblock %}
+{% block topbar_subtitle %}Constructor web de {{ company.name }}{% endblock %}
+{% block dashboard_content %}
+<section class="website-builder-dashboard">
+    <div class="builder-hero">
+        <div>
+            <p>Website Builder</p>
+            <h1>{{ company.name }}</h1>
+            <span>Crea una pagina publica profesional conectada a Cardbook, lista para multilenguaje, SEO y API REST.</span>
+        </div>
+        <div class="builder-hero-actions">
+            <a href="{% url 'dashboard-companies' %}?company={{ company.id }}">Volver a empresas</a>
+            {% if website %}
+                <a href="{% url 'dashboard-company-website-preview' company.id %}" target="_blank" rel="noopener">Vista externa</a>
+            {% endif %}
+            {% if website and website.is_published %}
+                <a class="builder-primary" href="{% url 'websitebuilder-public-home' website.slug %}" target="_blank" rel="noopener">Ver sitio</a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if website %}
+        <section class="builder-grid">
+            <article class="builder-panel builder-status">
+                <div class="builder-panel-head">
+                    <div>
+                        <span>Estado</span>
+                        <h2>{{ website.title }}</h2>
+                    </div>
+                    {% if website.is_published %}
+                        <strong class="builder-pill live">Publicado</strong>
+                    {% else %}
+                        <strong class="builder-pill draft">Borrador</strong>
+                    {% endif %}
+                </div>
+                <div class="builder-url-box">
+                    <span>URL publica</span>
+                    <code>{{ public_url }}</code>
+                </div>
+                <div class="builder-mini-stats">
+                    <article><span>Paginas</span><strong>{{ pages|length }}</strong></article>
+                    <article><span>Publicadas</span><strong>{{ publish_status.published_pages }}</strong></article>
+                    <article><span>Secciones</span><strong>{{ publish_status.active_sections }}</strong></article>
+                    <article><span>Visitas</span><strong>{{ visits }}</strong></article>
+                    <article><span>Idioma</span><strong>{{ website.default_language|upper }}</strong></article>
+                </div>
+                {% if publish_status.issues %}
+                    <div class="builder-form-errors">
+                        <strong>Antes de publicar:</strong>
+                        {% for issue in publish_status.issues %}<span>{{ issue }}</span>{% endfor %}
+                    </div>
+                {% endif %}
+                {% if can_publish_website %}
+                    <form method="post" class="builder-inline-actions">
+                        {% csrf_token %}
+                        {% if website.is_published %}
+                            <input type="hidden" name="action" value="unpublish">
+                            <button type="submit">Despublicar</button>
+                        {% else %}
+                            <input type="hidden" name="action" value="publish">
+                            <button class="builder-primary-button" type="submit" {% if not publish_status.can_publish %}disabled{% endif %}>Publicar sitio</button>
+                        {% endif %}
+                    </form>
+                {% endif %}
+            </article>
+
+            <article class="builder-panel">
+                <div class="builder-panel-head">
+                    <div>
+                        <span>Estilo visual</span>
+                        <h2>Tema, colores y tipografia</h2>
+                    </div>
+                </div>
+                {% if can_manage_website %}
+                    <form method="post" class="builder-theme-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="update_theme">
+                        <label>Tema
+                            <select name="theme">
+                                {% for theme in themes %}
+                                    <option value="{{ theme.id }}" {% if website.theme_id == theme.id %}selected{% endif %}>{{ theme.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </label>
+                        <label>Color principal
+                            <input type="color" name="primary_color" value="{{ website.primary_color }}">
+                        </label>
+                        <label>Color secundario
+                            <input type="color" name="secondary_color" value="{{ website.secondary_color }}">
+                        </label>
+                        <label>Color acento
+                            <input type="color" name="accent_color" value="{{ website.accent_color }}">
+                        </label>
+                        <label>Tipografia
+                            <select name="font_family">
+                                <option value="Inter, system-ui, sans-serif" {% if website.font_family == "Inter, system-ui, sans-serif" %}selected{% endif %}>Inter</option>
+                                <option value="Poppins, system-ui, sans-serif" {% if website.font_family == "Poppins, system-ui, sans-serif" %}selected{% endif %}>Poppins</option>
+                                <option value="Georgia, serif" {% if website.font_family == "Georgia, serif" %}selected{% endif %}>Georgia</option>
+                                <option value="Montserrat, system-ui, sans-serif" {% if website.font_family == "Montserrat, system-ui, sans-serif" %}selected{% endif %}>Montserrat</option>
+                            </select>
+                        </label>
+                        <div class="builder-form-actions">
+                            <button class="builder-primary-button" type="submit">Guardar estilo</button>
+                        </div>
+                    </form>
+                {% else %}
+                    <p>No tienes permiso para editar el estilo de este sitio.</p>
+                {% endif %}
+            </article>
+
+            <article class="builder-panel">
+                <div class="builder-panel-head">
+                    <div>
+                        <span>Estructura HTML5</span>
+                        <h2>Landmarks administrables</h2>
+                    </div>
+                </div>
+                {% if can_manage_website %}
+                    <form method="post" class="builder-theme-form builder-structure-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="update_theme">
+                        <input type="hidden" name="update_structure" value="1">
+                        <input type="hidden" name="theme" value="{{ website.theme_id }}">
+                        <input type="hidden" name="primary_color" value="{{ website.primary_color }}">
+                        <input type="hidden" name="secondary_color" value="{{ website.secondary_color }}">
+                        <input type="hidden" name="accent_color" value="{{ website.accent_color }}">
+                        <input type="hidden" name="font_family" value="{{ website.font_family }}">
+                        <div class="builder-html-map">
+                            <article>
+                                <strong>&lt;header&gt;</strong>
+                                <span>Encabezado global del sitio.</span>
+                            </article>
+                            <article>
+                                <strong>&lt;nav&gt;</strong>
+                                <span>Menu generado con las paginas visibles.</span>
+                            </article>
+                            <article>
+                                <strong>&lt;main&gt;</strong>
+                                <span>Contenido unico de cada pagina.</span>
+                            </article>
+                            <article>
+                                <strong>&lt;section/article/aside/footer&gt;</strong>
+                                <span>Se administra en cada seccion.</span>
+                            </article>
+                        </div>
+                        <div class="builder-check-row">
+                            <label><input type="checkbox" name="show_header" {% if website.show_header %}checked{% endif %}> Mostrar header</label>
+                            <label><input type="checkbox" name="show_nav" {% if website.show_nav %}checked{% endif %}> Mostrar nav</label>
+                        </div>
+                        <div class="builder-form-actions">
+                            <button class="builder-primary-button" type="submit">Guardar estructura</button>
+                        </div>
+                    </form>
+                {% else %}
+                    <p>No tienes permiso para editar la estructura HTML5 de este sitio.</p>
+                {% endif %}
+            </article>
+
+            <article class="builder-panel builder-pages">
+                <div class="builder-panel-head">
+                    <div>
+                        <span>Estructura</span>
+                        <h2>Paginas del sitio</h2>
+                    </div>
+                </div>
+                {% if can_manage_website %}
+                    <form method="post" class="builder-page-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="create_page">
+                        <div class="builder-form-mini-head">
+                            <strong>Nueva pagina</strong>
+                            <span>Crea una pagina y luego agrega secciones.</span>
+                        </div>
+                        <label>Titulo{{ page_form.title }}</label>
+                        <label>Slug{{ page_form.slug }}</label>
+                        <label>Orden{{ page_form.order }}</label>
+                        <label>SEO titulo{{ page_form.seo_title }}</label>
+                        <label class="wide">SEO descripcion{{ page_form.seo_description }}</label>
+                        <div class="builder-check-row">
+                            <label>{{ page_form.show_in_menu }} Mostrar en menu</label>
+                            <label>{{ page_form.is_published }} Publicada</label>
+                            <label>{{ page_form.is_homepage }} Home</label>
+                        </div>
+                        {% if page_form.errors %}<div class="builder-form-errors">{{ page_form.errors }}</div>{% endif %}
+                        <div class="builder-form-actions"><button class="builder-primary-button" type="submit">Crear pagina</button></div>
+                    </form>
+                {% endif %}
+                {% for page in pages %}
+                    <section class="builder-page-row {% if page.is_homepage %}home{% endif %}">
+                        <div>
+                            <strong>{{ page.title }}</strong>
+                            <span>
+                                {% if page.is_homepage %}Home{% else %}/{{ page.slug }}/{% endif %}
+                                · {% if page.is_published %}publicada{% else %}borrador{% endif %}
+                                · {% if page.show_in_menu %}menu{% else %}oculta del menu{% endif %}
+                            </span>
+                        </div>
+                        <small>{{ page.active_sections|length }} secciones</small>
+                        {% if can_manage_website %}
+                            <details class="builder-page-edit" {% if editing_page and editing_page.id == page.id %}open{% endif %}>
+                                <summary>Editar</summary>
+                                <form method="post" class="builder-page-form compact">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="update_page">
+                                    <input type="hidden" name="page_id" value="{{ page.id }}">
+                                    {% if editing_page and editing_page.id == page.id and page_edit_form %}
+                                        <label>Titulo{{ page_edit_form.title }}</label>
+                                        <label>Slug{{ page_edit_form.slug }}</label>
+                                        <label>Orden{{ page_edit_form.order }}</label>
+                                        <label>SEO titulo{{ page_edit_form.seo_title }}</label>
+                                        <label class="wide">SEO descripcion{{ page_edit_form.seo_description }}</label>
+                                        <div class="builder-check-row">
+                                            <label>{{ page_edit_form.show_in_menu }} Mostrar en menu</label>
+                                            <label>{{ page_edit_form.is_published }} Publicada</label>
+                                            <label>{{ page_edit_form.is_homepage }} Home</label>
+                                        </div>
+                                        <div class="builder-form-errors">{{ page_edit_form.errors }}</div>
+                                    {% else %}
+                                        <label>Titulo<input type="text" name="title" value="{{ page.title }}"></label>
+                                        <label>Slug<input type="text" name="slug" value="{{ page.slug }}"></label>
+                                        <label>Orden<input type="number" name="order" min="0" value="{{ page.order }}"></label>
+                                        <label>SEO titulo<input type="text" name="seo_title" value="{{ page.seo_title }}"></label>
+                                        <label class="wide">SEO descripcion<textarea name="seo_description" rows="3">{{ page.seo_description }}</textarea></label>
+                                        <input type="hidden" name="icon" value="{{ page.icon }}">
+                                        <div class="builder-check-row">
+                                            <label><input type="checkbox" name="show_in_menu" {% if page.show_in_menu %}checked{% endif %}> Mostrar en menu</label>
+                                            <label><input type="checkbox" name="is_published" {% if page.is_published %}checked{% endif %}> Publicada</label>
+                                            <label><input type="checkbox" name="is_homepage" {% if page.is_homepage %}checked{% endif %}> Home</label>
+                                        </div>
+                                    {% endif %}
+                                    <div class="builder-form-actions"><button class="builder-primary-button" type="submit">Guardar pagina</button></div>
+                                </form>
+                                <div class="builder-page-actions">
+                                    <form method="post">{% csrf_token %}<input type="hidden" name="action" value="duplicate_page"><input type="hidden" name="page_id" value="{{ page.id }}"><button type="submit">Duplicar</button></form>
+                                    <a href="{% url 'dashboard-company-website-page-preview' company.id page.id %}" target="_blank" rel="noopener">Vista externa</a>
+                                    <form method="post">{% csrf_token %}<input type="hidden" name="action" value="toggle_page_publish"><input type="hidden" name="page_id" value="{{ page.id }}"><button type="submit">{% if page.is_published %}Despublicar{% else %}Publicar{% endif %}</button></form>
+                                    {% if not page.is_homepage %}
+                                        <form method="post">{% csrf_token %}<input type="hidden" name="action" value="set_homepage"><input type="hidden" name="page_id" value="{{ page.id }}"><button type="submit">Hacer home</button></form>
+                                        <form method="post" onsubmit="return confirm('Archivar esta pagina?');">{% csrf_token %}<input type="hidden" name="action" value="archive_page"><input type="hidden" name="page_id" value="{{ page.id }}"><button class="danger" type="submit">Archivar</button></form>
+                                    {% endif %}
+                                </div>
+                                <section class="builder-section-manager">
+                                    <div class="builder-section-head">
+                                        <div>
+                                            <strong>Secciones</strong>
+                                            <span>Administra los bloques visuales de esta pagina.</span>
+                                        </div>
+                                    </div>
+                                    <form method="post" class="builder-section-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="create_section">
+                                        <input type="hidden" name="page_id" value="{{ page.id }}">
+                                        <label>Tipo{{ section_form.section_type }}</label>
+                                        <label>HTML5{{ section_form.html_tag }}</label>
+                                        <label>Nombre{{ section_form.name }}</label>
+                                        <label>Orden{{ section_form.order }}</label>
+                                        <label>Color{{ section_form.background_color }}</label>
+                                        <label class="wide">Titulo{{ section_form.title }}</label>
+                                        <label class="wide">Subtitulo{{ section_form.subtitle }}</label>
+                                        <div class="builder-check-row"><label>{{ section_form.is_active }} Activa</label></div>
+                                        {% if section_form.errors %}<div class="builder-form-errors">{{ section_form.errors }}</div>{% endif %}
+                                        <div class="builder-form-actions"><button class="builder-primary-button" type="submit">Crear seccion</button></div>
+                                    </form>
+                                    <div class="builder-section-list">
+                                        {% for section in page.active_sections %}
+                                            <article class="builder-section-row">
+                                                <div>
+                                                    <strong>{{ section.title|default:section.name }}</strong>
+                                                    <span>{{ section.get_section_type_display }} · &lt;{{ section.html_tag }}&gt; · orden {{ section.order }} · {{ section.components.count }} componentes</span>
+                                                </div>
+                                                <details class="builder-section-edit" {% if editing_section and editing_section.id == section.id %}open{% endif %}>
+                                                    <summary>Editar seccion</summary>
+                                                    <form method="post" class="builder-section-form compact">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="action" value="update_section">
+                                                        <input type="hidden" name="section_id" value="{{ section.id }}">
+                                                        {% if editing_section and editing_section.id == section.id and section_edit_form %}
+                                                            <label>Tipo{{ section_edit_form.section_type }}</label>
+                                                            <label>HTML5{{ section_edit_form.html_tag }}</label>
+                                                            <label>Nombre{{ section_edit_form.name }}</label>
+                                                            <label>Orden{{ section_edit_form.order }}</label>
+                                                            <label>Color{{ section_edit_form.background_color }}</label>
+                                                            <label class="wide">Titulo{{ section_edit_form.title }}</label>
+                                                            <label class="wide">Subtitulo{{ section_edit_form.subtitle }}</label>
+                                                            <div class="builder-check-row"><label>{{ section_edit_form.is_active }} Activa</label></div>
+                                                            <div class="builder-form-errors">{{ section_edit_form.errors }}</div>
+                                                        {% else %}
+                                                            <label>Tipo
+                                                                <select name="section_type">
+                                                                    {% for value,label in section_form.fields.section_type.choices %}
+                                                                        <option value="{{ value }}" {% if section.section_type == value %}selected{% endif %}>{{ label }}</option>
+                                                                    {% endfor %}
+                                                                </select>
+                                                            </label>
+                                                            <label>HTML5
+                                                                <select name="html_tag">
+                                                                    {% for value,label in section_form.fields.html_tag.choices %}
+                                                                        <option value="{{ value }}" {% if section.html_tag == value %}selected{% endif %}>{{ label }}</option>
+                                                                    {% endfor %}
+                                                                </select>
+                                                            </label>
+                                                            <label>Nombre<input type="text" name="name" value="{{ section.name }}"></label>
+                                                            <label>Orden<input type="number" name="order" min="0" value="{{ section.order }}"></label>
+                                                            <label>Color<input type="color" name="background_color" value="{{ section.background_color|default:'#ffffff' }}"></label>
+                                                            <label class="wide">Titulo<input type="text" name="title" value="{{ section.title }}"></label>
+                                                            <label class="wide">Subtitulo<textarea name="subtitle" rows="3">{{ section.subtitle }}</textarea></label>
+                                                            <div class="builder-check-row"><label><input type="checkbox" name="is_active" {% if section.is_active %}checked{% endif %}> Activa</label></div>
+                                                        {% endif %}
+                                                        <div class="builder-form-actions"><button class="builder-primary-button" type="submit">Guardar seccion</button></div>
+                                                    </form>
+                                                    <div class="builder-page-actions">
+                                                        <form method="post">{% csrf_token %}<input type="hidden" name="action" value="move_section_up"><input type="hidden" name="section_id" value="{{ section.id }}"><button type="submit">Subir</button></form>
+                                                        <form method="post">{% csrf_token %}<input type="hidden" name="action" value="move_section_down"><input type="hidden" name="section_id" value="{{ section.id }}"><button type="submit">Bajar</button></form>
+                                                        <form method="post">{% csrf_token %}<input type="hidden" name="action" value="duplicate_section"><input type="hidden" name="section_id" value="{{ section.id }}"><button type="submit">Duplicar</button></form>
+                                                        <form method="post">{% csrf_token %}<input type="hidden" name="action" value="toggle_section"><input type="hidden" name="section_id" value="{{ section.id }}"><button type="submit">{% if section.is_active %}Desactivar{% else %}Activar{% endif %}</button></form>
+                                                        <form method="post" onsubmit="return confirm('Archivar esta seccion?');">{% csrf_token %}<input type="hidden" name="action" value="archive_section"><input type="hidden" name="section_id" value="{{ section.id }}"><button class="danger" type="submit">Archivar</button></form>
+                                                    </div>
+                                                <section class="builder-component-manager">
+                                                    {% if section.section_type == "hero" %}
+                                                        <div class="builder-hero-carousel-admin">
+                                                            <div class="builder-form-mini-head">
+                                                                <strong>Carrusel del header</strong>
+                                                                <span>Sube imagenes para el encabezado. Si no agregas imagenes, el header conserva el color plano actual.</span>
+                                                            </div>
+                                                            <form method="post" enctype="multipart/form-data" class="builder-block-form compact">
+                                                                {% csrf_token %}
+                                                                <input type="hidden" name="action" value="create_hero_slide">
+                                                                <input type="hidden" name="section_id" value="{{ section.id }}">
+                                                                <label>Imagen<input type="file" name="image" accept="image/*" required></label>
+                                                                <label>Titulo<input type="text" name="button_text" placeholder="Titulo del slide"></label>
+                                                                <label class="wide">Descripcion<textarea name="text" rows="2" placeholder="Texto corto del slide"></textarea></label>
+                                                                <div class="builder-form-actions"><button class="builder-primary-button" type="submit">Agregar imagen al carrusel</button></div>
+                                                            </form>
+                                                        </div>
+                                                    {% endif %}
+                                                    <div class="builder-section-head">
+                                                        <div>
+                                                            <strong>Componentes</strong>
+                                                                <span>Tarjetas, botones, contacto y contenido reusable.</span>
+                                                            </div>
+                                                        </div>
+                                                        <form method="post" class="builder-component-form">
+                                                            {% csrf_token %}
+                                                            <input type="hidden" name="action" value="create_component">
+                                                            <input type="hidden" name="section_id" value="{{ section.id }}">
+                                                            <label>Tipo{{ component_form.component_type }}</label>
+                                                            <label>Nombre{{ component_form.name }}</label>
+                                                            <label>Orden{{ component_form.order }}</label>
+                                                            <label class="wide">Titulo{{ component_form.title }}</label>
+                                                            <label class="wide">Subtitulo{{ component_form.subtitle }}</label>
+                                                            <div class="builder-check-row"><label>{{ component_form.is_active }} Activo</label></div>
+                                                            {% if component_form.errors %}<div class="builder-form-errors">{{ component_form.errors }}</div>{% endif %}
+                                                            <div class="builder-form-actions"><button class="builder-primary-button" type="submit">Crear componente</button></div>
+                                                        </form>
+                                                        <div class="builder-component-list">
+                                                            {% for component in section.active_components %}
+                                                                <article class="builder-component-row">
+                                                                    <div>
+                                                                        <strong>{{ component.title|default:component.name }}</strong>
+                                                                        <span>{{ component.get_component_type_display }} · orden {{ component.order }} · {{ component.active_blocks|length }} bloques</span>
+                                                                    </div>
+                                                                    <details class="builder-component-edit" {% if editing_component and editing_component.id == component.id %}open{% endif %}>
+                                                                        <summary>Editar componente</summary>
+                                                                        <form method="post" class="builder-component-form compact">
+                                                                            {% csrf_token %}
+                                                                            <input type="hidden" name="action" value="update_component">
+                                                                            <input type="hidden" name="component_id" value="{{ component.id }}">
+                                                                            <label>Tipo
+                                                                                <select name="component_type">
+                                                                                    {% for value,label in component_form.fields.component_type.choices %}
+                                                                                        <option value="{{ value }}" {% if component.component_type == value %}selected{% endif %}>{{ label }}</option>
+                                                                                    {% endfor %}
+                                                                                </select>
+                                                                            </label>
+                                                                            <label>Nombre<input type="text" name="name" value="{{ component.name }}"></label>
+                                                                            <label>Orden<input type="number" name="order" min="0" value="{{ component.order }}"></label>
+                                                                            <label class="wide">Titulo<input type="text" name="title" value="{{ component.title }}"></label>
+                                                                            <label class="wide">Subtitulo<textarea name="subtitle" rows="2">{{ component.subtitle }}</textarea></label>
+                                                                            <div class="builder-check-row"><label><input type="checkbox" name="is_active" {% if component.is_active %}checked{% endif %}> Activo</label></div>
+                                                                            <div class="builder-form-actions"><button class="builder-primary-button" type="submit">Guardar componente</button></div>
+                                                                        </form>
+                                                                        <div class="builder-page-actions">
+                                                                            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="move_component_up"><input type="hidden" name="component_id" value="{{ component.id }}"><button type="submit">Subir</button></form>
+                                                                            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="move_component_down"><input type="hidden" name="component_id" value="{{ component.id }}"><button type="submit">Bajar</button></form>
+                                                                            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="duplicate_component"><input type="hidden" name="component_id" value="{{ component.id }}"><button type="submit">Duplicar</button></form>
+                                                                            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="toggle_component"><input type="hidden" name="component_id" value="{{ component.id }}"><button type="submit">{% if component.is_active %}Desactivar{% else %}Activar{% endif %}</button></form>
+                                                                        </div>
+                                                    <section class="builder-block-manager">
+                                                        <strong>Bloques</strong>
+                                                        {% if section.section_type == "hero" %}
+                                                            <p class="builder-help-text">Para crear el carrusel del header, agrega bloques de tipo <strong>Imagen</strong> en esta seccion. Si no hay imagenes activas, el header usa el color/fondo plano.</p>
+                                                        {% endif %}
+                                                        <form method="post" enctype="multipart/form-data" class="builder-block-form">
+                                                                                {% csrf_token %}
+                                                                                <input type="hidden" name="action" value="create_block">
+                                                                                <input type="hidden" name="component_id" value="{{ component.id }}">
+                                                                                <label>Tipo{{ block_form.block_type }}</label>
+                                                                                <label>Key{{ block_form.key }}</label>
+                                                                                <label>Orden{{ block_form.order }}</label>
+                                                                                <label>Valor{{ block_form.value }}</label>
+                                                                                <label>URL{{ block_form.url }}</label>
+                                                                                <label>Boton{{ block_form.button_text }}</label>
+                                                                                <label>Icono{{ block_form.icon }}</label>
+                                                                                <label class="wide">Texto{{ block_form.text }}</label>
+                                                                                <label>Imagen{{ block_form.image }}</label>
+                                                                                <label>Video{{ block_form.video }}</label>
+                                                                                <div class="builder-check-row"><label>{{ block_form.is_active }} Activo</label></div>
+                                                                                {% if block_form.errors %}<div class="builder-form-errors">{{ block_form.errors }}</div>{% endif %}
+                                                                                <div class="builder-form-actions"><button class="builder-primary-button" type="submit">Crear bloque</button></div>
+                                                                            </form>
+                                                                            <div class="builder-block-list">
+                                                                                {% for block in component.active_blocks %}
+                                                                                    <details class="builder-block-row" {% if editing_block and editing_block.id == block.id %}open{% endif %}>
+                                                                                        <summary><strong>{{ block.key }}</strong><span>{{ block.get_block_type_display }} · orden {{ block.order }}</span></summary>
+                                                                                        <form method="post" enctype="multipart/form-data" class="builder-block-form compact">
+                                                                                            {% csrf_token %}
+                                                                                            <input type="hidden" name="action" value="update_block">
+                                                                                            <input type="hidden" name="block_id" value="{{ block.id }}">
+                                                                                            <label>Tipo
+                                                                                                <select name="block_type">
+                                                                                                    {% for value,label in block_form.fields.block_type.choices %}
+                                                                                                        <option value="{{ value }}" {% if block.block_type == value %}selected{% endif %}>{{ label }}</option>
+                                                                                                    {% endfor %}
+                                                                                                </select>
+                                                                                            </label>
+                                                                                            <label>Key<input type="text" name="key" value="{{ block.key }}"></label>
+                                                                                            <label>Orden<input type="number" name="order" min="0" value="{{ block.order }}"></label>
+                                                                                            <label>Valor<input type="text" name="value" value="{{ block.value }}"></label>
+                                                                                            <label>URL<input type="url" name="url" value="{{ block.url }}"></label>
+                                                                                            <label>Boton<input type="text" name="button_text" value="{{ block.button_text }}"></label>
+                                                                                            <label>Icono<input type="text" name="icon" value="{{ block.icon }}"></label>
+                                                                                            <label class="wide">Texto<textarea name="text" rows="3">{{ block.text }}</textarea></label>
+                                                                                            <label>Imagen<input type="file" name="image"></label>
+                                                                                            <label>Video<input type="file" name="video"></label>
+                                                                                            <div class="builder-check-row"><label><input type="checkbox" name="is_active" {% if block.is_active %}checked{% endif %}> Activo</label></div>
+                                                                                            <div class="builder-form-actions"><button class="builder-primary-button" type="submit">Guardar bloque</button></div>
+                                                                                        </form>
+                                                                                        <div class="builder-page-actions">
+                                                                                            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="move_block_up"><input type="hidden" name="block_id" value="{{ block.id }}"><button type="submit">Subir</button></form>
+                                                                                            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="move_block_down"><input type="hidden" name="block_id" value="{{ block.id }}"><button type="submit">Bajar</button></form>
+                                                                                            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="duplicate_block"><input type="hidden" name="block_id" value="{{ block.id }}"><button type="submit">Duplicar</button></form>
+                                                                                            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="toggle_block"><input type="hidden" name="block_id" value="{{ block.id }}"><button type="submit">{% if block.is_active %}Desactivar{% else %}Activar{% endif %}</button></form>
+                                                                                        </div>
+                                                                                    </details>
+                                                                                {% empty %}
+                                                                                    <p>No hay bloques activos en este componente.</p>
+                                                                                {% endfor %}
+                                                                            </div>
+                                                                        </section>
+                                                                    </details>
+                                                                </article>
+                                                            {% empty %}
+                                                                <p>No hay componentes activos en esta seccion.</p>
+                                                            {% endfor %}
+                                                        </div>
+                                                    </section>
+                                                </details>
+                                            </article>
+                                        {% empty %}
+                                            <p>No hay secciones activas en esta pagina.</p>
+                                        {% endfor %}
+                                    </div>
+                                </section>
+                            </details>
+                        {% endif %}
+                    </section>
+                {% empty %}
+                    <p>Este website todavia no tiene paginas.</p>
+                {% endfor %}
+            </article>
+
+            <article class="builder-panel builder-preview">
+                <div class="builder-preview-shell" style="--wbp: {{ website.primary_color }}; --wbs: {{ website.secondary_color }}; --wba: {{ website.accent_color }};">
+                    <div class="builder-preview-nav">
+                        <span></span><span></span><span></span>
+                    </div>
+                    <div class="builder-preview-card">
+                        {% if company.logo %}<img src="{{ company.logo.url }}" alt="{{ company.name }}">{% else %}<b>{{ company.name|slice:":2" }}</b>{% endif %}
+                        <h3>{{ website.title }}</h3>
+                        <p>{{ company.description|default:"Presencia digital profesional para empresas modernas." }}</p>
+                    </div>
+                </div>
+            </article>
+        </section>
+    {% else %}
+        <article class="builder-empty">
+            <p>Sin website creado</p>
+            <h2>Activa el Website Builder para {{ company.name }}</h2>
+            <span>Se generara una plantilla inicial con hero, servicios, llamada a la accion y footer. Luego podras administrarla por API y publicar cuando este lista.</span>
+            {% if can_manage_website %}
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="create_website">
+                    <button class="builder-primary-button" type="submit">Crear website inicial</button>
+                </form>
+            {% endif %}
+        </article>
+    {% endif %}
+</section>
+{% endblock %}

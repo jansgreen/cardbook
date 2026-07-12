@@ -1,0 +1,127 @@
+<section class="finance-panel">
+    <div class="finance-panel-head">
+        <div>
+            <h2>Comisiones</h2>
+            <p class="finance-muted">Aprueba y marca pagos de agentes desde el dashboard financiero.</p>
+        </div>
+        <a class="finance-export-link" href="{{ commission_export_url }}">Exportar CSV</a>
+    </div>
+
+    <form class="finance-filter-bar" method="get">
+        <label>
+            <span>Buscar</span>
+            <input type="search" name="q" value="{{ commission_filters.q }}" placeholder="Agente, empresa o referencia">
+        </label>
+        <label>
+            <span>Estado</span>
+            <select name="status">
+                <option value="">Todos</option>
+                {% for value, label in commission_statuses %}
+                    <option value="{{ value }}" {% if commission_filters.status == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>
+            <span>Agente</span>
+            <select name="agent">
+                <option value="">Todos</option>
+                {% for agent in commission_agents %}
+                    <option value="{{ agent.id }}" {% if commission_filters.agent == agent.id|stringformat:"s" %}selected{% endif %}>
+                        {{ agent.user.get_full_name|default:agent.user.username }}
+                    </option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>
+            <span>Empresa</span>
+            <select name="company">
+                <option value="">Todas</option>
+                {% for company in commission_companies %}
+                    <option value="{{ company.id }}" {% if commission_filters.company == company.id|stringformat:"s" %}selected{% endif %}>{{ company.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>
+            <span>Desde</span>
+            <input type="date" name="date_from" value="{{ commission_filters.date_from }}">
+        </label>
+        <label>
+            <span>Hasta</span>
+            <input type="date" name="date_to" value="{{ commission_filters.date_to }}">
+        </label>
+        <div class="finance-filter-actions">
+            <button type="submit">Aplicar</button>
+            <a href="{% url 'finance-commissions' %}">Limpiar</a>
+        </div>
+    </form>
+
+    <div class="finance-table-wrap">
+        <table class="finance-table finance-commissions-table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Agente</th>
+                    <th>Empresa</th>
+                    <th>Concepto</th>
+                    <th>Base</th>
+                    <th>Comision</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for commission in commissions %}
+                <tr>
+                    <td data-label="Fecha">{{ commission.created_at|date:"M d, Y" }}</td>
+                    <td data-label="Agente">
+                        <strong>{{ commission.agent.user.get_full_name|default:commission.agent.user.username }}</strong>
+                        <small>{{ commission.agent.agent_id }}</small>
+                    </td>
+                    <td data-label="Empresa">{{ commission.company.name }}</td>
+                    <td data-label="Concepto">
+                        {{ commission.plan_name }}
+                        {% if commission.payment_reference %}
+                            <small>{{ commission.payment_reference }}</small>
+                        {% endif %}
+                    </td>
+                    <td data-label="Base">{{ commission.payment_amount }} {{ commission.currency }}</td>
+                    <td data-label="Comision">
+                        <strong>{{ commission.commission_amount }} {{ commission.currency }}</strong>
+                        <small>{{ commission.commission_percentage }}%</small>
+                    </td>
+                    <td data-label="Estado">
+                        <span class="finance-status finance-status-{{ commission.status }}">{{ commission.status }}</span>
+                    </td>
+                    <td data-label="Acciones">
+                        <div class="finance-row-actions">
+                            {% if commission.status == "pending" and can_approve_commissions %}
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="approve_commission">
+                                <input type="hidden" name="commission_id" value="{{ commission.id }}">
+                                <button type="submit">Aprobar</button>
+                            </form>
+                            {% endif %}
+                            {% if commission.status != "paid" and commission.status != "cancelled" and can_mark_commissions_paid %}
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="mark_commission_paid">
+                                <input type="hidden" name="commission_id" value="{{ commission.id }}">
+                                <button class="secondary" type="submit">Marcar pagada</button>
+                            </form>
+                            {% endif %}
+                            {% if commission.status == "paid" or commission.status == "cancelled" %}
+                                <span class="finance-muted">Cerrada</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8">No hay comisiones disponibles.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>

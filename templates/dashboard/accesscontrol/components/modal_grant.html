@@ -1,0 +1,31 @@
+<div class="access-modal" id="modal-grant" aria-hidden="true">
+    <div class="access-modal__backdrop" data-modal-close></div>
+    <div class="access-modal__dialog" role="dialog" aria-modal="true">
+        <div class="access-modal__head">
+            <div>
+                <h2>Asignar acceso</h2>
+                <p>Asigna roles dinámicos, grupos y comisiones por empresa.</p>
+            </div>
+            <button class="access-modal__close" type="button" data-modal-close>×</button>
+        </div>
+
+        <form class="dashboard-form access-form" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create_grant">
+            {{ grant_form.non_field_errors }}
+
+            <label><span>Empresa base</span>{{ grant_form.company }}{{ grant_form.company.errors }}</label>
+            <label><span>Email</span>{{ grant_form.email }}{{ grant_form.email.errors }}</label>
+            <label><span>Rol</span>{{ grant_form.role }}{{ grant_form.role.errors }}</label>
+            <label><span>Grupo</span>{{ grant_form.group }}{{ grant_form.group.errors }}</label>
+            <label><span>Comisión %</span>{{ grant_form.commission_percent }}{{ grant_form.commission_percent.errors }}</label>
+            <label><span>Notas</span>{{ grant_form.notes }}{{ grant_form.notes.errors }}</label>
+            <label class="checkbox-field"><span>Activo</span>{{ grant_form.is_active }}</label>
+
+            <div class="access-modal__actions">
+                <button class="access-btn" type="button" data-modal-close>Cancelar</button>
+                <button class="access-btn access-btn--primary" type="submit">Asignar acceso</button>
+            </div>
+        </form>
+    </div>
+</div>

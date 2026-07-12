@@ -1,0 +1,10 @@
+{% load websitebuilder_tags %}
+<{{ section.html_tag|default:"footer" }} class="wb-footer">
+    <div class="wb-container">
+        <strong>{{ section|translated_title:language }}</strong>
+        <p>{{ section|translated_subtitle:language }}</p>
+        {% for component in section.components.all %}
+            {% if component.is_active %}{% include "website_builder/public/components/contact_info.html" %}{% endif %}
+        {% endfor %}
+    </div>
+</{{ section.html_tag|default:"footer" }}>

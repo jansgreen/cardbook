@@ -1,0 +1,11 @@
+{% load websitebuilder_tags %}
+{% for block in component.blocks.all %}
+    {% if not block.is_active %}
+    {% elif block.block_type == "button" or block.block_type == "link" %}
+        <a class="wb-btn {% if forloop.first %}primary{% endif %}" href="{{ block.url|default:'#' }}">{{ block|translated_block_text:language }}</a>
+    {% elif block.block_type == "phone" and block.value %}
+        <a class="wb-btn primary" href="tel:{{ block.value }}">{{ block|translated_block_text:language|default:"Llamar" }}</a>
+    {% elif block.block_type == "email" and block.value %}
+        <a class="wb-btn" href="mailto:{{ block.value }}">{{ block|translated_block_text:language|default:"Email" }}</a>
+    {% endif %}
+{% endfor %}

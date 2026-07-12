@@ -1,0 +1,6 @@
+{% for block in component.blocks.all %}
+    {% if block.value %}
+        <p class="wb-contact-line"><strong>{{ block.key|title }}:</strong> {{ block.value }}</p>
+    {% endif %}
+{% endfor %}
+

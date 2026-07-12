@@ -1,0 +1,141 @@
+{% extends "dashboard/finance/base_finance.html" %}
+
+{% block title %}Finanzas | Cardbook{% endblock %}
+
+{% block content %}
+<header class="finance-header">
+    <div>
+        <p class="finance-eyebrow">Revenue & Commission Analytics</p>
+        <h1>Finanzas</h1>
+        <p>Ingresos, suscripciones, agentes y comisiones de Cardbook.</p>
+    </div>
+    <div class="finance-actions">
+        <select aria-label="Periodo">
+            <option>Ultimos 30 dias</option>
+            <option>Hoy</option>
+            <option>Ultimos 7 dias</option>
+            <option>Este mes</option>
+            <option>Este ano</option>
+        </select>
+        <a href="{% url 'finance-reports' %}">Exportar reporte</a>
+        {% if can_open_stripe %}
+            <a href="{{ stripe_dashboard_url }}" target="_blank" rel="noopener">Abrir Stripe</a>
+        {% endif %}
+    </div>
+</header>
+
+<section class="finance-metric-grid">
+    <article class="finance-metric-card positive">
+        <span>Ingresos brutos</span>
+        <strong>${{ metrics.gross_revenue }}</strong>
+        <small>Comparado con periodo anterior</small>
+    </article>
+    <article class="finance-metric-card positive">
+        <span>Ingresos netos</span>
+        <strong>${{ metrics.net_revenue }}</strong>
+        <small>Despues de fees, refunds y comisiones</small>
+    </article>
+    <article class="finance-metric-card subscription">
+        <span>MRR</span>
+        <strong>${{ metrics.mrr }}</strong>
+        <small>Revenue mensual normalizado</small>
+    </article>
+    <article class="finance-metric-card subscription">
+        <span>ARR</span>
+        <strong>${{ metrics.arr }}</strong>
+        <small>MRR x 12</small>
+    </article>
+    <article class="finance-metric-card">
+        <span>Empresas suscritas</span>
+        <strong>{{ metrics.active_subscriptions }}</strong>
+        <small>Activas o en trial</small>
+    </article>
+    <article class="finance-metric-card">
+        <span>Nuevas suscripciones</span>
+        <strong>{{ metrics.new_subscriptions }}</strong>
+        <small>Ultimos 30 dias</small>
+    </article>
+    <article class="finance-metric-card commission">
+        <span>Comisiones pendientes</span>
+        <strong>${{ metrics.pending_commissions }}</strong>
+        <small>Por aprobar o pagar</small>
+    </article>
+    <article class="finance-metric-card commission">
+        <span>Comisiones pagadas</span>
+        <strong>${{ metrics.paid_commissions }}</strong>
+        <small>Historico pagado</small>
+    </article>
+    <article class="finance-metric-card negative">
+        <span>Reembolsos</span>
+        <strong>${{ metrics.refunds }}</strong>
+        <small>Refunds completados</small>
+    </article>
+    <article class="finance-metric-card negative">
+        <span>Churn Rate</span>
+        <strong>{{ metrics.churn_rate }}%</strong>
+        <small>Cancelaciones del periodo</small>
+    </article>
+    <article class="finance-metric-card">
+        <span>Stripe Fees</span>
+        <strong>${{ metrics.stripe_fees }}</strong>
+        <small>Costos de procesamiento</small>
+    </article>
+    <article class="finance-metric-card positive">
+        <span>Tasa de conversion</span>
+        <strong>{{ metrics.conversion_rate }}%</strong>
+        <small>Conversion promedio de agentes</small>
+    </article>
+</section>
+
+<section class="finance-dashboard-grid">
+    <article class="finance-panel finance-chart-panel">
+        <div class="finance-panel-head">
+            <h2>Evolucion de ingresos</h2>
+            <div class="finance-segments">
+                <button>Dia</button><button>Semana</button><button class="active">Mes</button><button>Ano</button>
+            </div>
+        </div>
+        <div class="finance-area-chart" aria-label="Grafica de ingresos">
+            <span style="height: 42%"></span>
+            <span style="height: 61%"></span>
+            <span style="height: 48%"></span>
+            <span style="height: 74%"></span>
+            <span style="height: 66%"></span>
+            <span style="height: 88%"></span>
+            <span style="height: 80%"></span>
+        </div>
+    </article>
+    <article class="finance-panel">
+        <div class="finance-panel-head">
+            <h2>Distribucion de planes</h2>
+        </div>
+        <ul class="finance-plan-list">
+            {% for plan in plan_distribution %}
+                <li><span>{{ plan.plan }} / {{ plan.status }}</span><strong>{{ plan.total }}</strong></li>
+            {% empty %}
+                <li><span>Sin suscripciones todavia</span><strong>0</strong></li>
+            {% endfor %}
+        </ul>
+    </article>
+</section>
+
+<section class="finance-panel">
+    <div class="finance-panel-head">
+        <h2>Actividad reciente</h2>
+    </div>
+    <div class="finance-activity-list">
+        {% for item in activity %}
+            <article>
+                <div class="finance-activity-icon">{{ item.type|slice:":1"|upper }}</div>
+                <div>
+                    <strong>{{ item.title }}</strong>
+                    <p>{{ item.description }}</p>
+                </div>
+                <span>${{ item.amount }}</span>
+            </article>
+        {% empty %}
+            <p class="finance-muted">No hay actividad financiera registrada todavia.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,292 @@
+<article class="access-panel">
+    <div class="access-tabs" role="tablist">
+        <button class="access-tab is-active" type="button" data-tab="members">Miembros</button>
+        <button class="access-tab" type="button" data-tab="roles">Roles</button>
+        <button class="access-tab" type="button" data-tab="permissions">Permisos</button>
+        <button class="access-tab" type="button" data-tab="groups">Grupos</button>
+        <button class="access-tab" type="button" data-tab="grants">Accesos asignados</button>
+    </div>
+
+    <div class="access-tab-panel is-active" id="tab-members">
+        <div class="access-section-head">
+            <div>
+                <h2>Miembros activos</h2>
+                <p>{% if active_company %}{{ active_company.name }}{% else %}Selecciona una empresa{% endif %}</p>
+            </div>
+            <button class="access-btn access-btn--primary" type="button" data-modal-open="modal-member">+ Invitar miembro</button>
+        </div>
+
+        <div class="access-table-wrap">
+            <table class="access-table">
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Email</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th class="text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for member in members %}
+                    <tr>
+                        <td data-label="Usuario">
+                            <strong>{{ member.user.get_full_name|default:member.user.username }}</strong>
+                        </td>
+                        <td data-label="Email">{{ member.user.email|default:"Sin email" }}</td>
+                        <td data-label="Rol">
+                            <form method="post" class="access-inline-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="update_role">
+                                <input type="hidden" name="company" value="{{ active_company.id }}">
+                                <input type="hidden" name="member_id" value="{{ member.id }}">
+                                <select name="role" class="form-control form-control--compact" {% if not member.can_be_managed_by_current_user %}disabled{% endif %}>
+                                    {% if member.role == "owner" %}
+                                        <option value="owner" selected>Owner</option>
+                                    {% endif %}
+                                    {% for role, label in role_options %}
+                                        <option value="{{ role }}" {% if member.role == role %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                                {% if member.can_be_managed_by_current_user %}
+                                    <button class="access-link-btn" type="submit">Actualizar</button>
+                                {% endif %}
+                            </form>
+                        </td>
+                        <td data-label="Estado"><span class="access-badge access-badge--success">Activo</span></td>
+                        <td data-label="Acciones" class="text-right">
+                            {% if member.can_be_managed_by_current_user %}
+                            <form method="post" onsubmit="return confirm('Este usuario perdera acceso a la empresa. Deseas continuar?');">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="deactivate">
+                                <input type="hidden" name="company" value="{{ active_company.id }}">
+                                <input type="hidden" name="member_id" value="{{ member.id }}">
+                                <button class="access-btn access-btn--danger" type="submit">Desactivar</button>
+                            </form>
+                            {% else %}
+                                <span class="access-muted">Protegido</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="access-empty">No hay miembros activos.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="access-tab-panel" id="tab-roles">
+        <div class="access-section-head">
+            <div><h2>Roles</h2><p>Define niveles como Admin, Manager, Staff o Agente Cardbook.</p></div>
+            {% if can_manage_access_catalog %}
+                <button class="access-btn access-btn--primary" type="button" data-modal-open="modal-role">+ Crear rol</button>
+            {% else %}
+                <span class="access-muted">Modo lectura</span>
+            {% endif %}
+        </div>
+
+        <div class="access-table-wrap">
+            <table class="access-table">
+                <thead>
+                    <tr>
+                        <th>Rol</th>
+                        <th>Descripcion</th>
+                        <th>Comision default</th>
+                        <th>Agente</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in access_roles %}
+                    <tr>
+                        <td data-label="Rol"><strong>{{ item.name }}</strong></td>
+                        <td data-label="Descripcion">{{ item.description|default:"Sin descripcion" }}</td>
+                        <td data-label="Comision">{{ item.default_commission_percent }}%</td>
+                        <td data-label="Agente">
+                            {% if item.is_agent_role %}
+                                <span class="access-badge access-badge--gold">Si</span>
+                            {% else %}
+                                <span class="access-badge">No</span>
+                            {% endif %}
+                        </td>
+                        <td data-label="Estado">
+                            {% if item.is_active %}
+                                <span class="access-badge access-badge--success">Activo</span>
+                            {% else %}
+                                <span class="access-badge access-badge--danger">Inactivo</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="access-empty">No hay roles creados.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="access-tab-panel" id="tab-permissions">
+        <div class="access-section-head">
+            <div><h2>Permisos</h2><p>Controla acciones especificas disponibles dentro de Cardbook.</p></div>
+            {% if can_manage_access_catalog %}
+                <button class="access-btn access-btn--primary" type="button" data-modal-open="modal-permission">+ Crear permiso</button>
+            {% else %}
+                <span class="access-muted">Modo lectura</span>
+            {% endif %}
+        </div>
+
+        <div class="access-table-wrap">
+            <table class="access-table">
+                <thead>
+                    <tr>
+                        <th>Codigo</th>
+                        <th>Nombre</th>
+                        <th>Descripcion</th>
+                        <th>Estado</th>
+                        {% if can_manage_access_catalog %}
+                            <th class="text-right">Acciones</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in access_permissions %}
+                    <tr>
+                        <td data-label="Codigo"><strong>{{ item.code }}</strong></td>
+                        <td data-label="Nombre">{{ item.name }}</td>
+                        <td data-label="Descripcion">{{ item.description|default:"Sin descripcion" }}</td>
+                        <td data-label="Estado">
+                            {% if item.is_active %}
+                                <span class="access-badge access-badge--success">Activo</span>
+                            {% else %}
+                                <span class="access-badge access-badge--danger">Inactivo</span>
+                            {% endif %}
+                        </td>
+                        {% if can_manage_access_catalog %}
+                        <td data-label="Acciones" class="text-right">
+                            <form method="post" class="access-inline-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="update_permission">
+                                <input type="hidden" name="permission_id" value="{{ item.id }}">
+                                <input type="hidden" name="code" value="{{ item.code }}">
+                                <input type="hidden" name="name" value="{{ item.name }}">
+                                <input type="hidden" name="description" value="{{ item.description }}">
+                                <label class="access-mini-check">
+                                    <input type="checkbox" name="is_active" {% if item.is_active %}checked{% endif %}>
+                                    Activo
+                                </label>
+                                <button class="access-link-btn" type="submit">Guardar</button>
+                            </form>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="{% if can_manage_access_catalog %}5{% else %}4{% endif %}" class="access-empty">No hay permisos creados.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="access-tab-panel" id="tab-groups">
+        <div class="access-section-head">
+            <div><h2>Grupos</h2><p>Agrupa roles y permisos para asignarlos mas rapido.</p></div>
+            {% if can_manage_access_catalog %}
+                <button class="access-btn access-btn--primary" type="button" data-modal-open="modal-group">+ Crear grupo</button>
+            {% else %}
+                <span class="access-muted">Modo lectura</span>
+            {% endif %}
+        </div>
+
+        <div class="access-table-wrap">
+            <table class="access-table">
+                <thead>
+                    <tr>
+                        <th>Grupo</th>
+                        <th>Descripcion</th>
+                        <th>Roles</th>
+                        <th>Permisos extra</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in access_groups %}
+                    <tr>
+                        <td data-label="Grupo"><strong>{{ item.name }}</strong></td>
+                        <td data-label="Descripcion">{{ item.description|default:"Sin descripcion" }}</td>
+                        <td data-label="Roles">
+                            {% for role in item.roles.all %}
+                                <span class="access-chip">{{ role.name }}</span>
+                            {% empty %}
+                                <span class="access-muted">Sin roles</span>
+                            {% endfor %}
+                        </td>
+                        <td data-label="Permisos extra">
+                            {% for permission in item.permissions.all %}
+                                <span class="access-chip">{{ permission.code }}</span>
+                            {% empty %}
+                                <span class="access-muted">Sin permisos</span>
+                            {% endfor %}
+                        </td>
+                        <td data-label="Estado">
+                            {% if item.is_active %}
+                                <span class="access-badge access-badge--success">Activo</span>
+                            {% else %}
+                                <span class="access-badge access-badge--danger">Inactivo</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="access-empty">No hay grupos creados.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="access-tab-panel" id="tab-grants">
+        <div class="access-section-head">
+            <div><h2>Accesos asignados</h2><p>Roles dinamicos, agentes y comisiones por empresa.</p></div>
+            <button class="access-btn access-btn--primary" type="button" data-modal-open="modal-grant">+ Asignar acceso</button>
+        </div>
+
+        <div class="access-table-wrap">
+            <table class="access-table">
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Empresa</th>
+                        <th>Rol</th>
+                        <th>Grupo</th>
+                        <th>Comision</th>
+                        <th class="text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for grant in access_grants %}
+                    <tr>
+                        <td data-label="Usuario">
+                            <strong>{{ grant.user.get_full_name|default:grant.user.username }}</strong>
+                        </td>
+                        <td data-label="Empresa">{{ grant.company.name }}</td>
+                        <td data-label="Rol">{{ grant.role.name }}</td>
+                        <td data-label="Grupo">{{ grant.group.name|default:"Sin grupo" }}</td>
+                        <td data-label="Comision"><span class="access-badge access-badge--gold">{{ grant.commission_percent }}%</span></td>
+                        <td data-label="Acciones" class="text-right">
+                            <form method="post" onsubmit="return confirm('Deseas desactivar este acceso?');">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="deactivate_grant">
+                                <input type="hidden" name="company" value="{{ grant.company.id }}">
+                                <input type="hidden" name="grant_id" value="{{ grant.id }}">
+                                <button class="access-btn access-btn--danger" type="submit">Desactivar</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="access-empty">No hay accesos dinamicos asignados.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</article>

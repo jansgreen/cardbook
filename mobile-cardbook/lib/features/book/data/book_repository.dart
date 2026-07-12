@@ -4,8 +4,14 @@ import 'package:mobile_cardbook/core/network/api_response.dart';
 
 final bookProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final api = ref.read(apiClientProvider);
-  final response = await api.dio.get<Map<String, dynamic>>('/book/');
-  return extractResults(response.data);
+  final response = await api.dio.get<Map<String, dynamic>>('/mobile/book/');
+  return extractListFromData(response.data, 'businesses');
+});
+
+final mobileBookProvider = FutureProvider<Map<String, dynamic>>((ref) async {
+  final api = ref.read(apiClientProvider);
+  final response = await api.dio.get<Map<String, dynamic>>('/mobile/book/');
+  return extractData(response.data);
 });
 
 final bookRepositoryProvider = Provider<BookRepository>((ref) {

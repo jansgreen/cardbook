@@ -10,11 +10,19 @@ from alliances.models import CompanyAlliance
 from book.models import SavedBusiness
 from business_feed.models import BusinessPost, BusinessPostExcellent
 from cards.models import BusinessCard, DigitalCard
-from cards.permissions import can_manage_card
+from cards.services import (
+    can_manage_business_profile,
+    can_use_profile_for_business_card,
+    visible_business_cards_queryset,
+    visible_profiles_queryset,
+)
 from companies.models import Company
 from companies.permissions import can_access_company, can_manage_company
 from company_ratings.models import CompanyRating
+from jobcards.models import SavedJobCard
+from jobcards.services import get_company_for_user, recommended_job_cards
 from memberships.models import CompanyMember
+from referrals.services import record_agent_card_sale
 from .forms import BusinessCardForm, BusinessPostForm, CompanyForm, DigitalCardForm
 
 
@@ -29,13 +37,10 @@ class DashboardContextMixin(LoginRequiredMixin):
         ).distinct()
 
     def get_cards(self):
-        return DigitalCard.objects.filter(is_active=True, company__in=self.get_companies()).select_related("company", "user")
+        return visible_profiles_queryset(self.request.user)
 
     def get_business_cards(self):
-        return BusinessCard.objects.filter(is_active=True, profile__company__in=self.get_companies()).select_related(
-            "profile__company",
-            "profile__user",
-        )
+        return visible_business_cards_queryset(self.request.user)
 
 
 class DashboardHomeView(DashboardContextMixin, TemplateView):
@@ -255,6 +260,7 @@ class DashboardBookView(DashboardContextMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        active_company = get_company_for_user(self.request.user, self.request.GET.get("company"))
         context["book_items"] = SavedBusiness.objects.filter(user=self.request.user).select_related(
             "company",
             "digital_card__company",
@@ -263,6 +269,13 @@ class DashboardBookView(DashboardContextMixin, TemplateView):
             "business_card__profile__user",
         )
         context["book_count"] = context["book_items"].count()
+        context["active_company"] = active_company
+        context["companies"] = self.get_companies()
+        context["hiring_candidates"] = recommended_job_cards(active_company, limit=5) if active_company else []
+        context["saved_candidates"] = (
+            SavedJobCard.objects.filter(company=active_company).select_related("job_card__user", "job_card__specialty", "company")
+            if active_company else SavedJobCard.objects.none()
+        )
         return context
 
 
@@ -287,8 +300,13 @@ class CardCreateView(DashboardContextMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.user = self.request.user
-        messages.success(self.request, "Tarjeta creada correctamente.")
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        sale = record_agent_card_sale(user=self.request.user, digital_card=self.object)
+        if sale:
+            messages.success(self.request, "Perfil creado y comision de agente registrada.")
+        else:
+            messages.success(self.request, "Tarjeta creada correctamente.")
+        return response
 
 
 class CardUpdateView(DashboardContextMixin, UpdateView):
@@ -307,7 +325,7 @@ class CardUpdateView(DashboardContextMixin, UpdateView):
 
     def dispatch(self, request, *args, **kwargs):
         self.object = self.get_object()
-        if not can_manage_card(request.user, self.object):
+        if not can_manage_business_profile(request.user, self.object):
             messages.error(request, "No tienes permiso para editar esta tarjeta.")
             return redirect("dashboard-cards")
         return super().dispatch(request, *args, **kwargs)
@@ -320,7 +338,7 @@ class CardUpdateView(DashboardContextMixin, UpdateView):
 class CardDeleteView(DashboardContextMixin, View):
     def post(self, request, pk):
         card = get_object_or_404(self.get_cards(), pk=pk)
-        if not can_manage_card(request.user, card):
+        if not can_manage_business_profile(request.user, card):
             messages.error(request, "No tienes permiso para eliminar esta tarjeta.")
             return redirect("dashboard-cards")
         card.is_active = False
@@ -341,8 +359,13 @@ class BusinessCardCreateView(DashboardContextMixin, CreateView):
         return kwargs
 
     def form_valid(self, form):
-        messages.success(self.request, "Tarjeta de presentacion creada correctamente.")
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        sale = record_agent_card_sale(user=self.request.user, business_card=self.object)
+        if sale:
+            messages.success(self.request, "Tarjeta de presentacion creada y comision de agente registrada.")
+        else:
+            messages.success(self.request, "Tarjeta de presentacion creada correctamente.")
+        return response
 
 
 class BusinessCardUpdateView(DashboardContextMixin, UpdateView):
@@ -361,7 +384,7 @@ class BusinessCardUpdateView(DashboardContextMixin, UpdateView):
 
     def dispatch(self, request, *args, **kwargs):
         self.object = self.get_object()
-        if not can_manage_card(request.user, self.object.profile):
+        if not can_use_profile_for_business_card(request.user, self.object.profile):
             messages.error(request, "No tienes permiso para editar esta tarjeta de presentacion.")
             return redirect("dashboard-business-cards")
         return super().dispatch(request, *args, **kwargs)
@@ -374,7 +397,7 @@ class BusinessCardUpdateView(DashboardContextMixin, UpdateView):
 class BusinessCardDeleteView(DashboardContextMixin, View):
     def post(self, request, pk):
         business_card = get_object_or_404(self.get_business_cards(), pk=pk)
-        if not can_manage_card(request.user, business_card.profile):
+        if not can_use_profile_for_business_card(request.user, business_card.profile):
             messages.error(request, "No tienes permiso para eliminar esta tarjeta de presentacion.")
             return redirect("dashboard-business-cards")
         business_card.is_active = False

@@ -1,0 +1,44 @@
+{% load static websitebuilder_tags %}
+<!doctype html>
+<html lang="{{ language|default:'es' }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ page.seo_title|default:website.meta_title|default:website.title }}</title>
+    <meta name="description" content="{{ page.seo_description|default:website.meta_description }}">
+    <meta property="og:title" content="{{ page.og_title|default:page.seo_title|default:website.title }}">
+    {% if page.og_image %}<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ page.og_image.url }}">{% endif %}
+    <meta name="twitter:card" content="{{ page.twitter_card }}">
+    <link rel="canonical" href="{{ request.build_absolute_uri }}">
+    <link rel="stylesheet" href="{% static 'css/websitebuilder.css' %}">
+    <style>
+        :root {
+            --wb-primary: {{ website.primary_color }};
+            --wb-secondary: {{ website.secondary_color }};
+            --wb-accent: {{ website.accent_color }};
+            --wb-font: {{ website.font_family }};
+        }
+        {{ website.custom_css|safe }}
+    </style>
+</head>
+<body class="wb-body">
+    {% if website.show_header %}
+    <header class="wb-navbar">
+        <a class="wb-brand" href="{% url 'websitebuilder-public-home' website.slug %}">
+            {% if website.logo %}<img src="{{ website.logo.url }}" alt="{{ website.title }}">{% elif website.company.logo %}<img src="{{ website.company.logo.url }}" alt="{{ website.company.name }}">{% endif %}
+            <span>{{ website.title }}</span>
+        </a>
+        {% if website.show_nav %}
+        <nav>
+            {% for menu_page in menu_pages %}
+                <a href="{% if menu_page.is_homepage %}{% url 'websitebuilder-public-home' website.slug %}{% else %}{% url 'websitebuilder-public-page' website.slug menu_page.slug %}{% endif %}?lang={{ language }}">{{ menu_page|translated_title:language }}</a>
+            {% endfor %}
+        </nav>
+        {% endif %}
+    </header>
+    {% endif %}
+    {% block website_content %}{% endblock %}
+    <script src="{% static 'js/websitebuilder.js' %}"></script>
+    {% if website.custom_js_enabled %}<script>{{ website.custom_js|safe }}</script>{% endif %}
+</body>
+</html>

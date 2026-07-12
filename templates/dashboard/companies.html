@@ -1,5 +1,7 @@
 ﻿{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
 {% block title %}Empresas - Cardbook{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/dashboard/posts.css' %}">{% endblock %}
 {% block topbar_title %}Empresas{% endblock %}
 {% block topbar_subtitle %}Centro empresarial privado de Cardbook{% endblock %}
 {% block dashboard_content %}
@@ -17,6 +19,7 @@
             </div>
             <nav aria-label="Acciones de empresa">
                 <a class="company-crud-primary" href="{% url 'dashboard-company-create' %}">Nueva empresa</a>
+                <a href="{% url 'dashboard-company-website' active_company.id %}">Website Builder</a>
                 <a href="{% url 'dashboard-company-update' active_company.id %}">Editar</a>
                 <form method="post" action="{% url 'dashboard-company-delete' active_company.id %}" onsubmit="return confirm('Esta empresa se ocultara del dashboard. Deseas continuar?');">
                     {% csrf_token %}
@@ -77,55 +80,8 @@
                     <article><i class="metric-cyan">ALI</i><span>Alianzas</span><strong>{{ stats.alliances }}</strong><a href="#alianzas">Ver todas</a></article>
                 </section>
 
-                <article class="business-composer-card" id="publicaciones">
-                    <div>
-                        <h2>Crear publicaci&oacute;n empresarial</h2>
-                        <p>Comparte novedades, proyectos, logros y m&aacute;s sobre tu empresa.</p>
-                    </div>
-                    <form method="post" enctype="multipart/form-data" class="business-upload-form">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="create_post">
-                        <div class="business-hidden-company">{{ post_form.company }}</div>
-                        <label>Titulo{{ post_form.title }}</label>
-                        <label>Descripcion{{ post_form.caption }}</label>
-                        <label>Tipo{{ post_form.media_type }}</label>
-                        <label>Archivo{{ post_form.media }}</label>
-                        <div class="upload-choice upload-photo"><span>IMG</span><strong>Subir foto</strong><small>PNG, JPG hasta 10MB</small></div>
-                        <div class="upload-choice upload-video"><span>VID</span><strong>Subir video</strong><small>MP4 hasta 50MB</small></div>
-                        <div class="form-actions"><button class="btn btn-primary" type="submit">Publicar novedad</button></div>
-                    </form>
-                </article>
-
-                <section class="business-recent-card">
-                    <h2>Publicaciones recientes</h2>
-                    {% for post in posts %}
-                        <article class="business-post-card enterprise-post">
-                            <div class="business-post-head">
-                                {% if post.company.logo %}<img src="{{ post.company.logo.url }}" alt="{{ post.company.name }}" data-fallback-text="{{ post.company.name|slice:':2' }}">{% endif %}
-                                <div><strong>{{ post.company.name }}</strong><span>{{ post.created_at|timesince }} &middot; p&uacute;blico</span></div>
-                            </div>
-                            <h2>{{ post.title }}</h2>
-                            {% if post.caption %}<p>{{ post.caption }}</p>{% endif %}
-                            {% if post.media_type == "video" %}
-                                <video src="{{ post.media.url }}" controls muted playsinline></video>
-                            {% else %}
-                                <img class="post-media" src="{{ post.media.url }}" alt="{{ post.title }}">
-                            {% endif %}
-                            <div class="business-post-actions">
-                                <span>{{ post.excellent_count }} Excelentes</span>
-                                <form method="post">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="action" value="excellent">
-                                    <input type="hidden" name="company" value="{{ active_company.id }}">
-                                    <input type="hidden" name="post_id" value="{{ post.id }}">
-                                    <button type="submit">Excelente</button>
-                                </form>
-                            </div>
-                        </article>
-                    {% empty %}
-                        <p>No hay publicaciones empresariales todavia.</p>
-                    {% endfor %}
-                </section>
+                {% include "dashboard/companies/posts/create_post.html" %}
+                {% include "dashboard/companies/posts/recent_posts.html" %}
             </main>
             <aside class="business-page-side">
                 <article class="business-side-card">
@@ -138,6 +94,7 @@
                             </a>
                             <div>
                                 <a href="{% url 'dashboard-company-update' company.id %}">Editar</a>
+                                <a href="{% url 'dashboard-company-website' company.id %}">Website</a>
                                 {% if company.id != active_company.id or companies|length > 1 %}
                                     <form method="post" action="{% url 'dashboard-company-delete' company.id %}" onsubmit="return confirm('Esta empresa se ocultara del dashboard. Deseas continuar?');">
                                         {% csrf_token %}
@@ -206,4 +163,5 @@
 </section>
 {% endblock %}
 
+{% block extra_js %}<script src="{% static 'js/dashboard/posts.js' %}"></script>{% endblock %}
 

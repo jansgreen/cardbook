@@ -1,0 +1,49 @@
+<article class="post-create-module" id="publicaciones">
+    <div class="post-create-shell">
+        <div class="post-form-main">
+            {% include "dashboard/companies/posts/components/post_form_header.html" %}
+            <form method="post" enctype="multipart/form-data" class="post-premium-form" data-post-form novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_post">
+                <div class="business-hidden-company">{{ post_form.company }}</div>
+
+                <label class="post-field post-field-full">
+                    <span>Titulo <b>*</b></span>
+                    <div class="post-input-wrap">
+                        {{ post_form.title }}
+                        <small data-counter-for="title">0/100</small>
+                    </div>
+                    {{ post_form.title.errors }}
+                </label>
+
+                {% include "dashboard/companies/posts/components/tiptap_editor.html" %}
+
+                <div class="post-form-split">
+                    <label class="post-field">
+                        <span>Tipo de publicacion <b>*</b></span>
+                        {{ post_form.media_type }}
+                        {{ post_form.media_type.errors }}
+                    </label>
+                    {% include "dashboard/companies/posts/components/upload_box.html" %}
+                </div>
+
+                <div class="post-quick-options">
+                    <button type="button" data-post-media-choice="image">
+                        <i>IMG</i>
+                        <span><strong>Subir foto</strong><small>PNG, JPG hasta 10MB</small></span>
+                    </button>
+                    <button type="button" data-post-media-choice="video">
+                        <i>VID</i>
+                        <span><strong>Subir video</strong><small>MP4 hasta 50MB</small></span>
+                    </button>
+                </div>
+
+                {% include "dashboard/companies/posts/components/post_actions.html" %}
+            </form>
+        </div>
+        <aside class="post-form-side">
+            {% include "dashboard/companies/posts/components/post_tips_sidebar.html" %}
+            {% include "dashboard/companies/posts/components/character_limit_card.html" %}
+        </aside>
+    </div>
+</article>

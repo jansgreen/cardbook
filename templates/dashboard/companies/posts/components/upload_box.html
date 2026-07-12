@@ -1,0 +1,15 @@
+<label class="post-field post-upload-field">
+    <span>Archivo <b>*</b></span>
+    <div class="post-upload-box" data-upload-box>
+        <div class="post-upload-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 18H5a4 4 0 0 1-.6-8A6 6 0 0 1 16 7.1 5.5 5.5 0 0 1 19 18Zm-8-7.2V16h2v-5.2l2.1 2.1 1.4-1.4L12 7l-4.5 4.5 1.4 1.4 2.1-2.1Z"/></svg>
+        </div>
+        <div>
+            <strong><span data-upload-label>Seleccionar archivo</span> o arrastrar y soltar</strong>
+            <small data-upload-help>PNG, JPG hasta 10MB. MP4 hasta 50MB</small>
+            <em data-file-name>Ningun archivo seleccionado</em>
+        </div>
+        {{ post_form.media }}
+    </div>
+    {{ post_form.media.errors }}
+</label>

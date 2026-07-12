@@ -1,0 +1,155 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block title %}{{ form_definition.name }} - Forms Builder{% endblock %}
+{% block topbar_title %}Forms Builder{% endblock %}
+{% block topbar_subtitle %}{{ company.name }}{% endblock %}
+{% block dashboard_content %}
+<section class="website-builder-dashboard">
+    <div class="builder-hero">
+        <div>
+            <p>Formulario web</p>
+            <h1>{{ form_definition.name }}</h1>
+            <span>{{ form_definition.description|default:"Administra los campos, el correo receptor y la integracion publica de este formulario." }}</span>
+        </div>
+        <div class="builder-hero-actions">
+            <a href="{{ public_url }}" target="_blank" rel="noopener">Ver publico</a>
+            <a href="{% url 'dashboard-form-builder-list' company.id %}">Volver</a>
+        </div>
+    </div>
+
+    <div class="builder-grid">
+        <article class="builder-panel builder-pages">
+            <div class="builder-panel-head">
+                <div>
+                    <span>Campos</span>
+                    <h2>{{ form_definition.fields.count }} campos</h2>
+                </div>
+            </div>
+            <form method="post" action="{% url 'dashboard-form-field-create' company.id form_definition.id %}" class="builder-section-form">
+                {% csrf_token %}
+                <label>Etiqueta{{ field_form.label }}</label>
+                <label>Tipo{{ field_form.field_type }}</label>
+                <label>Placeholder{{ field_form.placeholder }}</label>
+                <label>Ayuda{{ field_form.help_text }}</label>
+                <label>Orden{{ field_form.order }}</label>
+                <label class="wide">Opciones{{ field_form.choices }}</label>
+                <div class="builder-check-row">
+                    <label>{{ field_form.is_required }} Requerido</label>
+                    <label>{{ field_form.is_active }} Activo</label>
+                </div>
+                <div class="builder-form-actions"><button class="builder-primary-button" type="submit">Agregar campo</button></div>
+            </form>
+
+            <div class="builder-block-list">
+                {% for field in form_definition.fields.all %}
+                    <details class="builder-block-row">
+                        <summary><strong>{{ field.label }}</strong><span>{{ field.get_field_type_display }} - orden {{ field.order }}</span></summary>
+                        <form method="post" action="{% url 'dashboard-form-field-update' company.id form_definition.id field.id %}" class="builder-section-form compact">
+                            {% csrf_token %}
+                            <label>Etiqueta<input type="text" name="label" value="{{ field.label }}"></label>
+                            <label>Tipo
+                                <select name="field_type">
+                                    {% for value,label in field_form.fields.field_type.choices %}
+                                        <option value="{{ value }}" {% if field.field_type == value %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </label>
+                            <label>Placeholder<input type="text" name="placeholder" value="{{ field.placeholder }}"></label>
+                            <label>Ayuda<input type="text" name="help_text" value="{{ field.help_text }}"></label>
+                            <label>Orden<input type="number" name="order" value="{{ field.order }}" min="0"></label>
+                            <label class="wide">Opciones<textarea name="choices" rows="4">{{ field.choices }}</textarea></label>
+                            <div class="builder-check-row">
+                                <label><input type="checkbox" name="is_required" {% if field.is_required %}checked{% endif %}> Requerido</label>
+                                <label><input type="checkbox" name="is_active" {% if field.is_active %}checked{% endif %}> Activo</label>
+                            </div>
+                            <div class="builder-form-actions"><button class="builder-primary-button" type="submit">Guardar campo</button></div>
+                        </form>
+                        <div class="builder-page-actions">
+                            <form method="post" action="{% url 'dashboard-form-field-delete' company.id form_definition.id field.id %}" onsubmit="return confirm('Eliminar este campo?');">
+                                {% csrf_token %}
+                                <button class="danger" type="submit">Eliminar campo</button>
+                            </form>
+                        </div>
+                    </details>
+                {% empty %}
+                    <p>No hay campos. Agrega al menos uno para publicar el formulario.</p>
+                {% endfor %}
+            </div>
+        </article>
+
+        <div class="builder-side-stack">
+            <article class="builder-panel">
+                <div class="builder-panel-head">
+                    <div>
+                        <span>Configuracion</span>
+                        <h2>Email receptor</h2>
+                    </div>
+                    <strong class="builder-pill {% if form_definition.is_active %}live{% else %}draft{% endif %}">{% if form_definition.is_active %}Activo{% else %}Inactivo{% endif %}</strong>
+                </div>
+                <form method="post" action="{% url 'dashboard-form-builder-update' company.id form_definition.id %}" class="builder-theme-form builder-structure-form">
+                    {% csrf_token %}
+                    <label>Nombre{{ definition_form.name }}</label>
+                    <label>Slug{{ definition_form.slug }}</label>
+                    <label>Email receptor{{ definition_form.recipient_email }}</label>
+                    <label>Mensaje final{{ definition_form.success_message }}</label>
+                    <label class="wide">Descripcion{{ definition_form.description }}</label>
+                    <div class="builder-check-row"><label>{{ definition_form.is_active }} Activo</label></div>
+                    {% if definition_form.errors %}<div class="builder-form-errors">{{ definition_form.errors }}</div>{% endif %}
+                    <div class="builder-form-actions"><button class="builder-primary-button" type="submit">Guardar formulario</button></div>
+                </form>
+                <div class="builder-url-box">
+                    <span>URL publica</span>
+                    <code>{{ public_url }}</code>
+                </div>
+            </article>
+
+            <article class="builder-panel">
+                <div class="builder-panel-head">
+                    <div>
+                        <span>Website Builder</span>
+                        <h2>Insertar en seccion</h2>
+                    </div>
+                </div>
+                {% if sections %}
+                    <form method="post" action="{% url 'dashboard-form-attach-section' company.id form_definition.id %}" class="builder-theme-form builder-structure-form">
+                        {% csrf_token %}
+                        <label>Seccion
+                            <select name="section_id" required>
+                                {% for section in sections %}
+                                    <option value="{{ section.id }}">{{ section.layout.page.title }} - {{ section.title|default:section.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </label>
+                        <div class="builder-form-actions"><button class="builder-primary-button" type="submit">Usar formulario aqui</button></div>
+                    </form>
+                {% else %}
+                    <p>Crea primero una pagina y una seccion en Website Builder.</p>
+                {% endif %}
+            </article>
+
+            <article class="builder-panel">
+                <div class="builder-panel-head">
+                    <div>
+                        <span>Envios recientes</span>
+                        <h2>{{ form_definition.submissions.count }} recibidos</h2>
+                    </div>
+                </div>
+                <div class="builder-submission-list">
+                    {% for submission in form_definition.submissions.all|slice:":8" %}
+                        <article>
+                            <strong>{{ submission.sender_name|default:submission.sender_email|default:"Visitante" }}</strong>
+                            <span>{{ submission.created_at }} - Email {% if submission.email_sent %}enviado{% else %}pendiente{% endif %}</span>
+                        </article>
+                    {% empty %}
+                        <p>No hay envios todavia.</p>
+                    {% endfor %}
+                </div>
+            </article>
+
+            <form method="post" action="{% url 'dashboard-form-builder-delete' company.id form_definition.id %}" onsubmit="return confirm('Eliminar este formulario y sus envios?');">
+                {% csrf_token %}
+                <button class="builder-danger-button" type="submit">Eliminar formulario</button>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

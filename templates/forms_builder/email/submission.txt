@@ -1,0 +1,10 @@
+Formulario: {{ submission.form.name }}
+Empresa: {{ submission.form.company.name }}
+Fecha: {{ submission.created_at }}
+
+Datos recibidos:
+{% for label, value in submission.data.items %}
+- {{ label }}: {{ value }}
+{% endfor %}
+
+Enviado desde Cardbook Forms Builder.

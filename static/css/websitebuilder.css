@@ -1,0 +1,459 @@
+.wb-body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: var(--wb-font, Inter, system-ui, sans-serif);
+    color: #07152d;
+    background: #f4f7fb;
+}
+
+/* Forms Builder public embed */
+.wb-contact-form-section {
+    background: linear-gradient(180deg, #f8fbff, #ffffff);
+}
+.wb-form-builder,
+.wb-standalone-form {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: clamp(20px, 4vw, 34px);
+    border-radius: 18px;
+    background: white;
+    border: 1px solid rgba(7,21,45,.08);
+    box-shadow: 0 22px 70px rgba(7,21,45,.1);
+}
+.wb-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+.wb-form-field {
+    display: grid;
+    gap: 8px;
+    color: var(--wb-secondary);
+    font-weight: 850;
+}
+.wb-form-field.checkbox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.wb-form-field.checkbox span {
+    order: 2;
+}
+.wb-form-field input,
+.wb-form-field textarea,
+.wb-form-field select {
+    width: 100%;
+    min-height: 48px;
+    border: 1px solid #d7e2f1;
+    border-radius: 12px;
+    padding: 11px 13px;
+    background: #f8fbff;
+    color: #07152d;
+    font: inherit;
+}
+.wb-form-field textarea {
+    resize: vertical;
+}
+.wb-form-field small {
+    color: #64748b;
+    font-weight: 700;
+}
+.wb-form-alert,
+.wb-form-empty {
+    margin-bottom: 18px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    font-weight: 850;
+}
+.wb-form-alert.success {
+    background: #e8f8ee;
+    color: #14723a;
+}
+.wb-form-alert.error {
+    background: #fff1f2;
+    color: #be123c;
+}
+.wb-form-empty {
+    display: grid;
+    gap: 4px;
+    background: #f8fbff;
+    border: 1px dashed #c7d7eb;
+    color: #003875;
+}
+.wb-form-empty span {
+    color: #64748b;
+}
+.wb-form-builder .wb-btn {
+    width: 100%;
+    margin-top: 20px;
+    border: 0;
+    cursor: pointer;
+}
+@media (max-width: 860px) {
+    .wb-form-grid {
+        grid-template-columns: 1fr;
+    }
+    .wb-form-builder,
+    .wb-standalone-form {
+        padding: 18px;
+        border-radius: 16px;
+    }
+}
+.wb-body * { box-sizing: border-box; }
+.wb-body a { color: inherit; text-decoration: none; }
+.wb-navbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    min-height: 78px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 22px;
+    padding: 16px clamp(18px, 5vw, 72px);
+    background: rgba(255,255,255,.92);
+    border-bottom: 1px solid rgba(7,21,45,.08);
+    backdrop-filter: blur(16px);
+}
+.wb-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    color: var(--wb-secondary);
+    font-weight: 950;
+    font-size: 1.1rem;
+}
+.wb-brand img {
+    width: 46px;
+    height: 46px;
+    object-fit: contain;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 8px 22px rgba(7,21,45,.08);
+}
+.wb-navbar nav {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.wb-navbar nav a {
+    padding: 9px 13px;
+    border-radius: 999px;
+    color: #43516a;
+    font-weight: 850;
+}
+.wb-navbar nav a:hover {
+    background: color-mix(in srgb, var(--wb-primary) 10%, white);
+    color: var(--wb-primary);
+}
+.wb-page { overflow: hidden; }
+.wb-container {
+    width: min(1160px, calc(100% - 36px));
+    margin: 0 auto;
+}
+.wb-section {
+    padding: clamp(56px, 8vw, 104px) 0;
+}
+.wb-hero {
+    position: relative;
+    min-height: 650px;
+    display: grid;
+    align-items: center;
+    color: white;
+    background: radial-gradient(circle at 80% 20%, color-mix(in srgb, var(--wb-accent) 46%, transparent), transparent 24%), linear-gradient(135deg, var(--wb-secondary), var(--wb-primary));
+    overflow: hidden;
+}
+.wb-hero-carousel {
+    background: linear-gradient(135deg, var(--wb-secondary), var(--wb-primary));
+}
+.wb-hero-carousel::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(90deg, color-mix(in srgb, var(--wb-secondary) 86%, transparent), color-mix(in srgb, var(--wb-primary) 48%, transparent)), radial-gradient(circle at 80% 18%, color-mix(in srgb, var(--wb-accent) 34%, transparent), transparent 28%);
+    pointer-events: none;
+}
+.wb-carousel {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+}
+.carousel-inner,
+.carousel-item {
+    width: 100%;
+    height: 100%;
+}
+.carousel-item {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity .7s ease;
+}
+.carousel-item.active {
+    opacity: 1;
+}
+.carousel-item img,
+.d-block.w-100 {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+}
+.carousel-caption {
+    position: absolute;
+    right: clamp(18px, 6vw, 76px);
+    bottom: clamp(28px, 8vw, 86px);
+    z-index: 3;
+    max-width: 420px;
+    padding: 18px 20px;
+    border-radius: 16px;
+    background: rgba(7,21,45,.52);
+    border: 1px solid rgba(255,255,255,.18);
+    backdrop-filter: blur(14px);
+}
+.carousel-caption h5 {
+    margin: 0;
+    color: white;
+    font-size: 1.2rem;
+}
+.carousel-caption p {
+    margin: 8px 0 0 !important;
+    color: rgba(255,255,255,.82) !important;
+    font-size: .95rem !important;
+}
+.carousel-indicators {
+    position: absolute;
+    left: 50%;
+    bottom: 22px;
+    z-index: 4;
+    display: flex;
+    gap: 8px;
+    transform: translateX(-50%);
+}
+.carousel-indicators button {
+    width: 34px;
+    height: 4px;
+    border: 0;
+    border-radius: 999px;
+    padding: 0;
+    background: rgba(255,255,255,.42);
+    cursor: pointer;
+}
+.carousel-indicators button.active {
+    background: var(--wb-accent);
+}
+.carousel-control-prev,
+.carousel-control-next {
+    position: absolute;
+    top: 50%;
+    z-index: 4;
+    width: 44px;
+    height: 44px;
+    border: 1px solid rgba(255,255,255,.24);
+    border-radius: 999px;
+    background: rgba(7,21,45,.38);
+    cursor: pointer;
+    transform: translateY(-50%);
+}
+.carousel-control-prev { left: clamp(14px, 3vw, 32px); }
+.carousel-control-next { right: clamp(14px, 3vw, 32px); }
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    width: 12px;
+    height: 12px;
+    display: block;
+    margin: auto;
+    border-top: 3px solid white;
+    border-left: 3px solid white;
+}
+.carousel-control-prev-icon { transform: rotate(-45deg); }
+.carousel-control-next-icon { transform: rotate(135deg); }
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+.wb-hero-grid {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: clamp(28px, 6vw, 80px);
+    align-items: center;
+}
+.wb-eyebrow {
+    margin: 0 0 12px;
+    color: var(--wb-accent);
+    font-size: .82rem;
+    font-weight: 950;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+.wb-hero h1 {
+    max-width: 760px;
+    margin: 0;
+    color: white;
+    font-size: clamp(2.6rem, 7vw, 5.5rem);
+    line-height: .95;
+}
+.wb-hero p:not(.wb-eyebrow) {
+    max-width: 650px;
+    margin: 18px 0 0;
+    color: rgba(255,255,255,.82);
+    font-size: clamp(1.05rem, 2vw, 1.35rem);
+    line-height: 1.55;
+}
+.wb-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 26px;
+}
+.wb-btn,
+.wb-button {
+    min-height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    padding: 12px 18px;
+    background: var(--wb-accent);
+    color: var(--wb-secondary);
+    font-weight: 950;
+    box-shadow: 0 14px 28px color-mix(in srgb, var(--wb-accent) 26%, transparent);
+}
+.wb-btn:not(.primary),
+.wb-button.secondary {
+    background: rgba(255,255,255,.12);
+    color: white;
+    border: 1px solid rgba(255,255,255,.28);
+    box-shadow: none;
+}
+.wb-hero-card {
+    min-height: 320px;
+    display: grid;
+    align-content: end;
+    gap: 10px;
+    padding: 28px;
+    border-radius: 18px;
+    background: rgba(255,255,255,.12);
+    border: 1px solid rgba(255,255,255,.22);
+    box-shadow: 0 28px 70px rgba(0,0,0,.25);
+}
+.wb-hero-card img {
+    width: 108px;
+    height: 108px;
+    object-fit: contain;
+    border-radius: 18px;
+    background: white;
+    padding: 12px;
+}
+.wb-hero-card strong {
+    color: white;
+    font-size: 1.45rem;
+}
+.wb-hero-card span { color: rgba(255,255,255,.75); font-weight: 800; }
+.wb-section-head {
+    max-width: 720px;
+    margin: 0 auto 34px;
+    text-align: center;
+}
+.wb-section-head h2,
+.wb-cta h2 {
+    margin: 0;
+    color: var(--wb-secondary);
+    font-size: clamp(2rem, 4vw, 3.4rem);
+    line-height: 1;
+}
+.wb-section-head p,
+.wb-cta p {
+    margin: 14px 0 0;
+    color: #637189;
+    font-size: 1.08rem;
+    line-height: 1.65;
+}
+.wb-card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+}
+.wb-card {
+    min-height: 220px;
+    padding: 24px;
+    border-radius: 14px;
+    background: white;
+    border: 1px solid rgba(7,21,45,.08);
+    box-shadow: 0 18px 40px rgba(7,21,45,.07);
+}
+.wb-card-icon {
+    width: 46px;
+    height: 46px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--wb-primary) 12%, white);
+    color: var(--wb-primary);
+    font-weight: 950;
+}
+.wb-card h3 {
+    margin: 22px 0 10px;
+    color: var(--wb-secondary);
+    font-size: 1.25rem;
+}
+.wb-card p {
+    margin: 0;
+    color: #637189;
+    line-height: 1.6;
+}
+.wb-cta {
+    text-align: center;
+    color: white;
+    background: linear-gradient(135deg, var(--wb-secondary), var(--wb-primary));
+}
+.wb-cta h2 { color: white; }
+.wb-cta p { color: rgba(255,255,255,.78); margin-inline: auto; max-width: 720px; }
+.wb-footer {
+    padding: 34px 0;
+    color: rgba(255,255,255,.82);
+    background: #07152d;
+}
+.wb-footer .wb-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    flex-wrap: wrap;
+}
+@media (max-width: 860px) {
+    .wb-navbar {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+    .wb-navbar nav {
+        justify-content: flex-start;
+        width: 100%;
+    }
+    .wb-hero-grid,
+    .wb-card-grid {
+        grid-template-columns: 1fr;
+    }
+    .wb-hero {
+        min-height: auto;
+        padding: 70px 0;
+    }
+    .wb-hero-carousel {
+        min-height: 720px;
+    }
+    .carousel-caption {
+        display: none;
+    }
+}

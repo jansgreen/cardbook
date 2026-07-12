@@ -1,0 +1,68 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% block title %}Forms Builder - Cardbook{% endblock %}
+{% block topbar_title %}Forms Builder{% endblock %}
+{% block topbar_subtitle %}Crea formularios para las webs de tus empresas{% endblock %}
+{% block dashboard_content %}
+<section class="website-builder-dashboard">
+    <div class="builder-hero">
+        <div>
+            <p>Forms Builder</p>
+            <h1>{{ company.name }}</h1>
+            <span>Crea formularios con campos personalizados, define el correo receptor e integralos en secciones del Website Builder.</span>
+        </div>
+        <div class="builder-hero-actions">
+            {% if website %}
+                <a href="{% url 'dashboard-company-website' company.id %}">Website Builder</a>
+            {% endif %}
+            <a href="{% url 'dashboard-companies' %}">Empresas</a>
+        </div>
+    </div>
+
+    <div class="builder-grid">
+        <article class="builder-panel builder-pages">
+            <div class="builder-panel-head">
+                <div>
+                    <span>Formularios</span>
+                    <h2>{{ forms|length }} configurados</h2>
+                </div>
+            </div>
+            {% for form_definition in forms %}
+                <section class="builder-page-row">
+                    <div>
+                        <strong>{{ form_definition.name }}</strong>
+                        <span>{{ form_definition.recipient_email }} - {{ form_definition.fields.count }} campos - {{ form_definition.submissions.count }} envios</span>
+                    </div>
+                    <small>{% if form_definition.is_active %}Activo{% else %}Inactivo{% endif %}</small>
+                    <div class="builder-page-actions">
+                        <a href="{% url 'dashboard-form-builder-detail' company.id form_definition.id %}">Administrar</a>
+                        <a href="{% url 'forms-builder-public-detail' company.slug form_definition.slug %}" target="_blank" rel="noopener">Ver publico</a>
+                    </div>
+                </section>
+            {% empty %}
+                <p>No hay formularios todavia.</p>
+            {% endfor %}
+        </article>
+
+        <article class="builder-panel">
+            <div class="builder-panel-head">
+                <div>
+                    <span>Nuevo formulario</span>
+                    <h2>Crear formulario</h2>
+                </div>
+            </div>
+            <form method="post" action="{% url 'dashboard-form-builder-create' company.id %}" class="builder-theme-form builder-structure-form">
+                {% csrf_token %}
+                <label>Nombre{{ definition_form.name }}</label>
+                <label>Slug{{ definition_form.slug }}</label>
+                <label>Email receptor{{ definition_form.recipient_email }}</label>
+                <label>Mensaje final{{ definition_form.success_message }}</label>
+                <label class="wide">Descripcion{{ definition_form.description }}</label>
+                <div class="builder-check-row"><label>{{ definition_form.is_active }} Activo</label></div>
+                {% if definition_form.errors %}<div class="builder-form-errors">{{ definition_form.errors }}</div>{% endif %}
+                <div class="builder-form-actions"><button class="builder-primary-button" type="submit">Crear formulario</button></div>
+            </form>
+        </article>
+    </div>
+</section>
+{% endblock %}
+

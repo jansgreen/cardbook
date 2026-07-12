@@ -4,6 +4,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from cardbookweb.responses import error_response, success_response
+from referrals.services import register_referral_source
 from .serializers import ProfileSerializer, RegisterSerializer
 
 
@@ -16,6 +17,12 @@ class RegisterView(APIView):
             return error_response("Registration failed.", serializer.errors)
 
         user = serializer.save()
+        referral_code = request.data.get("ref") or request.data.get("referral_code") or request.query_params.get("ref")
+        if referral_code:
+            try:
+                register_referral_source(user=user, referral_code=referral_code, request=request)
+            except ValueError:
+                pass
         refresh = RefreshToken.for_user(user)
         return success_response(
             "User registered successfully.",

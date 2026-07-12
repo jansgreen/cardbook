@@ -1,0 +1,27 @@
+{% if form_definition %}
+<form id="cardbook-form-{{ form_definition.id }}" class="wb-form-builder" method="post" action="{% url 'forms-builder-public-submit' form_definition.company.slug form_definition.slug %}">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    {% if status == "sent" %}
+        <div class="wb-form-alert success">{{ form_definition.success_message }}</div>
+    {% elif status == "error" %}
+        <div class="wb-form-alert error">Revisa los campos requeridos e intenta nuevamente.</div>
+    {% endif %}
+    <div class="wb-form-grid">
+        {% for field in submission_form %}
+            <label class="wb-form-field {% if field.field.widget.input_type == 'checkbox' %}checkbox{% endif %}">
+                <span>{{ field.label }}{% if field.field.required %} *{% endif %}</span>
+                {{ field }}
+                {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
+            </label>
+        {% endfor %}
+    </div>
+    <button class="wb-btn primary" type="submit">Enviar</button>
+</form>
+{% else %}
+<div class="wb-form-empty">
+    <strong>Formulario no configurado</strong>
+    <span>Selecciona o crea un formulario desde Website Builder.</span>
+</div>
+{% endif %}
+

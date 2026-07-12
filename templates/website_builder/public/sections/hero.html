@@ -1,0 +1,52 @@
+{% load websitebuilder_tags %}
+{% with slides=section|hero_slides %}
+<{{ section.html_tag|default:"section" }} class="wb-section wb-hero {% if slides %}wb-hero-carousel{% endif %}" style="{% if not slides %}{% if section.background_color %}background-color:{{ section.background_color }};{% endif %}{% if section.background_image %}background-image:url('{{ section.background_image.url }}');{% endif %}{% endif %}">
+    {% if slides %}
+        <div id="wbCarousel{{ section.id }}" class="carousel slide wb-carousel" data-wb-carousel>
+            <div class="carousel-indicators">
+                {% for slide in slides %}
+                    <button type="button" data-wb-slide-to="{{ forloop.counter0 }}" class="{% if forloop.first %}active{% endif %}" aria-current="{% if forloop.first %}true{% else %}false{% endif %}" aria-label="Slide {{ forloop.counter }}"></button>
+                {% endfor %}
+            </div>
+            <div class="carousel-inner">
+                {% for slide in slides %}
+                    <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                        <img src="{{ slide.image.url }}" class="d-block w-100" alt="{{ slide.value|default:slide.key|default:website.title }}">
+                        <div class="carousel-caption d-none d-md-block">
+                            {% if slide.button_text %}<h5>{{ slide.button_text }}</h5>{% endif %}
+                            {% if slide.text or slide.value %}<p>{{ slide.text|default:slide.value }}</p>{% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <button class="carousel-control-prev" type="button" data-wb-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Anterior</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-wb-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Siguiente</span>
+            </button>
+        </div>
+    {% endif %}
+    <div class="wb-container wb-hero-grid">
+        <div>
+            <p class="wb-eyebrow">{{ website.company.category|default:"Cardbook Website" }}</p>
+            <h1>{{ section|translated_title:language }}</h1>
+            <p>{{ section|translated_subtitle:language }}</p>
+            <div class="wb-actions">
+                {% for component in section.components.all %}
+                    {% if component.is_active %}
+                        {% include "website_builder/public/components/button_group.html" %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        <aside class="wb-hero-card">
+            {% if website.company.logo %}<img src="{{ website.company.logo.url }}" alt="{{ website.company.name }}">{% endif %}
+            <strong>{{ website.company.name }}</strong>
+            <span>{{ website.company.city|default:website.company.region }}</span>
+        </aside>
+    </div>
+</{{ section.html_tag|default:"section" }}>
+{% endwith %}

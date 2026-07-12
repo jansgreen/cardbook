@@ -1,20 +1,32 @@
 ﻿from rest_framework import serializers
 
-from companies.permissions import can_access_company
+from django.urls import reverse
+
 from .models import BusinessCard, DigitalCard
-from .permissions import can_manage_card
+from .services import (
+    CARD_TYPE_BUSINESS_PRESENTATION,
+    CARD_TYPE_BUSINESS_PROFILE,
+    can_create_profile_for_company,
+    can_use_profile_for_business_card,
+)
 
 
 class DigitalCardSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True)
+    card_type = serializers.SerializerMethodField()
+    public_url = serializers.SerializerMethodField()
+    qr_svg_url = serializers.SerializerMethodField()
 
     class Meta:
         model = DigitalCard
         fields = [
             "id",
+            "card_type",
             "company",
             "user",
             "slug",
+            "public_url",
+            "qr_svg_url",
             "job_title",
             "phone_number",
             "email",
@@ -44,22 +56,41 @@ class DigitalCardSerializer(serializers.ModelSerializer):
 
     def validate_company(self, company):
         request = self.context.get("request")
-        if request and not can_access_company(request.user, company):
+        if request and not can_create_profile_for_company(request.user, company):
             raise serializers.ValidationError("You do not belong to this company.")
         return company
+
+    def get_card_type(self, obj):
+        return CARD_TYPE_BUSINESS_PROFILE
+
+    def get_public_url(self, obj):
+        request = self.context.get("request")
+        path = reverse("public-card-web", kwargs={"slug": obj.slug})
+        return request.build_absolute_uri(path) if request else path
+
+    def get_qr_svg_url(self, obj):
+        request = self.context.get("request")
+        path = reverse("public-card-qr", kwargs={"slug": obj.slug})
+        return request.build_absolute_uri(path) if request else path
 
 
 class BusinessCardSerializer(serializers.ModelSerializer):
     profile_slug = serializers.CharField(source="profile.slug", read_only=True)
     company = serializers.IntegerField(source="company.id", read_only=True)
     company_logo = serializers.ImageField(source="company.logo", read_only=True)
+    card_type = serializers.SerializerMethodField()
+    public_url = serializers.SerializerMethodField()
+    qr_svg_url = serializers.SerializerMethodField()
 
     class Meta:
         model = BusinessCard
         fields = [
             "id",
+            "card_type",
             "profile",
             "profile_slug",
+            "public_url",
+            "qr_svg_url",
             "company",
             "company_logo",
             "slug",
@@ -88,14 +119,29 @@ class BusinessCardSerializer(serializers.ModelSerializer):
 
     def validate_profile(self, profile):
         request = self.context.get("request")
-        if request and not can_manage_card(request.user, profile):
+        if request and not can_use_profile_for_business_card(request.user, profile):
             raise serializers.ValidationError("You do not have permission to use this profile.")
         return profile
+
+    def get_card_type(self, obj):
+        return CARD_TYPE_BUSINESS_PRESENTATION
+
+    def get_public_url(self, obj):
+        request = self.context.get("request")
+        path = reverse("public-business-card", kwargs={"slug": obj.slug})
+        return request.build_absolute_uri(path) if request else path
+
+    def get_qr_svg_url(self, obj):
+        request = self.context.get("request")
+        path = reverse("public-card-qr", kwargs={"slug": obj.profile.slug})
+        return request.build_absolute_uri(path) if request else path
 
 
 class PublicDigitalCardSerializer(serializers.ModelSerializer):
     translation = serializers.SerializerMethodField()
     company_name = serializers.CharField(source="company.name", read_only=True)
+    public_url = serializers.SerializerMethodField()
+    qr_svg_url = serializers.SerializerMethodField()
 
     class Meta:
         model = DigitalCard
@@ -105,6 +151,8 @@ class PublicDigitalCardSerializer(serializers.ModelSerializer):
             "company_name",
             "user",
             "slug",
+            "public_url",
+            "qr_svg_url",
             "job_title",
             "phone_number",
             "email",
@@ -142,3 +190,13 @@ class PublicDigitalCardSerializer(serializers.ModelSerializer):
             "address": translation.address,
             "custom_message": translation.custom_message,
         }
+
+    def get_public_url(self, obj):
+        request = self.context.get("request")
+        path = reverse("public-card-web", kwargs={"slug": obj.slug})
+        return request.build_absolute_uri(path) if request else path
+
+    def get_qr_svg_url(self, obj):
+        request = self.context.get("request")
+        path = reverse("public-card-qr", kwargs={"slug": obj.slug})
+        return request.build_absolute_uri(path) if request else path

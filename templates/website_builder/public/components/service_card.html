@@ -1,0 +1,7 @@
+{% load websitebuilder_tags %}
+<article class="wb-card">
+    <span class="wb-card-icon">{{ component.settings.icon|default:"*" }}</span>
+    <h3>{{ component|translated_title:language }}</h3>
+    <p>{% block_text component "description" language %}</p>
+</article>
+

@@ -1,0 +1,12 @@
+{% load websitebuilder_tags %}
+<{{ section.html_tag|default:"section" }} class="wb-section wb-cta">
+    <div class="wb-container">
+        <h2>{{ section|translated_title:language }}</h2>
+        <p>{{ section|translated_subtitle:language }}</p>
+        <div class="wb-actions">
+            {% for component in section.components.all %}
+                {% if component.is_active %}{% include "website_builder/public/components/button_group.html" %}{% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</{{ section.html_tag|default:"section" }}>
