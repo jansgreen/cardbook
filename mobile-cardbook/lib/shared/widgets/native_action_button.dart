@@ -23,9 +23,9 @@ class NativeActionButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
-          color: color.withOpacity(.14),
+          color: color.withValues(alpha: .14),
           borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: color.withOpacity(.32)),
+          border: Border.all(color: color.withValues(alpha: .32)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,

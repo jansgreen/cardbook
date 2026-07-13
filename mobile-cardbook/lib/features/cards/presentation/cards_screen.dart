@@ -22,31 +22,43 @@ class CardsScreen extends ConsumerWidget {
     return Scaffold(
       body: AppGradientBackground(
         child: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 112),
-            children: [
-              const BrandHeader(),
-              const SizedBox(height: 24),
-              const _CardsHero(),
-              const SizedBox(height: 18),
-              _CardsSection(
-                title: 'Perfiles de negocio',
-                actionLabel: 'Crear perfil',
-                onAction: () => context.push('/cards/digital/form'),
-                state: digitalCards,
-                emptyMessage: 'Aun no tienes perfiles de negocio.',
-                itemBuilder: (card) => _DigitalCardTile(card: card),
-              ),
-              const SizedBox(height: 18),
-              _CardsSection(
-                title: 'Tarjetas de presentacion',
-                actionLabel: 'Crear tarjeta',
-                onAction: () => context.push('/cards/business/form'),
-                state: businessCards,
-                emptyMessage: 'Aun no tienes tarjetas de presentacion.',
-                itemBuilder: (card) => _BusinessCardTile(card: card),
-              ),
-            ],
+          child: RefreshIndicator(
+            onRefresh: () async {
+              ref.invalidate(digitalCardsProvider);
+              ref.invalidate(businessCardsProvider);
+              await Future.wait([
+                ref.read(digitalCardsProvider.future),
+                ref.read(businessCardsProvider.future),
+              ]);
+            },
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 112),
+              children: [
+                const BrandHeader(),
+                const SizedBox(height: 24),
+                const _CardsHero(),
+                const SizedBox(height: 18),
+                _CardsSection(
+                  title: 'Perfiles de negocio',
+                  actionLabel: 'Crear perfil',
+                  onAction: () => context.push('/cards/digital/form'),
+                  onRetry: () => ref.invalidate(digitalCardsProvider),
+                  state: digitalCards,
+                  emptyMessage: 'Aun no tienes perfiles de negocio.',
+                  itemBuilder: (card) => _DigitalCardTile(card: card),
+                ),
+                const SizedBox(height: 18),
+                _CardsSection(
+                  title: 'Tarjetas de presentacion',
+                  actionLabel: 'Crear tarjeta',
+                  onAction: () => context.push('/cards/business/form'),
+                  onRetry: () => ref.invalidate(businessCardsProvider),
+                  state: businessCards,
+                  emptyMessage: 'Aun no tienes tarjetas de presentacion.',
+                  itemBuilder: (card) => _BusinessCardTile(card: card),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -60,6 +72,7 @@ class _CardsSection extends StatelessWidget {
     required this.title,
     required this.actionLabel,
     required this.onAction,
+    required this.onRetry,
     required this.state,
     required this.emptyMessage,
     required this.itemBuilder,
@@ -68,6 +81,7 @@ class _CardsSection extends StatelessWidget {
   final String title;
   final String actionLabel;
   final VoidCallback onAction;
+  final VoidCallback onRetry;
   final AsyncValue<List<Map<String, dynamic>>> state;
   final String emptyMessage;
   final Widget Function(Map<String, dynamic>) itemBuilder;
@@ -78,13 +92,25 @@ class _CardsSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SectionHeader(title: title, actionLabel: actionLabel, onAction: onAction),
+          SectionHeader(
+              title: title, actionLabel: actionLabel, onAction: onAction),
           const SizedBox(height: 12),
           state.when(
-            loading: () => const SizedBox(height: 120, child: AsyncStateView.loading()),
-            error: (_, __) => AsyncStateView.error('No pudimos cargar $title.'),
+            loading: () =>
+                const SizedBox(height: 120, child: AsyncStateView.loading()),
+            error: (_, __) => AsyncStateView.error(
+              'No pudimos cargar $title.',
+              actionLabel: 'Reintentar',
+              onAction: onRetry,
+            ),
             data: (items) => items.isEmpty
-                ? AsyncStateView.empty(emptyMessage)
+                ? AsyncStateView.empty(
+                    emptyMessage,
+                    title: 'Nada creado todavia',
+                    icon: Icons.add_card_rounded,
+                    actionLabel: actionLabel,
+                    onAction: onAction,
+                  )
                 : Column(
                     children: [
                       for (final item in items) ...[
@@ -110,11 +136,13 @@ class _DigitalCardTile extends StatelessWidget {
     final jobTitle = _cleanText(card['job_title']);
     return _CardTile(
       title: jobTitle.isNotEmpty ? jobTitle : 'Perfil de negocio',
-      subtitle: _firstText([card['email'], card['phone_number']], fallback: 'Tarjeta digital'),
+      subtitle: _firstText([card['email'], card['phone_number']],
+          fallback: 'Tarjeta digital'),
       icon: Icons.badge_rounded,
       accent: AppColors.blue,
       slug: card['slug']?.toString(),
-      onTap: () => context.push('/cards/detail', extra: {'kind': 'digital', 'card': card}),
+      onTap: () => context
+          .push('/cards/detail', extra: {'kind': 'digital', 'card': card}),
     );
   }
 }
@@ -127,12 +155,15 @@ class _BusinessCardTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _CardTile(
-      title: _firstText([card['display_name']], fallback: 'Tarjeta de presentacion'),
-      subtitle: _firstText([card['company_name'], card['job_title']], fallback: 'Presentacion empresarial'),
+      title: _firstText([card['display_name']],
+          fallback: 'Tarjeta de presentacion'),
+      subtitle: _firstText([card['company_name'], card['job_title']],
+          fallback: 'Presentacion empresarial'),
       icon: Icons.contact_page_rounded,
       accent: AppColors.gold,
       slug: card['slug']?.toString(),
-      onTap: () => context.push('/cards/detail', extra: {'kind': 'business', 'card': card}),
+      onTap: () => context
+          .push('/cards/detail', extra: {'kind': 'business', 'card': card}),
     );
   }
 }
@@ -174,7 +205,7 @@ class _CardTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppColors.inkAlt.withOpacity(.72),
+          color: AppColors.inkAlt.withValues(alpha: .72),
           borderRadius: BorderRadius.circular(AppRadius.md),
           border: Border.all(color: AppColors.stroke),
         ),
@@ -184,7 +215,7 @@ class _CardTile extends StatelessWidget {
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: accent.withOpacity(.14),
+                color: accent.withValues(alpha: .14),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Icon(icon, color: accent),
@@ -194,12 +225,23 @@ class _CardTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900)),
+                  Text(title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.w900)),
                   const SizedBox(height: 4),
-                  Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppColors.muted, fontSize: 12)),
+                  Text(subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          color: AppColors.muted, fontSize: 12)),
                   if (slug != null && slug!.isNotEmpty) ...[
                     const SizedBox(height: 6),
-                    Text(slug!, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppColors.purple, fontSize: 12)),
+                    Text(slug!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            color: AppColors.purple, fontSize: 12)),
                   ],
                 ],
               ),
@@ -222,9 +264,14 @@ class _CardsHero extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          StatusBadge(label: 'Tarjetas digitales', icon: Icons.qr_code_2_rounded, color: AppColors.gold),
+          StatusBadge(
+              label: 'Tarjetas digitales',
+              icon: Icons.qr_code_2_rounded,
+              color: AppColors.gold),
           SizedBox(height: 16),
-          Text('Tarjetas', style: TextStyle(fontSize: 32, height: 1.05, fontWeight: FontWeight.w900)),
+          Text('Tarjetas',
+              style: TextStyle(
+                  fontSize: 32, height: 1.05, fontWeight: FontWeight.w900)),
           SizedBox(height: 8),
           Text(
             'Gestiona perfiles de negocio, presentaciones y enlaces publicos.',

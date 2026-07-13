@@ -12,17 +12,20 @@ final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
 });
 
 class ProfileRepository {
-  const ProfileRepository({required ApiClient apiClient}) : _apiClient = apiClient;
+  const ProfileRepository({required ApiClient apiClient})
+      : _apiClient = apiClient;
 
   final ApiClient _apiClient;
 
   Future<Map<String, dynamic>> me() async {
-    final response = await _apiClient.dio.get<Map<String, dynamic>>('/accounts/me/');
+    final response =
+        await _apiClient.dio.get<Map<String, dynamic>>('/accounts/me/');
     return extractData(response.data);
   }
 
   Future<Map<String, dynamic>> update(Map<String, dynamic> payload) async {
-    final response = await _apiClient.dio.patch<Map<String, dynamic>>('/accounts/profile/', data: payload);
+    final response = await _apiClient.dio
+        .patch<Map<String, dynamic>>('/accounts/profile/', data: payload);
     return extractData(response.data);
   }
 }

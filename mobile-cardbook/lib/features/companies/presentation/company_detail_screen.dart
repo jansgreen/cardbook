@@ -10,6 +10,7 @@ import 'package:mobile_cardbook/shared/theme/app_theme.dart';
 import 'package:mobile_cardbook/shared/widgets/app_gradient_background.dart';
 import 'package:mobile_cardbook/shared/widgets/glass_card.dart';
 import 'package:mobile_cardbook/shared/widgets/native_action_button.dart';
+import 'package:mobile_cardbook/shared/widgets/share_center.dart';
 import 'package:mobile_cardbook/shared/widgets/status_badge.dart';
 
 class CompanyDetailScreen extends ConsumerWidget {
@@ -20,7 +21,8 @@ class CompanyDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final name = _text(company['name'], fallback: 'Empresa');
-    final description = _text(company['description'], fallback: 'Empresa en Cardbook');
+    final description =
+        _text(company['description'], fallback: 'Empresa en Cardbook');
     final category = _text(company['category'], fallback: 'Negocio');
     final address = _text(company['address']);
     final city = _text(company['city']);
@@ -31,7 +33,9 @@ class CompanyDetailScreen extends ConsumerWidget {
     final logo = _text(company['logo']);
     final slug = _text(company['slug']);
     final companyId = _intValue(company['id']);
-    final publicUrl = slug.isEmpty ? ApiConfig.publicBase : '${ApiConfig.publicBase}/business/$slug/';
+    final publicUrl = slug.isEmpty
+        ? ApiConfig.publicBase
+        : '${ApiConfig.publicBase}/business/$slug/';
 
     return Scaffold(
       body: AppGradientBackground(
@@ -47,11 +51,25 @@ class CompanyDetailScreen extends ConsumerWidget {
                   ),
                   const Spacer(),
                   IconButton(
-                    onPressed: () => NativeActions.shareText(name, '$name\n$publicUrl'),
+                    onPressed: () => ShareCenter.show(
+                      context,
+                      SharePayload(
+                        type: ShareTargetType.company,
+                        title: name,
+                        subtitle: description,
+                        url: publicUrl,
+                        phone: phone,
+                        email: email,
+                        website: website,
+                        address: address,
+                        organization: name,
+                      ),
+                    ),
                     icon: const Icon(Icons.share_rounded),
                   ),
                   IconButton(
-                    onPressed: () => context.push('/companies/form', extra: company),
+                    onPressed: () =>
+                        context.push('/companies/form', extra: company),
                     icon: const Icon(Icons.edit_rounded),
                   ),
                 ],
@@ -65,18 +83,31 @@ class CompanyDetailScreen extends ConsumerWidget {
                   children: [
                     _Logo(url: logo, name: name),
                     const SizedBox(height: 18),
-                    StatusBadge(label: category, icon: Icons.verified_rounded, color: AppColors.gold),
+                    StatusBadge(
+                        label: category,
+                        icon: Icons.verified_rounded,
+                        color: AppColors.gold),
                     const SizedBox(height: 16),
-                    Text(name, style: const TextStyle(fontSize: 30, height: 1.05, fontWeight: FontWeight.w900)),
+                    Text(name,
+                        style: const TextStyle(
+                            fontSize: 30,
+                            height: 1.05,
+                            fontWeight: FontWeight.w900)),
                     const SizedBox(height: 10),
-                    Text(description, style: const TextStyle(color: AppColors.muted, height: 1.45)),
+                    Text(description,
+                        style: const TextStyle(
+                            color: AppColors.muted, height: 1.45)),
                     if (city.isNotEmpty || region.isNotEmpty) ...[
                       const SizedBox(height: 14),
                       Row(
                         children: [
-                          const Icon(Icons.location_on_outlined, color: AppColors.muted, size: 18),
+                          const Icon(Icons.location_on_outlined,
+                              color: AppColors.muted, size: 18),
                           const SizedBox(width: 6),
-                          Expanded(child: Text(_join([city, region]), style: const TextStyle(color: AppColors.muted))),
+                          Expanded(
+                              child: Text(_join([city, region]),
+                                  style:
+                                      const TextStyle(color: AppColors.muted))),
                         ],
                       ),
                     ],
@@ -89,16 +120,80 @@ class CompanyDetailScreen extends ConsumerWidget {
                   spacing: 10,
                   runSpacing: 10,
                   children: [
-                    _ActionSlot(child: NativeActionButton(icon: Icons.call_rounded, label: 'Llamar', onTap: () => NativeActions.call(phone))),
-                    _ActionSlot(child: NativeActionButton(icon: Icons.email_rounded, label: 'Email', onTap: () => NativeActions.email(email, subject: name))),
-                    _ActionSlot(child: NativeActionButton(icon: Icons.language_rounded, label: 'Web', onTap: () => NativeActions.website(website))),
-                    _ActionSlot(child: NativeActionButton(icon: Icons.map_rounded, label: 'Mapa', onTap: () => NativeActions.maps(address))),
+                    _ActionSlot(
+                        child: NativeActionButton(
+                            icon: Icons.call_rounded,
+                            label: 'Llamar',
+                            onTap: () => NativeActions.call(phone))),
+                    _ActionSlot(
+                        child: NativeActionButton(
+                            icon: Icons.email_rounded,
+                            label: 'Email',
+                            onTap: () =>
+                                NativeActions.email(email, subject: name))),
+                    _ActionSlot(
+                        child: NativeActionButton(
+                            icon: Icons.language_rounded,
+                            label: 'Web',
+                            onTap: () => NativeActions.website(website))),
+                    _ActionSlot(
+                        child: NativeActionButton(
+                            icon: Icons.map_rounded,
+                            label: 'Mapa',
+                            onTap: () => NativeActions.maps(address))),
                     _ActionSlot(
                       child: NativeActionButton(
                         icon: Icons.share_rounded,
                         label: 'Compartir',
                         color: AppColors.gold,
-                        onTap: () => NativeActions.shareText(name, '$name\n$publicUrl'),
+                        onTap: () => ShareCenter.show(
+                          context,
+                          SharePayload(
+                            type: ShareTargetType.company,
+                            title: name,
+                            subtitle: description,
+                            url: publicUrl,
+                            phone: phone,
+                            email: email,
+                            website: website,
+                            address: address,
+                            organization: name,
+                          ),
+                        ),
+                      ),
+                    ),
+                    _ActionSlot(
+                      child: NativeActionButton(
+                        icon: Icons.contact_page_rounded,
+                        label: 'Contacto',
+                        color: AppColors.green,
+                        onTap: () => NativeActions.shareContactCard(
+                          name: name,
+                          organization: name,
+                          phone: phone,
+                          email: email,
+                          website: website.isNotEmpty ? website : publicUrl,
+                          address: address,
+                          note: description,
+                        ),
+                      ),
+                    ),
+                    _ActionSlot(
+                      child: NativeActionButton(
+                        icon: Icons.badge_rounded,
+                        label: 'Crear perfil',
+                        color: AppColors.blue,
+                        onTap: () => context.push('/cards/digital/form',
+                            extra: {'initialCompany': company}),
+                      ),
+                    ),
+                    _ActionSlot(
+                      child: NativeActionButton(
+                        icon: Icons.contact_mail_rounded,
+                        label: 'Crear tarjeta',
+                        color: AppColors.gold,
+                        onTap: () => context.push('/cards/business/form',
+                            extra: {'initialCompany': company}),
                       ),
                     ),
                     _ActionSlot(
@@ -114,7 +209,9 @@ class CompanyDetailScreen extends ConsumerWidget {
                         icon: Icons.bookmark_add_rounded,
                         label: 'Guardar',
                         color: AppColors.purple,
-                        onTap: companyId == null ? () {} : () => _saveToBook(context, ref, companyId),
+                        onTap: companyId == null
+                            ? () {}
+                            : () => _saveToBook(context, ref, companyId),
                       ),
                     ),
                     _ActionSlot(
@@ -122,7 +219,9 @@ class CompanyDetailScreen extends ConsumerWidget {
                         icon: Icons.handshake_rounded,
                         label: 'Alianza',
                         color: AppColors.cyan,
-                        onTap: companyId == null ? () {} : () => _requestAlliance(context, ref, companyId),
+                        onTap: companyId == null
+                            ? () {}
+                            : () => _requestAlliance(context, ref, companyId),
                       ),
                     ),
                     _ActionSlot(
@@ -141,7 +240,9 @@ class CompanyDetailScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Informacion', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
+                    const Text('Informacion',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w900)),
                     const SizedBox(height: 12),
                     _InfoRow(label: 'Telefono', value: phone),
                     _InfoRow(label: 'Email', value: email),
@@ -157,7 +258,8 @@ class CompanyDetailScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _saveToBook(BuildContext context, WidgetRef ref, int companyId) async {
+  Future<void> _saveToBook(
+      BuildContext context, WidgetRef ref, int companyId) async {
     try {
       await ref.read(bookRepositoryProvider).saveCompany(companyId);
       ref.invalidate(bookProvider);
@@ -175,13 +277,17 @@ class CompanyDetailScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _requestAlliance(BuildContext context, WidgetRef ref, int receiverId) async {
+  Future<void> _requestAlliance(
+      BuildContext context, WidgetRef ref, int receiverId) async {
     final companies = await ref.read(companiesProvider.future);
     if (!context.mounted) return;
-    final available = companies.where((item) => _intValue(item['id']) != receiverId).toList();
+    final available =
+        companies.where((item) => _intValue(item['id']) != receiverId).toList();
     if (available.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Necesitas una empresa propia para solicitar alianza.')),
+        const SnackBar(
+            content:
+                Text('Necesitas una empresa propia para solicitar alianza.')),
       );
       return;
     }
@@ -196,14 +302,17 @@ class CompanyDetailScreen extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Solicitar alianza desde', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+              const Text('Solicitar alianza desde',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
               const SizedBox(height: 12),
               for (final item in available)
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   title: Text(_text(item['name'], fallback: 'Empresa')),
-                  subtitle: Text(_text(item['category'], fallback: 'Empresa Cardbook')),
-                  onTap: () => Navigator.of(sheetContext).pop(_intValue(item['id'])),
+                  subtitle: Text(
+                      _text(item['category'], fallback: 'Empresa Cardbook')),
+                  onTap: () =>
+                      Navigator.of(sheetContext).pop(_intValue(item['id'])),
                 ),
             ],
           ),
@@ -213,7 +322,9 @@ class CompanyDetailScreen extends ConsumerWidget {
 
     if (requesterId == null || !context.mounted) return;
     try {
-      await ref.read(allianceRepositoryProvider).requestAlliance(requesterId: requesterId, receiverId: receiverId);
+      await ref
+          .read(allianceRepositoryProvider)
+          .requestAlliance(requesterId: requesterId, receiverId: receiverId);
       ref.invalidate(alliancesProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -229,7 +340,8 @@ class CompanyDetailScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _confirmDelete(BuildContext context, WidgetRef ref, String name) async {
+  Future<void> _confirmDelete(
+      BuildContext context, WidgetRef ref, String name) async {
     final id = company['id'];
     if (id is! int) return;
     final confirmed = await showDialog<bool>(
@@ -237,12 +349,16 @@ class CompanyDetailScreen extends ConsumerWidget {
       builder: (dialogContext) => AlertDialog(
         backgroundColor: AppColors.panel,
         title: const Text('Eliminar empresa'),
-        content: Text('Quieres eliminar $name? Esta accion desactivara la empresa.'),
+        content:
+            Text('Quieres eliminar $name? Esta accion desactivara la empresa.'),
         actions: [
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancelar')),
+          TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancelar')),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Eliminar', style: TextStyle(color: AppColors.red)),
+            child:
+                const Text('Eliminar', style: TextStyle(color: AppColors.red)),
           ),
         ],
       ),
@@ -270,7 +386,8 @@ class _ActionSlot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(width: (MediaQuery.sizeOf(context).width - 70) / 2, child: child);
+    return SizedBox(
+        width: (MediaQuery.sizeOf(context).width - 70) / 2, child: child);
   }
 }
 
@@ -292,11 +409,16 @@ class _Logo extends StatelessWidget {
       ),
       clipBehavior: Clip.antiAlias,
       child: url.isEmpty
-          ? Center(child: Text(_initials(name), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 20)))
+          ? Center(
+              child: Text(_initials(name),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w900, fontSize: 20)))
           : Image.network(
               url,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Center(child: Text(_initials(name), style: const TextStyle(fontWeight: FontWeight.w900))),
+              errorBuilder: (_, __, ___) => Center(
+                  child: Text(_initials(name),
+                      style: const TextStyle(fontWeight: FontWeight.w900))),
             ),
     );
   }
@@ -316,8 +438,14 @@ class _InfoRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 88, child: Text(label, style: const TextStyle(color: AppColors.muted, fontSize: 12))),
-          Expanded(child: Text(value, style: const TextStyle(fontWeight: FontWeight.w800))),
+          SizedBox(
+              width: 88,
+              child: Text(label,
+                  style:
+                      const TextStyle(color: AppColors.muted, fontSize: 12))),
+          Expanded(
+              child: Text(value,
+                  style: const TextStyle(fontWeight: FontWeight.w800))),
         ],
       ),
     );
@@ -334,9 +462,19 @@ String _join(List<String> values) {
 }
 
 String _initials(String value) {
-  final words = value.trim().split(RegExp(r'\s+')).where((word) => word.isNotEmpty).toList();
-  if (words.isEmpty) return 'CB';
-  if (words.length == 1) return words.first.substring(0, words.first.length >= 2 ? 2 : 1).toUpperCase();
+  final words = value
+      .trim()
+      .split(RegExp(r'\s+'))
+      .where((word) => word.isNotEmpty)
+      .toList();
+  if (words.isEmpty) {
+    return 'CB';
+  }
+  if (words.length == 1) {
+    return words.first
+        .substring(0, words.first.length >= 2 ? 2 : 1)
+        .toUpperCase();
+  }
   return '${words[0][0]}${words[1][0]}'.toUpperCase();
 }
 

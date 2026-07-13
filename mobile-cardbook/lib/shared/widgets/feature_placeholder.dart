@@ -28,11 +28,14 @@ class FeaturePlaceholder extends StatelessWidget {
         GlassCard(
           padding: const EdgeInsets.all(22),
           gradient: AppGradients.cardGlow,
-          borderColor: AppColors.blue.withOpacity(.24),
+          borderColor: AppColors.blue.withValues(alpha: .24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              StatusBadge(label: badge, icon: Icons.auto_awesome_rounded, color: AppColors.gold),
+              StatusBadge(
+                  label: badge,
+                  icon: Icons.auto_awesome_rounded,
+                  color: AppColors.gold),
               const SizedBox(height: 22),
               Container(
                 width: 64,
@@ -46,12 +49,14 @@ class FeaturePlaceholder extends StatelessWidget {
               const SizedBox(height: 22),
               Text(
                 title,
-                style: const TextStyle(fontSize: 32, height: 1.05, fontWeight: FontWeight.w900),
+                style: const TextStyle(
+                    fontSize: 32, height: 1.05, fontWeight: FontWeight.w900),
               ),
               const SizedBox(height: 12),
               Text(
                 subtitle,
-                style: const TextStyle(color: AppColors.muted, fontSize: 16, height: 1.5),
+                style: const TextStyle(
+                    color: AppColors.muted, fontSize: 16, height: 1.5),
               ),
             ],
           ),

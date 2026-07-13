@@ -91,11 +91,19 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                 child: const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    StatusBadge(label: 'Perfil', icon: Icons.person_rounded, color: AppColors.gold),
+                    StatusBadge(
+                        label: 'Perfil',
+                        icon: Icons.person_rounded,
+                        color: AppColors.gold),
                     SizedBox(height: 18),
-                    Text('Editar perfil', style: TextStyle(fontSize: 30, height: 1.05, fontWeight: FontWeight.w900)),
+                    Text('Editar perfil',
+                        style: TextStyle(
+                            fontSize: 30,
+                            height: 1.05,
+                            fontWeight: FontWeight.w900)),
                     SizedBox(height: 8),
-                    Text('Actualiza tus datos basicos de Cardbook.', style: TextStyle(color: AppColors.muted, height: 1.45)),
+                    Text('Actualiza tus datos basicos de Cardbook.',
+                        style: TextStyle(color: AppColors.muted, height: 1.45)),
                   ],
                 ),
               ),
@@ -105,22 +113,33 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                   children: [
                     _Field(controller: _firstName, label: 'Nombre'),
                     _Field(controller: _lastName, label: 'Apellido'),
-                    _Field(controller: _email, label: 'Email', keyboardType: TextInputType.emailAddress),
-                    _Field(controller: _phone, label: 'Telefono', keyboardType: TextInputType.phone),
+                    _Field(
+                        controller: _email,
+                        label: 'Email',
+                        keyboardType: TextInputType.emailAddress),
+                    _Field(
+                        controller: _phone,
+                        label: 'Telefono',
+                        keyboardType: TextInputType.phone),
                     DropdownButtonFormField<String>(
-                      value: _language,
+                      initialValue: _language,
                       items: const [
                         DropdownMenuItem(value: 'es', child: Text('Espanol')),
                         DropdownMenuItem(value: 'en', child: Text('English')),
                         DropdownMenuItem(value: 'fr', child: Text('Francais')),
                         DropdownMenuItem(value: 'pt', child: Text('Portugues')),
                       ],
-                      onChanged: _saving ? null : (value) => setState(() => _language = value ?? 'es'),
-                      decoration: const InputDecoration(labelText: 'Idioma preferido'),
+                      onChanged: _saving
+                          ? null
+                          : (value) =>
+                              setState(() => _language = value ?? 'es'),
+                      decoration:
+                          const InputDecoration(labelText: 'Idioma preferido'),
                     ),
                     if (_error != null) ...[
                       const SizedBox(height: 12),
-                      Text(_error!, style: const TextStyle(color: Colors.redAccent)),
+                      Text(_error!,
+                          style: const TextStyle(color: Colors.redAccent)),
                     ],
                     const SizedBox(height: 18),
                     FilledButton.icon(
@@ -129,7 +148,8 @@ class _ProfileEditScreenState extends ConsumerState<ProfileEditScreen> {
                           ? const SizedBox(
                               width: 18,
                               height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: Colors.white),
                             )
                           : const Icon(Icons.save_rounded),
                       label: Text(_saving ? 'Guardando...' : 'Guardar perfil'),

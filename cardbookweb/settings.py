@@ -64,6 +64,8 @@ INSTALLED_APPS = [
     "websitebuilder",
     "forms_builder",
     "accesscontrol",
+    "support",
+    "pushnotifications",
     "referrals.apps.ReferralsConfig",
     "subscriptions",
     "billing",
@@ -178,6 +180,7 @@ if USE_S3_MEDIA_STORAGE:
         MEDIA_URL = f"{AWS_S3_ENDPOINT_URL.rstrip('/')}/{AWS_STORAGE_BUCKET_NAME}/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+FCM_SERVER_KEY = os.environ.get("FCM_SERVER_KEY", "")
 
 EMAIL_BACKEND = os.environ.get("DJANGO_EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
 EMAIL_HOST = os.environ.get("EMAIL_HOST", "localhost")

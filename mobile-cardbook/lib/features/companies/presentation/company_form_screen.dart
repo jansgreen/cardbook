@@ -98,7 +98,8 @@ class _CompanyFormScreenState extends ConsumerState<CompanyFormScreen> {
       if (mounted) context.pop();
     } catch (_) {
       if (mounted) {
-        setState(() => _error = 'No pudimos guardar la empresa. Revisa los datos e intenta otra vez.');
+        setState(() => _error =
+            'No pudimos guardar la empresa. Revisa los datos e intenta otra vez.');
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -139,7 +140,10 @@ class _CompanyFormScreenState extends ConsumerState<CompanyFormScreen> {
                       const SizedBox(height: 18),
                       Text(
                         _isEditing ? 'Actualizar empresa' : 'Crear empresa',
-                        style: const TextStyle(fontSize: 30, height: 1.05, fontWeight: FontWeight.w900),
+                        style: const TextStyle(
+                            fontSize: 30,
+                            height: 1.05,
+                            fontWeight: FontWeight.w900),
                       ),
                       const SizedBox(height: 8),
                       const Text(
@@ -153,24 +157,48 @@ class _CompanyFormScreenState extends ConsumerState<CompanyFormScreen> {
                 GlassCard(
                   child: Column(
                     children: [
-                      _Field(controller: _name, label: 'Nombre', isRequired: true),
-                      _Field(controller: _description, label: 'Descripcion', maxLines: 3),
+                      _Field(
+                          controller: _name, label: 'Nombre', isRequired: true),
+                      _Field(
+                          controller: _description,
+                          label: 'Descripcion',
+                          maxLines: 3),
                       _Field(controller: _category, label: 'Categoria'),
-                      _Field(controller: _services, label: 'Servicios', maxLines: 3),
-                      _Field(controller: _phone, label: 'Telefono', keyboardType: TextInputType.phone),
-                      _Field(controller: _email, label: 'Email', keyboardType: TextInputType.emailAddress),
-                      _Field(controller: _website, label: 'Website', keyboardType: TextInputType.url),
-                      _Field(controller: _address, label: 'Direccion', maxLines: 2),
+                      _Field(
+                          controller: _services,
+                          label: 'Servicios',
+                          maxLines: 3),
+                      _Field(
+                          controller: _phone,
+                          label: 'Telefono',
+                          keyboardType: TextInputType.phone),
+                      _Field(
+                          controller: _email,
+                          label: 'Email',
+                          keyboardType: TextInputType.emailAddress),
+                      _Field(
+                          controller: _website,
+                          label: 'Website',
+                          keyboardType: TextInputType.url),
+                      _Field(
+                          controller: _address,
+                          label: 'Direccion',
+                          maxLines: 2),
                       Row(
                         children: [
-                          Expanded(child: _Field(controller: _city, label: 'Ciudad')),
+                          Expanded(
+                              child:
+                                  _Field(controller: _city, label: 'Ciudad')),
                           const SizedBox(width: 10),
-                          Expanded(child: _Field(controller: _region, label: 'Region')),
+                          Expanded(
+                              child:
+                                  _Field(controller: _region, label: 'Region')),
                         ],
                       ),
                       if (_error != null) ...[
                         const SizedBox(height: 8),
-                        Text(_error!, style: const TextStyle(color: Colors.redAccent)),
+                        Text(_error!,
+                            style: const TextStyle(color: Colors.redAccent)),
                       ],
                       const SizedBox(height: 16),
                       FilledButton.icon(
@@ -179,10 +207,12 @@ class _CompanyFormScreenState extends ConsumerState<CompanyFormScreen> {
                             ? const SizedBox(
                                 width: 18,
                                 height: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2, color: Colors.white),
                               )
                             : const Icon(Icons.save_rounded),
-                        label: Text(_saving ? 'Guardando...' : 'Guardar empresa'),
+                        label:
+                            Text(_saving ? 'Guardando...' : 'Guardar empresa'),
                       ),
                     ],
                   ),
@@ -221,7 +251,9 @@ class _Field extends StatelessWidget {
         keyboardType: keyboardType,
         validator: isRequired
             ? (value) {
-                if (value == null || value.trim().isEmpty) return 'Este campo es obligatorio.';
+                if (value == null || value.trim().isEmpty) {
+                  return 'Este campo es obligatorio.';
+                }
                 return null;
               }
             : null,
@@ -236,5 +268,7 @@ String _text(dynamic value) => value?.toString().trim() ?? '';
 String _url(String value) {
   final text = value.trim();
   if (text.isEmpty) return '';
-  return text.startsWith('http://') || text.startsWith('https://') ? text : 'https://$text';
+  return text.startsWith('http://') || text.startsWith('https://')
+      ? text
+      : 'https://$text';
 }

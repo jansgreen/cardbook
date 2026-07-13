@@ -18,9 +18,15 @@ class UpdateStatusCard extends ConsumerWidget {
       loading: () => const GlassCard(
         child: Row(
           children: [
-            SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.purple)),
+            SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                    strokeWidth: 2, color: AppColors.purple)),
             SizedBox(width: 12),
-            Expanded(child: Text('Buscando actualizaciones...', style: TextStyle(color: AppColors.muted))),
+            Expanded(
+                child: Text('Buscando actualizaciones...',
+                    style: TextStyle(color: AppColors.muted))),
           ],
         ),
       ),
@@ -29,7 +35,9 @@ class UpdateStatusCard extends ConsumerWidget {
           children: [
             const Icon(Icons.info_outline_rounded, color: AppColors.muted),
             const SizedBox(width: 12),
-            const Expanded(child: Text('No pudimos consultar actualizaciones.', style: TextStyle(color: AppColors.muted))),
+            const Expanded(
+                child: Text('No pudimos consultar actualizaciones.',
+                    style: TextStyle(color: AppColors.muted))),
             IconButton(
               onPressed: () => ref.invalidate(appUpdateProvider),
               icon: const Icon(Icons.refresh_rounded),
@@ -42,13 +50,19 @@ class UpdateStatusCard extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             StatusBadge(
-              label: info.hasUpdate ? 'Actualizacion disponible' : 'App actualizada',
-              icon: info.hasUpdate ? Icons.system_update_alt_rounded : Icons.verified_rounded,
+              label: info.hasUpdate
+                  ? 'Actualizacion disponible'
+                  : 'App actualizada',
+              icon: info.hasUpdate
+                  ? Icons.system_update_alt_rounded
+                  : Icons.verified_rounded,
               color: info.hasUpdate ? AppColors.gold : AppColors.green,
             ),
             const SizedBox(height: 14),
             Text(
-              info.hasUpdate ? info.message : 'Tienes la version mas reciente disponible.',
+              info.hasUpdate
+                  ? info.message
+                  : 'Tienes la version mas reciente disponible.',
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 8),
@@ -64,9 +78,12 @@ class UpdateStatusCard extends ConsumerWidget {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.check_circle_rounded, size: 16, color: AppColors.purple),
+                      const Icon(Icons.check_circle_rounded,
+                          size: 16, color: AppColors.purple),
                       const SizedBox(width: 8),
-                      Expanded(child: Text(item, style: const TextStyle(color: AppColors.muted))),
+                      Expanded(
+                          child: Text(item,
+                              style: const TextStyle(color: AppColors.muted))),
                     ],
                   ),
                 ),
@@ -84,7 +101,9 @@ class UpdateStatusCard extends ConsumerWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: FilledButton.icon(
-                    onPressed: info.downloadUrl.isEmpty ? null : () => NativeActions.website(info.downloadUrl),
+                    onPressed: info.downloadUrl.isEmpty
+                        ? null
+                        : () => NativeActions.website(info.downloadUrl),
                     icon: const Icon(Icons.download_rounded),
                     label: const Text('Descargar'),
                   ),

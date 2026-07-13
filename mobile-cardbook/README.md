@@ -59,14 +59,37 @@ Ese comando tambien publica el APK Flutter en `static/downloads/cardbook.apk` y 
 Release AAB para Play Store:
 
 ```powershell
-.\tool\build_release.ps1 -AppBundle
+.\tool\build_release.ps1 -AppBundle -RequireReleaseSigning
+```
+
+Antes de publicar en Play Store configura `android/key.properties` o las variables `CARDBOOK_UPLOAD_*`. Ver `docs/phase_15_play_store_release.md`.
+Para crear y validar la firma release real, ver `docs/phase_18_release_security.md`.
+
+Build completo de produccion, con APK y AAB firmados:
+
+```powershell
+.\tool\build_production.ps1
+```
+
+Este comando falla si no existe una firma release real. El APK interno puede existir con `debug:fallback`, pero Google Play requiere `release_signed=true`.
+
+Crear upload keystore local:
+
+```powershell
+.\tool\create_upload_keystore.ps1
+```
+
+Auditoria estricta antes de Play Store:
+
+```powershell
+.\tool\release_audit.ps1 -StrictReleaseSigning
 ```
 
 En Bash:
 
 ```bash
 ./tool/build_release.sh
-./tool/build_release.sh https://cardbook-45cf0409dc07.herokuapp.com aab
+./tool/build_release.sh https://cardbook-45cf0409dc07.herokuapp.com aab true
 ```
 
 Mas detalle en `docs/phase_10_release_build.md`.
@@ -78,6 +101,28 @@ Mas detalle en `docs/phase_10_release_build.md`.
 ```
 
 Este comando revisa Django, metadata de Google Play, paginas legales, endpoints publicos y entorno Flutter/Android.
+
+## QA movil completo
+
+```powershell
+.\tool\mobile_qa.ps1 -BuildDebug
+```
+
+Para la matriz manual de pruebas, ver `docs/phase_19_mobile_qa.md`.
+
+## Push notifications
+
+La integracion FCM esta documentada en `docs/phase_20_push_notifications.md`.
+
+Despues de configurar Firebase, agrega `android/app/google-services.json` y define `FCM_SERVER_KEY` en Heroku.
+
+## Pulido UX
+
+Los criterios y cambios de estados vacios/errores estan en `docs/phase_21_ux_polish.md`.
+
+## Cierre de produccion movil
+
+El flujo final de firma, APK, AAB y verificacion esta en `docs/phase_22_mobile_production.md`.
 
 ## Predeploy Heroku
 

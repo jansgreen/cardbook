@@ -8,6 +8,7 @@ import 'package:mobile_cardbook/shared/theme/app_theme.dart';
 import 'package:mobile_cardbook/shared/widgets/app_gradient_background.dart';
 import 'package:mobile_cardbook/shared/widgets/glass_card.dart';
 import 'package:mobile_cardbook/shared/widgets/native_action_button.dart';
+import 'package:mobile_cardbook/shared/widgets/share_center.dart';
 import 'package:mobile_cardbook/shared/widgets/status_badge.dart';
 
 class CardDetailScreen extends ConsumerWidget {
@@ -23,15 +24,24 @@ class CardDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isBusinessCard = kind == 'business';
-    final title = isBusinessCard ? _firstText([card['display_name']], fallback: 'Tarjeta de presentacion') : 'Perfil de negocio';
-    final subtitle = _firstText([card['company_name'], card['job_title'], card['email']], fallback: 'Cardbook');
+    final title = isBusinessCard
+        ? _firstText([card['display_name']],
+            fallback: 'Tarjeta de presentacion')
+        : 'Perfil de negocio';
+    final companyName = _text(card['company_name']);
+    final jobTitle = _text(card['job_title']);
+    final subtitle = _firstText([companyName, jobTitle, card['email']],
+        fallback: 'Cardbook');
     final phone = _text(card['phone_number']);
     final email = _text(card['email']);
     final website = _text(card['website']);
-    final whatsapp = _firstText([card['whatsapp_url'], card['phone_number']], fallback: '');
+    final whatsapp =
+        _firstText([card['whatsapp_url'], card['phone_number']], fallback: '');
     final slug = _text(card['slug']);
     final publicPath = isBusinessCard ? '/c/presentacion/$slug/' : '/c/$slug/';
-    final publicUrl = slug.isEmpty ? ApiConfig.publicBase : '${ApiConfig.publicBase}$publicPath';
+    final publicUrl = slug.isEmpty
+        ? ApiConfig.publicBase
+        : '${ApiConfig.publicBase}$publicPath';
 
     return Scaffold(
       body: AppGradientBackground(
@@ -47,11 +57,30 @@ class CardDetailScreen extends ConsumerWidget {
                   ),
                   const Spacer(),
                   IconButton(
-                    onPressed: () => NativeActions.shareText(title, '$title\n$publicUrl'),
+                    onPressed: () => ShareCenter.show(
+                      context,
+                      SharePayload(
+                        type: isBusinessCard
+                            ? ShareTargetType.businessCard
+                            : ShareTargetType.digitalCard,
+                        title: title,
+                        subtitle: subtitle,
+                        url: publicUrl,
+                        phone: phone,
+                        email: email,
+                        website: website,
+                        organization: companyName,
+                        jobTitle: jobTitle,
+                      ),
+                    ),
                     icon: const Icon(Icons.share_rounded),
                   ),
                   IconButton(
-                    onPressed: () => context.push(isBusinessCard ? '/cards/business/form' : '/cards/digital/form', extra: card),
+                    onPressed: () => context.push(
+                        isBusinessCard
+                            ? '/cards/business/form'
+                            : '/cards/digital/form',
+                        extra: card),
                     icon: const Icon(Icons.edit_rounded),
                   ),
                 ],
@@ -65,16 +94,27 @@ class CardDetailScreen extends ConsumerWidget {
                   children: [
                     StatusBadge(
                       label: isBusinessCard ? 'Presentacion' : 'Perfil digital',
-                      icon: isBusinessCard ? Icons.contact_page_rounded : Icons.badge_rounded,
+                      icon: isBusinessCard
+                          ? Icons.contact_page_rounded
+                          : Icons.badge_rounded,
                       color: AppColors.gold,
                     ),
                     const SizedBox(height: 18),
-                    Text(title, style: const TextStyle(fontSize: 30, height: 1.05, fontWeight: FontWeight.w900)),
+                    Text(title,
+                        style: const TextStyle(
+                            fontSize: 30,
+                            height: 1.05,
+                            fontWeight: FontWeight.w900)),
                     const SizedBox(height: 8),
-                    Text(subtitle, style: const TextStyle(color: AppColors.muted, height: 1.45)),
+                    Text(subtitle,
+                        style: const TextStyle(
+                            color: AppColors.muted, height: 1.45)),
                     if (slug.isNotEmpty) ...[
                       const SizedBox(height: 14),
-                      Text(slug, style: const TextStyle(color: AppColors.purple, fontWeight: FontWeight.w800)),
+                      Text(slug,
+                          style: const TextStyle(
+                              color: AppColors.purple,
+                              fontWeight: FontWeight.w800)),
                     ],
                   ],
                 ),
@@ -85,9 +125,22 @@ class CardDetailScreen extends ConsumerWidget {
                   spacing: 10,
                   runSpacing: 10,
                   children: [
-                    _ActionSlot(child: NativeActionButton(icon: Icons.call_rounded, label: 'Llamar', onTap: () => NativeActions.call(phone))),
-                    _ActionSlot(child: NativeActionButton(icon: Icons.email_rounded, label: 'Email', onTap: () => NativeActions.email(email, subject: title))),
-                    _ActionSlot(child: NativeActionButton(icon: Icons.language_rounded, label: 'Web', onTap: () => NativeActions.website(website))),
+                    _ActionSlot(
+                        child: NativeActionButton(
+                            icon: Icons.call_rounded,
+                            label: 'Llamar',
+                            onTap: () => NativeActions.call(phone))),
+                    _ActionSlot(
+                        child: NativeActionButton(
+                            icon: Icons.email_rounded,
+                            label: 'Email',
+                            onTap: () =>
+                                NativeActions.email(email, subject: title))),
+                    _ActionSlot(
+                        child: NativeActionButton(
+                            icon: Icons.language_rounded,
+                            label: 'Web',
+                            onTap: () => NativeActions.website(website))),
                     _ActionSlot(
                       child: NativeActionButton(
                         icon: Icons.chat_rounded,
@@ -101,7 +154,38 @@ class CardDetailScreen extends ConsumerWidget {
                         icon: Icons.share_rounded,
                         label: 'Compartir',
                         color: AppColors.gold,
-                        onTap: () => NativeActions.shareText(title, '$title\n$publicUrl'),
+                        onTap: () => ShareCenter.show(
+                          context,
+                          SharePayload(
+                            type: isBusinessCard
+                                ? ShareTargetType.businessCard
+                                : ShareTargetType.digitalCard,
+                            title: title,
+                            subtitle: subtitle,
+                            url: publicUrl,
+                            phone: phone,
+                            email: email,
+                            website: website,
+                            organization: companyName,
+                            jobTitle: jobTitle,
+                          ),
+                        ),
+                      ),
+                    ),
+                    _ActionSlot(
+                      child: NativeActionButton(
+                        icon: Icons.contact_page_rounded,
+                        label: 'Contacto',
+                        color: AppColors.green,
+                        onTap: () => NativeActions.shareContactCard(
+                          name: title,
+                          organization: companyName,
+                          jobTitle: jobTitle,
+                          phone: phone,
+                          email: email,
+                          website: website.isNotEmpty ? website : publicUrl,
+                          note: subtitle,
+                        ),
                       ),
                     ),
                     _ActionSlot(
@@ -117,7 +201,8 @@ class CardDetailScreen extends ConsumerWidget {
                         icon: Icons.delete_outline_rounded,
                         label: 'Eliminar',
                         color: AppColors.red,
-                        onTap: () => _confirmDelete(context, ref, title, isBusinessCard),
+                        onTap: () =>
+                            _confirmDelete(context, ref, title, isBusinessCard),
                       ),
                     ),
                   ],
@@ -128,7 +213,9 @@ class CardDetailScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Contacto', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
+                    const Text('Contacto',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w900)),
                     const SizedBox(height: 12),
                     _InfoRow(label: 'Telefono', value: phone),
                     _InfoRow(label: 'Email', value: email),
@@ -144,7 +231,8 @@ class CardDetailScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _confirmDelete(BuildContext context, WidgetRef ref, String title, bool isBusinessCard) async {
+  Future<void> _confirmDelete(BuildContext context, WidgetRef ref, String title,
+      bool isBusinessCard) async {
     final id = card['id'];
     if (id is! int) return;
     final confirmed = await showDialog<bool>(
@@ -152,12 +240,16 @@ class CardDetailScreen extends ConsumerWidget {
       builder: (dialogContext) => AlertDialog(
         backgroundColor: AppColors.panel,
         title: const Text('Eliminar tarjeta'),
-        content: Text('Quieres eliminar $title? Esta accion desactivara la tarjeta.'),
+        content: Text(
+            'Quieres eliminar $title? Esta accion desactivara la tarjeta.'),
         actions: [
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancelar')),
+          TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancelar')),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Eliminar', style: TextStyle(color: AppColors.red)),
+            child:
+                const Text('Eliminar', style: TextStyle(color: AppColors.red)),
           ),
         ],
       ),
@@ -190,7 +282,8 @@ class _ActionSlot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(width: (MediaQuery.sizeOf(context).width - 70) / 2, child: child);
+    return SizedBox(
+        width: (MediaQuery.sizeOf(context).width - 70) / 2, child: child);
   }
 }
 
@@ -208,8 +301,14 @@ class _InfoRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 88, child: Text(label, style: const TextStyle(color: AppColors.muted, fontSize: 12))),
-          Expanded(child: Text(value, style: const TextStyle(fontWeight: FontWeight.w800))),
+          SizedBox(
+              width: 88,
+              child: Text(label,
+                  style:
+                      const TextStyle(color: AppColors.muted, fontSize: 12))),
+          Expanded(
+              child: Text(value,
+                  style: const TextStyle(fontWeight: FontWeight.w800))),
         ],
       ),
     );

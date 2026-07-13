@@ -54,7 +54,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       if (mounted) context.go('/');
     } catch (_) {
       if (mounted) {
-        setState(() => _error = 'No pudimos crear la cuenta. Revisa los datos e intenta otra vez.');
+        setState(() => _error =
+            'No pudimos crear la cuenta. Revisa los datos e intenta otra vez.');
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -73,7 +74,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               children: [
                 Row(
                   children: [
-                    IconButton(onPressed: _loading ? null : () => context.go('/login'), icon: const Icon(Icons.arrow_back_rounded)),
+                    IconButton(
+                        onPressed: _loading ? null : () => context.go('/login'),
+                        icon: const Icon(Icons.arrow_back_rounded)),
                     const Spacer(),
                   ],
                 ),
@@ -84,33 +87,60 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const StatusBadge(label: 'Nueva cuenta', icon: Icons.person_add_alt_1_rounded, color: AppColors.gold),
+                      const StatusBadge(
+                          label: 'Nueva cuenta',
+                          icon: Icons.person_add_alt_1_rounded,
+                          color: AppColors.gold),
                       const SizedBox(height: 18),
                       const Text(
                         'Crear cuenta',
-                        style: TextStyle(fontSize: 38, height: 1.05, fontWeight: FontWeight.w900),
+                        style: TextStyle(
+                            fontSize: 38,
+                            height: 1.05,
+                            fontWeight: FontWeight.w900),
                       ),
                       const SizedBox(height: 10),
                       const Text(
                         'Registra tu usuario para crear empresas, tarjetas y guardar contactos en Book.',
-                        style: TextStyle(color: AppColors.muted, fontSize: 16, height: 1.45),
+                        style: TextStyle(
+                            color: AppColors.muted, fontSize: 16, height: 1.45),
                       ),
                       const SizedBox(height: 24),
                       _Field(controller: _firstName, label: 'Nombre'),
                       _Field(controller: _lastName, label: 'Apellido'),
-                      _Field(controller: _username, label: 'Usuario', required: true),
-                      _Field(controller: _email, label: 'Email', required: true, keyboardType: TextInputType.emailAddress),
-                      _Field(controller: _password, label: 'Contrasena', required: true, obscureText: true),
-                      _Field(controller: _passwordConfirm, label: 'Confirmar contrasena', required: true, obscureText: true),
+                      _Field(
+                          controller: _username,
+                          label: 'Usuario',
+                          required: true),
+                      _Field(
+                          controller: _email,
+                          label: 'Email',
+                          required: true,
+                          keyboardType: TextInputType.emailAddress),
+                      _Field(
+                          controller: _password,
+                          label: 'Contrasena',
+                          required: true,
+                          obscureText: true),
+                      _Field(
+                          controller: _passwordConfirm,
+                          label: 'Confirmar contrasena',
+                          required: true,
+                          obscureText: true),
                       if (_error != null) ...[
                         const SizedBox(height: 8),
-                        Text(_error!, style: const TextStyle(color: Colors.redAccent)),
+                        Text(_error!,
+                            style: const TextStyle(color: Colors.redAccent)),
                       ],
                       const SizedBox(height: 18),
                       FilledButton.icon(
                         onPressed: _loading ? null : _submit,
                         icon: _loading
-                            ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2, color: Colors.white))
                             : const Icon(Icons.check_rounded),
                         label: Text(_loading ? 'Creando...' : 'Crear cuenta'),
                       ),
@@ -150,9 +180,17 @@ class _Field extends StatelessWidget {
         obscureText: obscureText,
         keyboardType: keyboardType,
         validator: (value) {
-          if (required && (value == null || value.trim().isEmpty)) return 'Este campo es obligatorio.';
-          if (label == 'Contrasena' && value != null && value.length < 8) return 'Usa al menos 8 caracteres.';
-          if (label == 'Confirmar contrasena' && value != null && value != _passwordText(context)) return 'Las contrasenas no coinciden.';
+          if (required && (value == null || value.trim().isEmpty)) {
+            return 'Este campo es obligatorio.';
+          }
+          if (label == 'Contrasena' && value != null && value.length < 8) {
+            return 'Usa al menos 8 caracteres.';
+          }
+          if (label == 'Confirmar contrasena' &&
+              value != null &&
+              value != _passwordText(context)) {
+            return 'Las contrasenas no coinciden.';
+          }
           return null;
         },
         decoration: InputDecoration(labelText: label),

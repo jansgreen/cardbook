@@ -23,77 +23,122 @@ class CompaniesScreen extends ConsumerWidget {
     return Scaffold(
       body: AppGradientBackground(
         child: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 112),
-            children: [
-              const BrandHeader(),
-              const SizedBox(height: 24),
-              const _CompaniesHero(),
-              const SizedBox(height: 18),
-              GlassCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SectionHeader(
-                      title: 'Mis empresas',
-                      actionLabel: 'Nueva',
-                      onAction: () => context.push('/companies/form'),
-                    ),
-                    const SizedBox(height: 12),
-                    companies.when(
-                      loading: () => const SizedBox(height: 120, child: AsyncStateView.loading()),
-                      error: (_, __) => const AsyncStateView.error('No pudimos cargar tus empresas.'),
-                      data: (items) => items.isEmpty
-                          ? const AsyncStateView.empty('Aun no tienes empresas creadas.')
-                          : Column(
-                              children: [
-                                for (final company in items) ...[
-                                  CompanyTile(
-                                    name: company['name']?.toString() ?? 'Empresa',
-                                    description: company['description']?.toString() ?? company['category']?.toString() ?? 'Empresa Cardbook',
-                                    rating: _compactNumber(company['efficient_count']),
-                                    logoUrl: company['logo']?.toString(),
-                                    onTap: () => context.push('/companies/detail', extra: company),
-                                  ),
-                                  const SizedBox(height: 10),
+          child: RefreshIndicator(
+            onRefresh: () async {
+              ref.invalidate(companiesProvider);
+              ref.invalidate(recommendedCompaniesProvider);
+              await Future.wait([
+                ref.read(companiesProvider.future),
+                ref.read(recommendedCompaniesProvider.future),
+              ]);
+            },
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 112),
+              children: [
+                const BrandHeader(),
+                const SizedBox(height: 24),
+                const _CompaniesHero(),
+                const SizedBox(height: 18),
+                GlassCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SectionHeader(
+                        title: 'Mis empresas',
+                        actionLabel: 'Nueva',
+                        onAction: () => context.push('/companies/form'),
+                      ),
+                      const SizedBox(height: 12),
+                      companies.when(
+                        loading: () => const SizedBox(
+                            height: 120, child: AsyncStateView.loading()),
+                        error: (_, __) => AsyncStateView.error(
+                          'No pudimos cargar tus empresas.',
+                          actionLabel: 'Reintentar',
+                          onAction: () => ref.invalidate(companiesProvider),
+                        ),
+                        data: (items) => items.isEmpty
+                            ? AsyncStateView.empty(
+                                'Crea tu primera empresa para publicar perfiles, tarjetas, websites y alianzas.',
+                                title: 'Empieza con una empresa',
+                                icon: Icons.add_business_rounded,
+                                actionLabel: 'Crear empresa',
+                                onAction: () => context.push('/companies/form'),
+                              )
+                            : Column(
+                                children: [
+                                  for (final company in items) ...[
+                                    CompanyTile(
+                                      name: company['name']?.toString() ??
+                                          'Empresa',
+                                      description:
+                                          company['description']?.toString() ??
+                                              company['category']?.toString() ??
+                                              'Empresa Cardbook',
+                                      rating: _compactNumber(
+                                          company['efficient_count']),
+                                      logoUrl: company['logo']?.toString(),
+                                      onTap: () => context.push(
+                                          '/companies/detail',
+                                          extra: company),
+                                    ),
+                                    const SizedBox(height: 10),
+                                  ],
                                 ],
-                              ],
-                            ),
-                    ),
-                  ],
+                              ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 18),
-              GlassCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SectionHeader(title: 'Empresas sugeridas', actionLabel: 'Filtrar'),
-                    const SizedBox(height: 12),
-                    recommended.when(
-                      loading: () => const SizedBox(height: 120, child: AsyncStateView.loading()),
-                      error: (_, __) => const AsyncStateView.error('No pudimos cargar sugerencias.'),
-                      data: (items) => items.isEmpty
-                          ? const AsyncStateView.empty('No hay sugerencias disponibles por ahora.')
-                          : Column(
-                              children: [
-                                for (final company in items.take(6)) ...[
-                                  CompanyTile(
-                                    name: company['name']?.toString() ?? 'Empresa',
-                                    description: company['category']?.toString() ?? 'Empresa sugerida',
-                                    rating: _compactNumber(company['efficient_count']),
-                                    logoUrl: company['logo']?.toString(),
-                                    onTap: () => context.push('/companies/detail', extra: company),
-                                  ),
-                                  const SizedBox(height: 10),
+                const SizedBox(height: 18),
+                GlassCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SectionHeader(
+                          title: 'Empresas sugeridas', actionLabel: 'Filtrar'),
+                      const SizedBox(height: 12),
+                      recommended.when(
+                        loading: () => const SizedBox(
+                            height: 120, child: AsyncStateView.loading()),
+                        error: (_, __) => AsyncStateView.error(
+                          'No pudimos cargar sugerencias.',
+                          actionLabel: 'Reintentar',
+                          onAction: () =>
+                              ref.invalidate(recommendedCompaniesProvider),
+                        ),
+                        data: (items) => items.isEmpty
+                            ? const AsyncStateView.empty(
+                                'Vuelve mas tarde para ver empresas sugeridas por afinidad.',
+                                title: 'Sin sugerencias por ahora',
+                                icon: Icons.travel_explore_rounded,
+                              )
+                            : Column(
+                                children: [
+                                  for (final company in items.take(6)) ...[
+                                    CompanyTile(
+                                      name: company['name']?.toString() ??
+                                          'Empresa',
+                                      description:
+                                          company['category']?.toString() ??
+                                              'Empresa sugerida',
+                                      rating: _compactNumber(
+                                          company['efficient_count']),
+                                      logoUrl: company['logo']?.toString(),
+                                      onTap: () => context.push(
+                                          '/companies/detail',
+                                          extra: company),
+                                    ),
+                                    const SizedBox(height: 10),
+                                  ],
                                 ],
-                              ],
-                            ),
-                    ),
-                  ],
+                              ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -102,7 +147,8 @@ class CompaniesScreen extends ConsumerWidget {
   }
 
   static String _compactNumber(dynamic value) {
-    final number = value is num ? value : num.tryParse(value?.toString() ?? '') ?? 0;
+    final number =
+        value is num ? value : num.tryParse(value?.toString() ?? '') ?? 0;
     if (number >= 1000) return '${(number / 1000).toStringAsFixed(1)}k';
     return number.toInt().toString();
   }
@@ -118,9 +164,14 @@ class _CompaniesHero extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          StatusBadge(label: 'Red empresarial', icon: Icons.business_center_rounded, color: AppColors.gold),
+          StatusBadge(
+              label: 'Red empresarial',
+              icon: Icons.business_center_rounded,
+              color: AppColors.gold),
           SizedBox(height: 16),
-          Text('Empresas', style: TextStyle(fontSize: 32, height: 1.05, fontWeight: FontWeight.w900)),
+          Text('Empresas',
+              style: TextStyle(
+                  fontSize: 32, height: 1.05, fontWeight: FontWeight.w900)),
           SizedBox(height: 8),
           Text(
             'Administra tu presencia empresarial y descubre negocios con afinidad.',

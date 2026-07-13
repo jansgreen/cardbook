@@ -52,7 +52,9 @@ def mobile_endpoints(request):
         "book": request.build_absolute_uri(reverse("mobile-book")),
         "jobs": request.build_absolute_uri(reverse("mobile-jobs")),
         "websites": request.build_absolute_uri(reverse("mobile-websites")),
-        "actions": request.build_absolute_uri(reverse("mobile-actions")),
+            "actions": request.build_absolute_uri(reverse("mobile-actions")),
+            "push_devices": request.build_absolute_uri(reverse("push-devices")),
+            "push_test": request.build_absolute_uri(reverse("push-test")),
     }
 
 
@@ -91,6 +93,11 @@ class MobileConfigView(APIView):
             "media_base_url": request.build_absolute_uri("/media/"),
             "android_version": request.build_absolute_uri(reverse("web-android-version")),
             "android_download": request.build_absolute_uri(reverse("web-android-download")),
+            "push": {
+                "devices": request.build_absolute_uri(reverse("push-devices")),
+                "disable": request.build_absolute_uri(reverse("push-device-disable")),
+                "test": request.build_absolute_uri(reverse("push-test")),
+            },
         }
         return success_response("Mobile config retrieved successfully.", data)
 

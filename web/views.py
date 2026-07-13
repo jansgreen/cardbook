@@ -17,10 +17,10 @@ from websitebuilder.models import Website
 from websitebuilder.services import website_public_url
 
 
-ANDROID_VERSION_NAME = "0.3.1"
+ANDROID_VERSION_NAME = "0.1.3"
 ANDROID_VERSION_CODE = 4
 ANDROID_MIN_SDK = 26
-ANDROID_TARGET_SDK = 35
+ANDROID_TARGET_SDK = 36
 APK_MIN_FLUTTER_SIZE = 5 * 1024 * 1024
 
 
@@ -44,6 +44,31 @@ def get_flutter_apk_info():
         "path": apk_path,
         "metadata": metadata,
         "size": apk_path.stat().st_size,
+    }
+
+
+def get_flutter_aab_info():
+    aab_path = Path(settings.BASE_DIR) / "static" / "downloads" / "cardbook.aab"
+    metadata_path = Path(settings.BASE_DIR) / "static" / "downloads" / "cardbook.aab.json"
+    if not aab_path.exists() or not metadata_path.exists():
+        return None
+
+    try:
+        metadata = json.loads(metadata_path.read_text(encoding="utf-8-sig"))
+    except (OSError, json.JSONDecodeError):
+        return None
+
+    if metadata.get("source") != "flutter":
+        return None
+    if metadata.get("artifact_type") != "aab":
+        return None
+    if aab_path.stat().st_size < APK_MIN_FLUTTER_SIZE:
+        return None
+
+    return {
+        "path": aab_path,
+        "metadata": metadata,
+        "size": aab_path.stat().st_size,
     }
 
 
@@ -334,16 +359,29 @@ class AndroidView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         apk_info = get_flutter_apk_info()
+        aab_info = get_flutter_aab_info()
         metadata = apk_info["metadata"] if apk_info else {}
+        aab_metadata = aab_info["metadata"] if aab_info else {}
         context["apk_ready"] = apk_info is not None
+        context["aab_ready"] = aab_info is not None
         context["apk_version_name"] = metadata.get("version_name", ANDROID_VERSION_NAME)
         context["apk_version_code"] = str(metadata.get("version_code", ANDROID_VERSION_CODE))
         context["apk_min_sdk"] = str(ANDROID_MIN_SDK)
         context["apk_target_sdk"] = str(ANDROID_TARGET_SDK)
+        context["apk_build_type"] = metadata.get("build_type", "release")
+        context["apk_signing"] = metadata.get("signing", "unknown")
+        context["apk_release_signed"] = bool(metadata.get("release_signed", False))
+        context["apk_sha256"] = metadata.get("sha256", "")
+        context["aab_signing"] = aab_metadata.get("signing", "pending")
+        context["aab_release_signed"] = bool(aab_metadata.get("release_signed", False))
+        context["play_store_ready"] = context["apk_release_signed"] and context["aab_ready"] and context["aab_release_signed"]
         if apk_info:
             size_mb = apk_info["size"] / (1024 * 1024)
             context["apk_size"] = f"{size_mb:.2f} MB"
             context["apk_updated_at"] = apk_info["path"].stat().st_mtime
+        if aab_info:
+            aab_size_mb = aab_info["size"] / (1024 * 1024)
+            context["aab_size"] = f"{aab_size_mb:.2f} MB"
         return context
 
 
@@ -358,6 +396,7 @@ class AndroidApkDownloadView(TemplateView):
 class AndroidVersionView(TemplateView):
     def get(self, request, *args, **kwargs):
         apk_info = get_flutter_apk_info()
+        aab_info = get_flutter_aab_info()
         metadata = apk_info["metadata"] if apk_info else {}
         download_url = request.build_absolute_uri(reverse("web-android-download"))
         page_url = request.build_absolute_uri(reverse("web-android"))
@@ -374,6 +413,13 @@ class AndroidVersionView(TemplateView):
                 "release_page_url": f"{page_url}#build",
                 "apk_size": apk_info["size"] if apk_info else 0,
                 "source": metadata.get("source", "pending"),
+                "build_type": metadata.get("build_type", "pending"),
+                "signing": metadata.get("signing", "unknown"),
+                "release_signed": bool(metadata.get("release_signed", False)),
+                "play_store_ready": bool(metadata.get("release_signed", False)) and bool(aab_info),
+                "aab_available": aab_info is not None,
+                "aab_size": aab_info["size"] if aab_info else 0,
+                "sha256": metadata.get("sha256", ""),
                 "message": "Nueva version de Cardbook disponible.",
                 "changelog": [
                     "Aplicacion Flutter nativa conectada a la API REST.",

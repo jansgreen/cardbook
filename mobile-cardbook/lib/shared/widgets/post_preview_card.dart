@@ -21,7 +21,7 @@ class PostPreviewCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.inkAlt.withOpacity(.72),
+        color: AppColors.inkAlt.withValues(alpha: .72),
         borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(color: AppColors.stroke),
       ),
@@ -36,7 +36,8 @@ class PostPreviewCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: AppGradients.primary,
-                  border: Border.all(color: Colors.white.withOpacity(.16)),
+                  border:
+                      Border.all(color: Colors.white.withValues(alpha: .16)),
                 ),
                 child: const Icon(Icons.business, size: 18),
               ),
@@ -45,8 +46,12 @@ class PostPreviewCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(companyName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w900)),
-                    const Text('Hace poco', style: TextStyle(color: AppColors.muted, fontSize: 12)),
+                    Text(companyName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontWeight: FontWeight.w900)),
+                    const Text('Hace poco',
+                        style: TextStyle(color: AppColors.muted, fontSize: 12)),
                   ],
                 ),
               ),
@@ -57,7 +62,10 @@ class PostPreviewCard extends StatelessWidget {
           Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
           if (caption.isNotEmpty) ...[
             const SizedBox(height: 6),
-            Text(caption, maxLines: 3, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppColors.muted)),
+            Text(caption,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: AppColors.muted)),
           ],
           if (url != null && url.isNotEmpty) ...[
             const SizedBox(height: 12),

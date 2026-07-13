@@ -1,0 +1,4 @@
+storePassword=change-me
+keyPassword=change-me
+keyAlias=cardbook-upload
+storeFile=C:\\Users\\jansg\\secure\\cardbook-upload-key.jks

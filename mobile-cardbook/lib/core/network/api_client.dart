@@ -56,7 +56,8 @@ class ApiClient {
     final refresh = await _tokenStorage.readRefresh();
     if (refresh == null || refresh.isEmpty) return false;
     try {
-      final response = await Dio(BaseOptions(baseUrl: ApiConfig.apiBase)).post<Map<String, dynamic>>(
+      final response = await Dio(BaseOptions(baseUrl: ApiConfig.apiBase))
+          .post<Map<String, dynamic>>(
         '/accounts/token/refresh/',
         data: {'refresh': refresh},
       );

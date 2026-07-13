@@ -25,9 +25,9 @@ class CompanyTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: AppColors.inkAlt.withOpacity(.7),
+          color: AppColors.inkAlt.withValues(alpha: .7),
           borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: AppColors.stroke.withOpacity(.75)),
+          border: Border.all(color: AppColors.stroke.withValues(alpha: .75)),
         ),
         child: Row(
           children: [
@@ -48,16 +48,21 @@ class CompanyTile extends StatelessWidget {
                     description,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: AppColors.muted, fontSize: 12),
+                    style:
+                        const TextStyle(color: AppColors.muted, fontSize: 12),
                   ),
                   const SizedBox(height: 7),
                   Row(
                     children: [
-                      const Icon(Icons.star_rounded, size: 16, color: AppColors.gold),
+                      const Icon(Icons.star_rounded,
+                          size: 16, color: AppColors.gold),
                       const SizedBox(width: 4),
                       Text(
                         rating,
-                        style: const TextStyle(color: AppColors.gold, fontSize: 12, fontWeight: FontWeight.w900),
+                        style: const TextStyle(
+                            color: AppColors.gold,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w900),
                       ),
                     ],
                   ),
@@ -111,9 +116,19 @@ class _CompanyAvatar extends StatelessWidget {
   }
 
   String _initials(String value) {
-    final words = value.trim().split(RegExp(r'\s+')).where((word) => word.isNotEmpty).toList();
-    if (words.isEmpty) return 'CB';
-    if (words.length == 1) return words.first.substring(0, words.first.length >= 2 ? 2 : 1).toUpperCase();
+    final words = value
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((word) => word.isNotEmpty)
+        .toList();
+    if (words.isEmpty) {
+      return 'CB';
+    }
+    if (words.length == 1) {
+      return words.first
+          .substring(0, words.first.length >= 2 ? 2 : 1)
+          .toUpperCase();
+    }
     return '${words[0][0]}${words[1][0]}'.toUpperCase();
   }
 }

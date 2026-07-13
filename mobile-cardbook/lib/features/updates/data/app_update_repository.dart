@@ -18,7 +18,8 @@ class AppUpdateRepository {
   final Dio _dio;
 
   Future<AppUpdateInfo> check() async {
-    final response = await _dio.get<Map<String, dynamic>>('${ApiConfig.publicBase}/android/version/');
+    final response = await _dio
+        .get<Map<String, dynamic>>('${ApiConfig.publicBase}/android/version/');
     final data = response.data ?? {};
     return AppUpdateInfo.fromJson(data);
   }
@@ -57,7 +58,9 @@ class AppUpdateInfo {
       downloadUrl: json['download_url']?.toString() ?? '',
       releasePageUrl: json['release_page_url']?.toString() ?? '',
       message: json['message']?.toString() ?? 'Nueva version disponible.',
-      changelog: (json['changelog'] as List<dynamic>? ?? []).map((item) => item.toString()).toList(),
+      changelog: (json['changelog'] as List<dynamic>? ?? [])
+          .map((item) => item.toString())
+          .toList(),
     );
   }
 }

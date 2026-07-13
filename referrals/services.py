@@ -12,6 +12,7 @@ from accesscontrol.services import PERM_CREATE_CARDBOOK_BUSINESS_CARDS
 from companies.models import Company
 from financial_analytics.models import AuditLog
 from financial_analytics.services import create_audit_log
+from pushnotifications.services import send_push_to_user
 from .models import AgentCardSale, AgentProfile, Commission, Referral, ReferralInvitation, ReferralNotification
 
 
@@ -25,13 +26,20 @@ def get_client_ip(request):
 def create_referral_notification(*, recipient, event_type, title, message="", data=None):
     if not recipient:
         return None
-    return ReferralNotification.objects.create(
+    notification = ReferralNotification.objects.create(
         recipient=recipient,
         event_type=event_type,
         title=title,
         message=message,
         data=data or {},
     )
+    send_push_to_user(
+        user=recipient,
+        title=title,
+        body=message,
+        data={"event_type": event_type, "notification_id": notification.id, **(data or {})},
+    )
+    return notification
 
 
 def finance_notification_recipients():

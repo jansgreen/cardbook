@@ -10,12 +10,14 @@ import 'package:mobile_cardbook/shared/widgets/glass_card.dart';
 import 'package:mobile_cardbook/shared/widgets/status_badge.dart';
 
 class DigitalCardFormScreen extends ConsumerStatefulWidget {
-  const DigitalCardFormScreen({this.card, super.key});
+  const DigitalCardFormScreen({this.card, this.initialCompany, super.key});
 
   final Map<String, dynamic>? card;
+  final Map<String, dynamic>? initialCompany;
 
   @override
-  ConsumerState<DigitalCardFormScreen> createState() => _DigitalCardFormScreenState();
+  ConsumerState<DigitalCardFormScreen> createState() =>
+      _DigitalCardFormScreenState();
 }
 
 class _DigitalCardFormScreenState extends ConsumerState<DigitalCardFormScreen> {
@@ -37,11 +39,16 @@ class _DigitalCardFormScreenState extends ConsumerState<DigitalCardFormScreen> {
   void initState() {
     super.initState();
     final card = widget.card ?? const <String, dynamic>{};
-    _companyId = _intValue(card['company']);
+    final initialCompany = widget.initialCompany ?? const <String, dynamic>{};
+    _companyId = _intValue(card['company']) ?? _intValue(initialCompany['id']);
     _jobTitle = TextEditingController(text: _text(card['job_title']));
-    _phone = TextEditingController(text: _text(card['phone_number']));
-    _email = TextEditingController(text: _text(card['email']));
-    _website = TextEditingController(text: _text(card['website']));
+    _phone = TextEditingController(
+        text:
+            _firstText([card['phone_number'], initialCompany['phone_number']]));
+    _email = TextEditingController(
+        text: _firstText([card['email'], initialCompany['email']]));
+    _website = TextEditingController(
+        text: _firstText([card['website'], initialCompany['website']]));
     _whatsapp = TextEditingController(text: _text(card['whatsapp_url']));
     _linkedin = TextEditingController(text: _text(card['linkedin_url']));
     _instagram = TextEditingController(text: _text(card['instagram_url']));
@@ -94,7 +101,8 @@ class _DigitalCardFormScreenState extends ConsumerState<DigitalCardFormScreen> {
       if (mounted) context.pop();
     } catch (_) {
       if (mounted) {
-        setState(() => _error = 'No pudimos guardar el perfil. Revisa los datos e intenta otra vez.');
+        setState(() => _error =
+            'No pudimos guardar el perfil. Revisa los datos e intenta otra vez.');
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -136,8 +144,13 @@ class _DigitalCardFormScreenState extends ConsumerState<DigitalCardFormScreen> {
                       ),
                       const SizedBox(height: 18),
                       Text(
-                        _isEditing ? 'Actualizar perfil' : 'Crear perfil de negocio',
-                        style: const TextStyle(fontSize: 30, height: 1.05, fontWeight: FontWeight.w900),
+                        _isEditing
+                            ? 'Actualizar perfil'
+                            : 'Crear perfil de negocio',
+                        style: const TextStyle(
+                            fontSize: 30,
+                            height: 1.05,
+                            fontWeight: FontWeight.w900),
                       ),
                       const SizedBox(height: 8),
                       const Text(
@@ -150,44 +163,73 @@ class _DigitalCardFormScreenState extends ConsumerState<DigitalCardFormScreen> {
                 const SizedBox(height: 18),
                 GlassCard(
                   child: companies.when(
-                    loading: () => const SizedBox(height: 120, child: AsyncStateView.loading()),
-                    error: (_, __) => const AsyncStateView.error('No pudimos cargar tus empresas.'),
+                    loading: () => const SizedBox(
+                        height: 120, child: AsyncStateView.loading()),
+                    error: (_, __) => const AsyncStateView.error(
+                        'No pudimos cargar tus empresas.'),
                     data: (items) => Column(
                       children: [
                         if (items.isEmpty) ...[
-                          const AsyncStateView.empty('Primero crea una empresa para asociar este perfil.'),
+                          const AsyncStateView.empty(
+                              'Primero crea una empresa para asociar este perfil.'),
                           const SizedBox(height: 12),
                           OutlinedButton.icon(
-                            onPressed: _saving ? null : () => context.push('/companies/form'),
+                            onPressed: _saving
+                                ? null
+                                : () => context.push('/companies/form'),
                             icon: const Icon(Icons.add_business_rounded),
                             label: const Text('Crear empresa'),
                           ),
                           const SizedBox(height: 14),
                         ],
                         DropdownButtonFormField<int>(
-                          value: _companyId,
+                          initialValue: _companyId,
                           items: [
                             for (final company in items)
                               DropdownMenuItem<int>(
                                 value: _intValue(company['id']),
-                                child: Text(_text(company['name'], fallback: 'Empresa')),
+                                child: Text(_text(company['name'],
+                                    fallback: 'Empresa')),
                               ),
                           ],
-                          onChanged: _saving ? null : (value) => setState(() => _companyId = value),
-                          validator: (value) => value == null ? 'Selecciona una empresa.' : null,
-                          decoration: const InputDecoration(labelText: 'Empresa'),
+                          onChanged: _saving
+                              ? null
+                              : (value) => setState(() => _companyId = value),
+                          validator: (value) =>
+                              value == null ? 'Selecciona una empresa.' : null,
+                          decoration:
+                              const InputDecoration(labelText: 'Empresa'),
                         ),
                         const SizedBox(height: 14),
-                        _Field(controller: _jobTitle, label: 'Cargo', isRequired: true),
-                        _Field(controller: _phone, label: 'Telefono', keyboardType: TextInputType.phone),
-                        _Field(controller: _email, label: 'Email', keyboardType: TextInputType.emailAddress),
-                        _Field(controller: _website, label: 'Website', keyboardType: TextInputType.url),
+                        _Field(
+                            controller: _jobTitle,
+                            label: 'Cargo',
+                            isRequired: true),
+                        _Field(
+                            controller: _phone,
+                            label: 'Telefono',
+                            keyboardType: TextInputType.phone),
+                        _Field(
+                            controller: _email,
+                            label: 'Email',
+                            keyboardType: TextInputType.emailAddress),
+                        _Field(
+                            controller: _website,
+                            label: 'Website',
+                            keyboardType: TextInputType.url),
                         _Field(controller: _whatsapp, label: 'WhatsApp'),
-                        _Field(controller: _linkedin, label: 'LinkedIn', keyboardType: TextInputType.url),
-                        _Field(controller: _instagram, label: 'Instagram', keyboardType: TextInputType.url),
+                        _Field(
+                            controller: _linkedin,
+                            label: 'LinkedIn',
+                            keyboardType: TextInputType.url),
+                        _Field(
+                            controller: _instagram,
+                            label: 'Instagram',
+                            keyboardType: TextInputType.url),
                         if (_error != null) ...[
                           const SizedBox(height: 8),
-                          Text(_error!, style: const TextStyle(color: Colors.redAccent)),
+                          Text(_error!,
+                              style: const TextStyle(color: Colors.redAccent)),
                         ],
                         const SizedBox(height: 16),
                         FilledButton.icon(
@@ -196,10 +238,12 @@ class _DigitalCardFormScreenState extends ConsumerState<DigitalCardFormScreen> {
                               ? const SizedBox(
                                   width: 18,
                                   height: 18,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2, color: Colors.white),
                                 )
                               : const Icon(Icons.save_rounded),
-                          label: Text(_saving ? 'Guardando...' : 'Guardar perfil'),
+                          label:
+                              Text(_saving ? 'Guardando...' : 'Guardar perfil'),
                         ),
                       ],
                     ),
@@ -236,7 +280,9 @@ class _Field extends StatelessWidget {
         keyboardType: keyboardType,
         validator: isRequired
             ? (value) {
-                if (value == null || value.trim().isEmpty) return 'Este campo es obligatorio.';
+                if (value == null || value.trim().isEmpty) {
+                  return 'Este campo es obligatorio.';
+                }
                 return null;
               }
             : null,
@@ -253,13 +299,24 @@ String _text(dynamic value, {String fallback = ''}) {
 
 int? _intValue(dynamic value) {
   if (value is int) return value;
+  if (value is Map<String, dynamic>) return _intValue(value['id']);
   return int.tryParse(value?.toString() ?? '');
+}
+
+String _firstText(List<dynamic> values) {
+  for (final value in values) {
+    final text = _text(value);
+    if (text.isNotEmpty) return text;
+  }
+  return '';
 }
 
 String _url(String value) {
   final text = value.trim();
   if (text.isEmpty) return '';
-  return text.startsWith('http://') || text.startsWith('https://') ? text : 'https://$text';
+  return text.startsWith('http://') || text.startsWith('https://')
+      ? text
+      : 'https://$text';
 }
 
 String _whatsappUrl(String value) {

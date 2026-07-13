@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_cardbook/shared/theme/app_theme.dart';
+import 'package:mobile_cardbook/shared/widgets/app_main_menu.dart';
 
 class BrandHeader extends StatelessWidget {
   const BrandHeader({
@@ -30,7 +31,7 @@ class BrandHeader extends StatelessWidget {
         const Spacer(),
         trailing ??
             IconButton(
-              onPressed: () {},
+              onPressed: () => AppMainMenu.show(context),
               icon: const Icon(Icons.menu, color: AppColors.text),
             ),
       ],

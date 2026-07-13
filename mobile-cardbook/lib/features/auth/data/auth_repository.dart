@@ -10,14 +10,16 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 });
 
 class AuthRepository {
-  AuthRepository({required ApiClient apiClient, required TokenStorage tokenStorage})
+  AuthRepository(
+      {required ApiClient apiClient, required TokenStorage tokenStorage})
       : _apiClient = apiClient,
         _tokenStorage = tokenStorage;
 
   final ApiClient _apiClient;
   final TokenStorage _tokenStorage;
 
-  Future<Map<String, dynamic>> login({required String username, required String password}) async {
+  Future<Map<String, dynamic>> login(
+      {required String username, required String password}) async {
     final response = await _apiClient.dio.post<Map<String, dynamic>>(
       '/accounts/login/',
       data: {'username': username, 'password': password},

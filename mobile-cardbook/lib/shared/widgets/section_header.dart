@@ -26,7 +26,8 @@ class SectionHeader extends StatelessWidget {
         if (actionLabel != null)
           TextButton(
             onPressed: onAction ?? () {},
-            child: Text(actionLabel!, style: const TextStyle(color: AppColors.purple)),
+            child: Text(actionLabel!,
+                style: const TextStyle(color: AppColors.purple)),
           ),
       ],
     );

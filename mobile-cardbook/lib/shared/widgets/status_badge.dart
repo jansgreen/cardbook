@@ -18,9 +18,9 @@ class StatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
       decoration: BoxDecoration(
-        color: color.withOpacity(.14),
+        color: color.withValues(alpha: .14),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withOpacity(.4)),
+        border: Border.all(color: color.withValues(alpha: .4)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -31,7 +31,8 @@ class StatusBadge extends StatelessWidget {
           ],
           Text(
             label,
-            style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w800),
+            style: TextStyle(
+                color: color, fontSize: 12, fontWeight: FontWeight.w800),
           ),
         ],
       ),

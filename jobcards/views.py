@@ -81,6 +81,15 @@ class WhiteCardJobMeAPIView(APIView):
         serializer.save()
         return success_response("White Card Job actualizada.", serializer.data)
 
+    def delete(self, request):
+        card = self.get_object(request)
+        if not card:
+            return error_response("No tienes una White Card Job activa.", status_code=status.HTTP_404_NOT_FOUND)
+        card.is_active = False
+        card.is_available = False
+        card.save(update_fields=["is_active", "is_available", "updated_at"])
+        return success_response("White Card Job desactivada.")
+
 
 class PublicWhiteCardJobAPIView(APIView):
     permission_classes = [permissions.AllowAny]

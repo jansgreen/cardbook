@@ -5,14 +5,14 @@ import 'package:mobile_cardbook/shared/theme/app_theme.dart';
 class AppBottomNav extends StatelessWidget {
   const AppBottomNav({required this.currentIndex, super.key});
 
-  final int currentIndex;
+  final int? currentIndex;
 
   @override
   Widget build(BuildContext context) {
     final items = [
       _NavItem('Inicio', Icons.home_outlined, '/'),
       _NavItem('Empresas', Icons.business_center_outlined, '/companies'),
-      _NavItem('', Icons.add, '/cards'),
+      _NavItem('Tarjetas', Icons.qr_code_2_outlined, '/cards'),
       _NavItem('Book', Icons.bookmarks_outlined, '/book'),
       _NavItem('Perfil', Icons.person_outline, '/profile'),
     ];
@@ -23,12 +23,12 @@ class AppBottomNav extends StatelessWidget {
         margin: const EdgeInsets.fromLTRB(18, 0, 18, 12),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
-          color: AppColors.panel.withOpacity(.96),
+          color: AppColors.panel.withValues(alpha: .96),
           borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(color: AppColors.stroke.withOpacity(.9)),
+          border: Border.all(color: AppColors.stroke.withValues(alpha: .9)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(.34),
+              color: Colors.black.withValues(alpha: .34),
               blurRadius: 28,
               offset: const Offset(0, 16),
             ),
@@ -41,7 +41,7 @@ class AppBottomNav extends StatelessWidget {
               _BottomNavButton(
                 item: items[i],
                 selected: i == currentIndex,
-                isPrimary: i == 2,
+                isPrimary: false,
                 onTap: () => context.go(items[i].path),
               ),
           ],
@@ -98,11 +98,12 @@ class _BottomNavButton extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: SizedBox(
-        width: 62,
+        width: 64,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(item.icon, color: selected ? AppColors.purple : AppColors.text, size: 22),
+            Icon(item.icon,
+                color: selected ? AppColors.purple : AppColors.text, size: 22),
             const SizedBox(height: 4),
             Text(
               item.label,

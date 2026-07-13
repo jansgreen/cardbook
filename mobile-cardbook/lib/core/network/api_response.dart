@@ -19,7 +19,8 @@ Map<String, dynamic> extractData(dynamic responseBody) {
   return data is Map<String, dynamic> ? data : {};
 }
 
-List<Map<String, dynamic>> extractListFromData(dynamic responseBody, String key) {
+List<Map<String, dynamic>> extractListFromData(
+    dynamic responseBody, String key) {
   final data = extractData(responseBody);
   final value = data[key];
   if (value is List) {
