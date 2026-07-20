@@ -52,7 +52,10 @@
                                 {% if not notification.read_at %}<span>Nuevo</span>{% endif %}
                             </div>
                             {% if notification.message %}<p>{{ notification.message }}</p>{% endif %}
-                            <small>{{ notification.get_event_type_display }} · {{ notification.created_at|date:"d M Y H:i" }}</small>
+                            <small>{{ notification.get_event_type_display }} - {{ notification.created_at|date:"d M Y H:i" }}</small>
+                            {% if notification.data.action_url %}
+                                <a class="notification-action-link" href="{{ notification.data.action_url }}">Ver detalle</a>
+                            {% endif %}
                         </div>
                         <form method="post">
                             {% csrf_token %}

@@ -1,0 +1,54 @@
+{% load static %}
+{% if public_ai_agent %}
+<section class="wb-ai-widget" data-public-ai-agent data-agent-id="{{ public_ai_agent.id }}" data-endpoint="{% url 'public-ai-agent-ask' %}" aria-live="polite">
+    <button class="wb-ai-launcher" type="button" data-ai-open aria-label="Abrir asistente de {{ website.company.name }}">
+        <span>AI</span>
+        <strong>Asistente</strong>
+    </button>
+    <article class="wb-ai-panel" data-ai-panel hidden>
+        <header class="wb-ai-head">
+            <div>
+                <span>{{ website.company.name }}</span>
+                <h2>{{ public_ai_agent.name }}</h2>
+            </div>
+            <button type="button" data-ai-close aria-label="Cerrar asistente">Cerrar</button>
+        </header>
+        <div class="wb-ai-messages" data-ai-messages>
+            <div class="wb-ai-message agent">{{ public_ai_agent.welcome_message|default:"Hola. Puedo ayudarte con informacion de esta empresa." }}</div>
+        </div>
+        {% if public_ai_suggestions %}
+            <div class="wb-ai-suggestions" data-ai-suggestions>
+                {% for suggestion in public_ai_suggestions %}
+                    <button type="button" data-ai-suggestion="{{ suggestion }}">{{ suggestion }}</button>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% if public_ai_agent.can_capture_leads %}
+            <button class="wb-ai-lead-trigger" type="button" data-ai-lead-open>Quiero que me contacten</button>
+            <form class="wb-ai-lead-form" data-ai-lead-form hidden>
+                <input class="wb-ai-honeypot" type="text" name="website_url" tabindex="-1" autocomplete="off" aria-hidden="true">
+                <div class="wb-ai-lead-grid">
+                    <label><span>Nombre</span><input type="text" name="name" placeholder="Tu nombre"></label>
+                    <label><span>Email</span><input type="email" name="email" placeholder="tu@email.com"></label>
+                    <label><span>Telefono</span><input type="tel" name="phone" placeholder="Telefono o WhatsApp"></label>
+                    <label><span>Servicio</span><input type="text" name="service_interest" placeholder="Servicio de interes"></label>
+                    <label class="wide"><span>Mensaje</span><textarea name="message" rows="3" placeholder="Cuentales brevemente que necesitas"></textarea></label>
+                </div>
+                <div class="wb-ai-lead-actions">
+                    <button type="button" data-ai-lead-close>Cancelar</button>
+                    <button type="submit">Enviar datos</button>
+                </div>
+            </form>
+        {% endif %}
+        <form class="wb-ai-form" data-ai-form>
+            <label>
+                <span>Mensaje</span>
+                <input type="text" name="message" data-ai-input placeholder="Pregunta por servicios, horarios o contacto" autocomplete="off">
+            </label>
+            <button type="submit" data-ai-submit>Enviar</button>
+        </form>
+        <div class="wb-ai-status" data-ai-status hidden>Procesando...</div>
+        <small>Las respuestas usan informacion proporcionada por la empresa.</small>
+    </article>
+</section>
+{% endif %}

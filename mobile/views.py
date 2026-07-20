@@ -98,6 +98,9 @@ class MobileConfigView(APIView):
                 "disable": request.build_absolute_uri(reverse("push-device-disable")),
                 "test": request.build_absolute_uri(reverse("push-test")),
             },
+            "ai_agents": {
+                "list": request.build_absolute_uri(reverse("api-ai-agent-list")),
+            },
         }
         return success_response("Mobile config retrieved successfully.", data)
 

@@ -7,6 +7,7 @@
     <title>{% block title %}Dashboard - Cardbook{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/ai_agents.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
 <body class="dashboard-body">
@@ -35,6 +36,10 @@
             <a class="{% if 'form-builder' in request.resolver_match.url_name or 'form-field' in request.resolver_match.url_name %}active{% endif %}" href="{% if active_company %}{% url 'dashboard-form-builder-list' active_company.id %}{% else %}{% url 'dashboard-companies' %}{% endif %}">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm0 2v14h14V5H5Zm3 3h8v2H8V8Zm0 4h8v2H8v-2Zm0 4h5v2H8v-2Z"/></svg>
                 <span>Forms Builder</span>
+            </a>
+            <a class="{% if request.resolver_match.url_name == 'dashboard-ai-agents' %}active{% endif %}" href="{% url 'dashboard-ai-agents' %}">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 1 7 7v1.1a4 4 0 0 1 2 3.5V17a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4v-3.4a4 4 0 0 1 2-3.5V9a7 7 0 0 1 7-7Zm-5 9a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2H7Zm5-7a5 5 0 0 0-5 5h10a5 5 0 0 0-5-5Zm-3 9.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm6 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z"/></svg>
+                <span>Agentes IA</span>
             </a>
             <a class="{% if request.resolver_match.url_name == 'dashboard-cards' or request.resolver_match.url_name == 'dashboard-card-create' or request.resolver_match.url_name == 'dashboard-card-update' %}active{% endif %}" href="{% url 'dashboard-cards' %}">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Zm0 4h16V7H4v2Zm3 6h6v-2H7v2Z"/></svg>
@@ -114,7 +119,9 @@
             {% block dashboard_content %}{% endblock %}
         </main>
     </div>
+    {% include "dashboard/ai_agents/_guide_widget.html" %}
     <script src="{% static 'js/dashboard.js' %}"></script>
+    <script src="{% static 'js/ai_agents.js' %}"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

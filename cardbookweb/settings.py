@@ -30,6 +30,13 @@ DEPLOY_ENV = os.environ.get("CARDBOOK_DEPLOY_ENV", "local")
 CARDBOOK_LOG_LEVEL = os.environ.get("CARDBOOK_LOG_LEVEL", "INFO")
 DJANGO_LOG_LEVEL = os.environ.get("DJANGO_LOG_LEVEL", "WARNING")
 CARDBOOK_ENABLE_REQUEST_ID_HEADERS = env_bool("CARDBOOK_ENABLE_REQUEST_ID_HEADERS", True)
+AI_AGENT_PUBLIC_ASK_LIMIT = env_int("AI_AGENT_PUBLIC_ASK_LIMIT", 30)
+AI_AGENT_PUBLIC_ASK_WINDOW_SECONDS = env_int("AI_AGENT_PUBLIC_ASK_WINDOW_SECONDS", 60)
+AI_AGENT_PUBLIC_LEAD_LIMIT = env_int("AI_AGENT_PUBLIC_LEAD_LIMIT", 5)
+AI_AGENT_PUBLIC_LEAD_WINDOW_SECONDS = env_int("AI_AGENT_PUBLIC_LEAD_WINDOW_SECONDS", 3600)
+AI_AGENT_MAX_QUESTION_LENGTH = env_int("AI_AGENT_MAX_QUESTION_LENGTH", 500)
+AI_AGENT_MAX_LEAD_FIELD_LENGTH = env_int("AI_AGENT_MAX_LEAD_FIELD_LENGTH", 255)
+AI_AGENT_MAX_LEAD_MESSAGE_LENGTH = env_int("AI_AGENT_MAX_LEAD_MESSAGE_LENGTH", 1200)
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-insecure-cardbook-local-dev-key")
 DEBUG = env_bool("DJANGO_DEBUG", True)
 ALLOWED_HOSTS = [host.strip() for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if host.strip()]
@@ -66,6 +73,7 @@ INSTALLED_APPS = [
     "accesscontrol",
     "support",
     "pushnotifications",
+    "ai_agents.apps.AiAgentsConfig",
     "referrals.apps.ReferralsConfig",
     "subscriptions",
     "billing",
@@ -102,6 +110,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "referrals.context_processors.dashboard_notifications",
+                "ai_agents.context_processors.dashboard_ai_guide",
             ],
         },
     },

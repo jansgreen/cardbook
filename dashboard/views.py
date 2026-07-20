@@ -6,6 +6,7 @@ from django.urls import reverse_lazy
 from django.views.generic import CreateView, TemplateView, UpdateView, View
 
 from analytics.models import CardClick, CardView
+from ai_agents.services import business_assistant_context
 from alliances.models import CompanyAlliance
 from book.models import SavedBusiness
 from business_feed.models import BusinessPost, BusinessPostExcellent
@@ -54,6 +55,7 @@ class DashboardHomeView(DashboardContextMixin, TemplateView):
             "companies": companies[:5],
             "cards": cards[:5],
             "business_cards": self.get_business_cards()[:5],
+            "business_ai": business_assistant_context(self.request.user),
             "company_count": companies.count(),
             "card_count": cards.count(),
             "business_card_count": self.get_business_cards().count(),
@@ -130,6 +132,7 @@ class DashboardCompaniesView(DashboardContextMixin, TemplateView):
             "post_form": post_form,
             "posts": posts,
             "stats": stats,
+            "business_ai": business_assistant_context(self.request.user, active_company) if active_company else business_assistant_context(self.request.user),
             "suggested_companies": suggested,
             "pending_alliances": pending_alliances,
             "accepted_alliances": accepted_alliances,

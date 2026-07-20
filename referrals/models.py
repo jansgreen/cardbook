@@ -216,6 +216,7 @@ class ReferralNotification(models.Model):
     TYPE_PAID = "commission_paid"
     TYPE_AGENT_SALE = "agent_card_sale"
     TYPE_FINANCE_ALERT = "finance_alert"
+    TYPE_AI_LEAD = "ai_lead"
     TYPE_CHOICES = [
         (TYPE_REFERRAL, "Referral registered"),
         (TYPE_COMPANY, "Company registered"),
@@ -224,6 +225,7 @@ class ReferralNotification(models.Model):
         (TYPE_PAID, "Commission paid"),
         (TYPE_AGENT_SALE, "Agent card sale"),
         (TYPE_FINANCE_ALERT, "Finance alert"),
+        (TYPE_AI_LEAD, "AI lead captured"),
     ]
 
     recipient = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="referral_notifications")

@@ -8,6 +8,8 @@ from rest_framework import generics, permissions, status
 from rest_framework.views import APIView
 
 from accesscontrol.services import PERM_MANAGE_WEBSITE_BUILDER
+from ai_agents.models import AIAgent
+from ai_agents.services import public_agent_suggested_questions
 from cardbookweb.responses import error_response, success_response
 from companies.models import Company
 from companies.permissions import can_access_company
@@ -289,6 +291,16 @@ def register_visit(request, website, page, language):
     )
 
 
+def public_website_agent(website):
+    return AIAgent.objects.filter(
+        company=website.company,
+        agent_type=AIAgent.TYPE_WEBSITE_ASSISTANT,
+        status=AIAgent.STATUS_ACTIVE,
+        show_on_website=True,
+        is_active=True,
+    ).select_related("company", "website").first()
+
+
 class PublicSiteAPIView(APIView):
     permission_classes = [permissions.AllowAny]
 
@@ -319,7 +331,9 @@ class PublicSiteView(TemplateView):
             "language": language,
             "menu_pages": website.pages.filter(is_active=True, is_published=True, show_in_menu=True).order_by("order", "title"),
             "sections": layout.sections.filter(is_active=True).prefetch_related("components__blocks", "translations", "components__translations", "components__blocks__translations") if layout and layout.is_active else [],
+            "public_ai_agent": public_website_agent(website),
         })
+        context["public_ai_suggestions"] = public_agent_suggested_questions(context["public_ai_agent"])
         return context
 
 
@@ -356,7 +370,9 @@ class DashboardWebsitePreviewView(LoginRequiredMixin, TemplateView):
             "language": language,
             "menu_pages": website.pages.filter(is_active=True, show_in_menu=True).order_by("order", "title"),
             "sections": layout.sections.filter(is_active=True).prefetch_related("components__blocks", "translations", "components__translations", "components__blocks__translations") if layout and layout.is_active else [],
+            "public_ai_agent": public_website_agent(website),
         })
+        context["public_ai_suggestions"] = public_agent_suggested_questions(context["public_ai_agent"])
         return context
 
 
@@ -391,6 +407,7 @@ class DashboardWebsiteBuilderView(LoginRequiredMixin, TemplateView):
             "public_url": website_public_url(self.request, website) if website else "",
             "themes": Theme.objects.filter(is_active=True),
             "visits": WebsiteVisit.objects.filter(website=website).count() if website else 0,
+            "website_ai_agent": public_website_agent(website) if website else None,
             "pages": pages,
             "page_form": kwargs.get("page_form") or PageDashboardForm(),
             "page_edit_form": kwargs.get("page_edit_form"),

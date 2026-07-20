@@ -1,0 +1,28 @@
+{% if dashboard_ai_guide.enabled %}
+{{ dashboard_ai_guide|json_script:"ai-guide-data" }}
+<section class="ai-guide-widget" data-ai-guide hidden aria-live="polite">
+    <button class="ai-guide-launcher" type="button" data-guide-open aria-label="Abrir guia Cardbook">
+        <span>AI</span>
+        <strong>Guia</strong>
+    </button>
+    <article class="ai-guide-panel" data-guide-panel hidden>
+        <div class="ai-guide-head">
+            <div>
+                <span>Guia Cardbook</span>
+                <h2 data-guide-title>{{ dashboard_ai_guide.title }}</h2>
+            </div>
+            <button type="button" data-guide-close aria-label="Cerrar guia">Cerrar</button>
+        </div>
+        <p data-guide-body>{{ dashboard_ai_guide.intro }}</p>
+        <div class="ai-guide-progress">
+            <div data-guide-progress style="width: 0%"></div>
+        </div>
+        <small data-guide-counter>0/{{ dashboard_ai_guide.total }}</small>
+        <div class="ai-guide-actions">
+            <button type="button" data-guide-prev>Anterior</button>
+            <button type="button" data-guide-next>Siguiente</button>
+            <button type="button" data-guide-done>Listo</button>
+        </div>
+    </article>
+</section>
+{% endif %}

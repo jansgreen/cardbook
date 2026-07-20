@@ -108,6 +108,8 @@
                     {% endfor %}
                 </article>
 
+                {% include "dashboard/ai_agents/_business_assistant_card.html" with business_ai=business_ai variant="compact" %}
+
                 <article class="business-side-card" id="sugeridas">
                     <div class="side-card-head"><h2>Empresas sugeridas</h2><a href="#">Ver todas</a></div>
                     {% for company in suggested_companies %}
@@ -164,4 +166,3 @@
 {% endblock %}
 
 {% block extra_js %}<script src="{% static 'js/dashboard/posts.js' %}"></script>{% endblock %}
-

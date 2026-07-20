@@ -27,6 +27,7 @@ from accesscontrol.views import DashboardAccessControlView
 urlpatterns = [
     path("", DashboardHomeView.as_view(), name="dashboard-home"),
     path("", include("forms_builder.dashboard_urls")),
+    path("ai-agents/", include("ai_agents.urls")),
     path("companies/", DashboardCompaniesView.as_view(), name="dashboard-companies"),
     path("companies/new/", CompanyCreateView.as_view(), name="dashboard-company-create"),
     path("companies/<int:pk>/edit/", CompanyUpdateView.as_view(), name="dashboard-company-update"),

@@ -1,0 +1,327 @@
+.wb-ai-widget {
+    position: fixed;
+    right: 22px;
+    bottom: 22px;
+    z-index: 90;
+    display: grid;
+    justify-items: end;
+    gap: 12px;
+    font-family: var(--wb-font, Inter, system-ui, sans-serif);
+}
+
+.wb-ai-launcher {
+    min-height: 54px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid rgba(255,255,255,.3);
+    border-radius: 999px;
+    padding: 8px 16px 8px 8px;
+    background: linear-gradient(135deg, var(--wb-secondary, #083b75), var(--wb-primary, #0b5ed7));
+    color: #fff;
+    box-shadow: 0 18px 44px rgba(8,59,117,.25);
+    cursor: pointer;
+}
+
+.wb-ai-launcher span {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    background: rgba(255,255,255,.16);
+    color: var(--wb-accent, #d8a441);
+    font-weight: 950;
+}
+
+.wb-ai-launcher strong {
+    color: #fff;
+    font-weight: 950;
+}
+
+.wb-ai-panel {
+    width: min(410px, calc(100vw - 32px));
+    overflow: hidden;
+    border: 1px solid rgba(8,59,117,.14);
+    border-radius: 22px;
+    background: rgba(255,255,255,.97);
+    box-shadow: 0 24px 70px rgba(7,22,51,.24);
+    backdrop-filter: blur(16px);
+}
+
+.wb-ai-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 18px;
+    background: linear-gradient(135deg, var(--wb-secondary, #083b75), var(--wb-primary, #0b5ed7));
+    color: #fff;
+}
+
+.wb-ai-head span {
+    color: var(--wb-accent, #d8a441);
+    font-size: .74rem;
+    font-weight: 950;
+    text-transform: uppercase;
+}
+
+.wb-ai-head h2 {
+    margin: 3px 0 0;
+    color: #fff;
+    font-size: 1.1rem;
+}
+
+.wb-ai-head button {
+    align-self: start;
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 999px;
+    padding: 7px 10px;
+    background: rgba(255,255,255,.12);
+    color: #fff;
+    font: inherit;
+    font-size: .78rem;
+    font-weight: 850;
+    cursor: pointer;
+}
+
+.wb-ai-messages {
+    max-height: min(310px, 44vh);
+    display: grid;
+    gap: 10px;
+    overflow: auto;
+    padding: 16px;
+    background: #f6f9fe;
+}
+
+.wb-ai-suggestions {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 12px 14px 0;
+    background: #fff;
+    scrollbar-width: thin;
+}
+
+.wb-ai-suggestions button {
+    flex: 0 0 auto;
+    max-width: 240px;
+    min-height: 36px;
+    border: 1px solid #d7e2f1;
+    border-radius: 999px;
+    padding: 7px 11px;
+    background: #f8fbff;
+    color: var(--wb-primary, #0b5ed7);
+    font: inherit;
+    font-size: .82rem;
+    font-weight: 900;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.wb-ai-message {
+    max-width: 88%;
+    padding: 11px 13px;
+    border-radius: 16px;
+    color: #10213a;
+    line-height: 1.45;
+    box-shadow: 0 8px 20px rgba(7,22,51,.06);
+}
+
+.wb-ai-message.agent {
+    justify-self: start;
+    background: #fff;
+    border: 1px solid #e2eaf6;
+}
+
+.wb-ai-message.user {
+    justify-self: end;
+    background: var(--wb-primary, #0b5ed7);
+    color: #fff;
+}
+
+.wb-ai-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    padding: 14px;
+    border-top: 1px solid #e2eaf6;
+    background: #fff;
+}
+
+.wb-ai-lead-trigger {
+    width: calc(100% - 28px);
+    min-height: 40px;
+    margin: 12px 14px 0;
+    border: 1px solid rgba(8,59,117,.16);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--wb-primary, #0b5ed7);
+    font: inherit;
+    font-weight: 950;
+    cursor: pointer;
+}
+
+.wb-ai-lead-form {
+    margin: 12px 14px 0;
+    padding: 14px;
+    border: 1px solid #d7e2f1;
+    border-radius: 16px;
+    background: #f8fbff;
+}
+
+.wb-ai-honeypot {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.wb-ai-lead-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.wb-ai-lead-grid label {
+    display: grid;
+    gap: 5px;
+    margin: 0;
+    color: #38506f;
+    font-size: .78rem;
+    font-weight: 850;
+}
+
+.wb-ai-lead-grid label.wide {
+    grid-column: 1 / -1;
+}
+
+.wb-ai-lead-grid input,
+.wb-ai-lead-grid textarea {
+    width: 100%;
+    border: 1px solid #d7e2f1;
+    border-radius: 12px;
+    padding: 10px 11px;
+    color: #10213a;
+    font: inherit;
+    resize: vertical;
+}
+
+.wb-ai-lead-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.wb-ai-lead-actions button {
+    min-height: 38px;
+    border: 1px solid #d7e2f1;
+    border-radius: 999px;
+    padding: 8px 12px;
+    background: #fff;
+    color: #38506f;
+    font: inherit;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.wb-ai-lead-actions button:last-child {
+    border-color: var(--wb-accent, #d8a441);
+    background: var(--wb-accent, #d8a441);
+    color: var(--wb-secondary, #083b75);
+}
+
+.wb-ai-form label {
+    display: grid;
+    gap: 4px;
+    margin: 0;
+}
+
+.wb-ai-form label span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+}
+
+.wb-ai-form input {
+    width: 100%;
+    min-height: 44px;
+    border: 1px solid #d7e2f1;
+    border-radius: 999px;
+    padding: 0 14px;
+    color: #10213a;
+    font: inherit;
+}
+
+.wb-ai-form button {
+    min-height: 44px;
+    border: 0;
+    border-radius: 999px;
+    padding: 0 16px;
+    background: var(--wb-accent, #d8a441);
+    color: var(--wb-secondary, #083b75);
+    font: inherit;
+    font-weight: 950;
+    cursor: pointer;
+}
+
+.wb-ai-form button:disabled,
+.wb-ai-form input:disabled {
+    opacity: .62;
+    cursor: progress;
+}
+
+.wb-ai-status {
+    padding: 0 16px 10px;
+    background: #fff;
+    color: #637189;
+    font-size: .82rem;
+    font-weight: 850;
+}
+
+.wb-ai-panel small {
+    display: block;
+    padding: 0 16px 14px;
+    color: #637189;
+    background: #fff;
+    font-weight: 700;
+}
+
+@media (max-width: 620px) {
+    .wb-ai-widget {
+        right: 12px;
+        left: 12px;
+        bottom: 12px;
+        justify-items: stretch;
+    }
+
+    .wb-ai-launcher {
+        justify-self: end;
+    }
+
+    .wb-ai-panel {
+        width: 100%;
+        max-height: calc(100vh - 28px);
+        border-radius: 22px 22px 18px 18px;
+    }
+
+    .wb-ai-messages {
+        max-height: 38vh;
+    }
+
+    .wb-ai-lead-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .wb-ai-form {
+        grid-template-columns: 1fr;
+    }
+
+    .wb-ai-form button {
+        width: 100%;
+    }
+}

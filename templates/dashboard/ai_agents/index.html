@@ -1,0 +1,498 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+{% block title %}Agentes IA - Cardbook{% endblock %}
+{% block topbar_title %}Agentes IA{% endblock %}
+{% block topbar_subtitle %}Asistentes sin costo para mejorar tu presencia digital{% endblock %}
+{% block dashboard_content %}
+<section class="ai-agent-page">
+    <article class="ai-agent-hero">
+        <div>
+            <p>Inteligencia Cardbook</p>
+            <h1>Agentes IA para empresas modernas</h1>
+            <span>Fase 4 activa: base de conocimiento por empresa, recomendaciones accionables y preparacion del agente publico sin depender de API paga.</span>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="sync_agents">
+            <button type="submit">Sincronizar agentes</button>
+        </form>
+    </article>
+
+    <section class="ai-agent-stats">
+        <article><span>Agentes</span><strong>{{ summary.agents }}</strong></article>
+        <article><span>Activos</span><strong>{{ summary.active }}</strong></article>
+        <article><span>Empresas</span><strong>{{ summary.companies }}</strong></article>
+        <article><span>Sugerencias</span><strong>{{ summary.suggestions }}</strong></article>
+    </section>
+
+    {% if active_agent %}
+        <section class="ai-agent-layout">
+            <aside class="ai-agent-list panel">
+                <div class="panel-head">
+                    <h2>Mis agentes</h2>
+                </div>
+                {% for agent in agents %}
+                    <a class="ai-agent-list-item {% if agent.id == active_agent.id %}active{% endif %}" href="{% url 'dashboard-ai-agents' %}?agent={{ agent.id }}">
+                        <span>{{ agent.company.name|slice:":2" }}</span>
+                        <strong>{{ agent.name }}</strong>
+                        <small>{{ agent.get_agent_type_display }} - {{ agent.get_mode_display }}</small>
+                    </a>
+                {% empty %}
+                    <div class="empty-panel"><strong>No hay agentes</strong><span>Crea una empresa para activar tus asistentes.</span></div>
+                {% endfor %}
+            </aside>
+
+            <main class="ai-agent-main">
+                <article class="ai-agent-profile panel">
+                    <div class="ai-agent-avatar">AI</div>
+                    <div>
+                        <span>{{ active_agent.company.name }}</span>
+                        <h2>{{ active_agent.name }}</h2>
+                        <p>{{ active_agent.welcome_message }}</p>
+                        <div class="ai-agent-badges">
+                            <small>{{ active_agent.get_agent_type_display }}</small>
+                            <small>{{ active_agent.get_mode_display }}</small>
+                            <small>{{ active_agent.get_status_display }}</small>
+                            {% if active_agent.show_on_website %}<small>Website visible</small>{% endif %}
+                        </div>
+                    </div>
+                    <div class="ai-agent-score">
+                        <strong>{{ completion_score }}%</strong>
+                        <span>Presencia digital</span>
+                    </div>
+                </article>
+
+                <section class="ai-agent-test panel" id="agent-test">
+                    <div class="panel-head">
+                        <div>
+                            <h2>Probar agente</h2>
+                            <p>Haz una pregunta como si fueras un visitante antes de publicarlo.</p>
+                        </div>
+                        {% if agent_test_result and agent_test_result.used_fallback %}
+                            <span class="ai-test-alert">Necesita entrenamiento</span>
+                        {% elif agent_test_result %}
+                            <span class="ai-test-ok">Respuesta encontrada</span>
+                        {% endif %}
+                    </div>
+                    <div class="ai-test-grid">
+                        <form method="post" class="dashboard-form ai-agent-form ai-test-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="test_agent_question">
+                            <input type="hidden" name="agent" value="{{ active_agent.id }}">
+                            <label>
+                                <span>Pregunta de prueba</span>
+                                <textarea name="test_question" rows="4" placeholder="Ejemplo: Que servicios ofrecen?">{{ agent_test_result.question }}</textarea>
+                            </label>
+                            <div class="ai-test-suggestions">
+                                {% for question in agent_test_suggestions %}
+                                    <button type="submit" name="test_question" value="{{ question }}">{{ question }}</button>
+                                {% endfor %}
+                            </div>
+                            <div class="form-actions">
+                                <button class="btn-primary" type="submit">Probar respuesta</button>
+                            </div>
+                        </form>
+                        <article class="ai-test-result">
+                            {% if agent_test_result %}
+                                <span>Visitante</span>
+                                <p>{{ agent_test_result.question }}</p>
+                                <span>Agente</span>
+                                <strong>{{ agent_test_result.answer }}</strong>
+                                {% if agent_test_result.used_fallback %}
+                                    <small>Esta respuesta uso el mensaje fallback. Agrega una FAQ o dato de conocimiento para mejorarla.</small>
+                                {% endif %}
+                            {% else %}
+                                <div class="empty-panel">
+                                    <strong>Sin prueba ejecutada</strong>
+                                    <span>Usa el simulador para revisar tono, precision y claridad del agente.</span>
+                                </div>
+                            {% endif %}
+                        </article>
+                    </div>
+                </section>
+
+                <section class="ai-agent-content-grid">
+                    <article class="panel ai-agent-suggestions">
+                        <div class="panel-head">
+                            <div>
+                                <h2>Recomendaciones</h2>
+                                <p>Acciones sugeridas por el agente para mejorar esta empresa.</p>
+                            </div>
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="refresh_suggestions">
+                                <input type="hidden" name="agent" value="{{ active_agent.id }}">
+                                <button type="submit">Actualizar</button>
+                            </form>
+                        </div>
+                        <div class="ai-suggestion-list">
+                            {% for suggestion in open_suggestions %}
+                                <div class="ai-suggestion {{ suggestion.priority }}">
+                                    <span>{{ suggestion.get_priority_display }}</span>
+                                    <strong>{{ suggestion.title }}</strong>
+                                    <p>{{ suggestion.description }}</p>
+                                    {% if suggestion.action_url and suggestion.action_label %}
+                                        <a href="{{ suggestion.action_url }}">{{ suggestion.action_label }}</a>
+                                    {% endif %}
+                                </div>
+                            {% empty %}
+                                <div class="empty-panel">
+                                    <strong>Todo se ve bien</strong>
+                                    <span>El agente no detecta tareas criticas pendientes para esta empresa.</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </article>
+
+                    <article class="panel ai-agent-config">
+                        <div class="panel-head">
+                            <div>
+                                <h2>Configuracion</h2>
+                                <p>Controla tono, estado y visibilidad del agente.</p>
+                            </div>
+                        </div>
+                        <form method="post" class="dashboard-form ai-agent-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="update_agent">
+                            <input type="hidden" name="agent" value="{{ active_agent.id }}">
+                            {% for field in agent_form %}
+                                <label class="{% if field.field.widget.input_type == 'checkbox' %}checkbox-field{% endif %}">
+                                    <span>{{ field.label }}</span>
+                                    {{ field }}
+                                    {% if field.errors %}{{ field.errors }}{% endif %}
+                                </label>
+                            {% endfor %}
+                            <div class="form-actions">
+                                <button class="btn-primary" type="submit">Guardar configuracion</button>
+                            </div>
+                        </form>
+                    </article>
+                </section>
+
+                <section class="ai-knowledge-section panel" id="knowledge">
+                    <div class="panel-head">
+                        <div>
+                            <h2>Base de conocimiento</h2>
+                            <p>Informacion que el agente usara para responder en el website publico de esta empresa.</p>
+                        </div>
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="sync_knowledge">
+                            <input type="hidden" name="agent" value="{{ active_agent.id }}">
+                            <button type="submit">Sincronizar desde empresa</button>
+                        </form>
+                    </div>
+
+                    <div class="ai-knowledge-grid">
+                        <article class="ai-knowledge-editor">
+                            <h3>Agregar dato</h3>
+                            <form method="post" class="dashboard-form ai-agent-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="create_knowledge">
+                                <input type="hidden" name="agent" value="{{ active_agent.id }}">
+                                {% for field in knowledge_form %}
+                                    <label class="{% if field.field.widget.input_type == 'checkbox' %}checkbox-field{% endif %}">
+                                        <span>{{ field.label }}</span>
+                                        {{ field }}
+                                        {% if field.errors %}{{ field.errors }}{% endif %}
+                                    </label>
+                                {% endfor %}
+                                <button class="btn-primary" type="submit">Guardar dato</button>
+                            </form>
+                        </article>
+
+                        <article class="ai-knowledge-editor">
+                            <h3>Agregar FAQ</h3>
+                            <form method="post" class="dashboard-form ai-agent-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="create_faq">
+                                <input type="hidden" name="agent" value="{{ active_agent.id }}">
+                                {% for field in faq_form %}
+                                    <label class="{% if field.field.widget.input_type == 'checkbox' %}checkbox-field{% endif %}">
+                                        <span>{{ field.label }}</span>
+                                        {{ field }}
+                                        {% if field.errors %}{{ field.errors }}{% endif %}
+                                    </label>
+                                {% endfor %}
+                                <button class="btn-primary" type="submit">Guardar FAQ</button>
+                            </form>
+                        </article>
+                    </div>
+
+                    <section class="ai-training-gaps">
+                        <div class="panel-head">
+                            <div>
+                                <h3>Entrenamiento pendiente</h3>
+                                <p>Preguntas reales donde el agente uso fallback. Conviertelas en FAQ para mejorar respuestas futuras.</p>
+                            </div>
+                        </div>
+                        <div class="ai-training-list">
+                            {% for gap in unanswered_questions %}
+                                <article class="ai-training-card">
+                                    <div>
+                                        <span>{{ gap.total }} {% if gap.total == 1 %}vez{% else %}veces{% endif %}</span>
+                                        <strong>{{ gap.label }}</strong>
+                                        {% if gap.latest %}<small>Ultima vez: {{ gap.latest|date:"d/m/Y H:i" }}</small>{% endif %}
+                                    </div>
+                                    <form method="post" class="dashboard-form ai-agent-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="create_faq_from_gap">
+                                        <input type="hidden" name="agent" value="{{ active_agent.id }}">
+                                        <input type="hidden" name="question" value="{{ gap.question }}">
+                                        <label><span>Respuesta para el cliente</span><textarea name="answer" rows="3" placeholder="Escribe la respuesta correcta para esta pregunta."></textarea></label>
+                                        <label><span>Palabras clave</span><input type="text" name="keywords" value="{{ gap.label }}"></label>
+                                        <button class="btn-primary" type="submit">Entrenar como FAQ</button>
+                                    </form>
+                                </article>
+                            {% empty %}
+                                <div class="empty-panel"><strong>Sin preguntas pendientes</strong><span>Cuando el agente no sepa responder, esas preguntas apareceran aqui para entrenarlo.</span></div>
+                            {% endfor %}
+                        </div>
+                    </section>
+
+                    <div class="ai-knowledge-lists">
+                        <article>
+                            <h3>Datos activos</h3>
+                            {% for item in knowledge_items %}
+                                <details class="ai-knowledge-item">
+                                    <summary><span>{{ item.get_category_display }}</span><strong>{{ item.title }}</strong></summary>
+                                    <form method="post" class="dashboard-form ai-agent-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="update_knowledge">
+                                        <input type="hidden" name="agent" value="{{ active_agent.id }}">
+                                        <input type="hidden" name="item" value="{{ item.id }}">
+                                        <label><span>Categoria</span><select name="category">{% for value,label in knowledge_form.fields.category.choices %}<option value="{{ value }}" {% if item.category == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+                                        <label><span>Titulo</span><input type="text" name="title" value="{{ item.title }}"></label>
+                                        <label><span>Contenido</span><textarea name="content" rows="4">{{ item.content }}</textarea></label>
+                                        <label class="checkbox-field"><span>Publico</span><input type="checkbox" name="is_public" {% if item.is_public %}checked{% endif %}></label>
+                                        <label class="checkbox-field"><span>Activo</span><input type="checkbox" name="is_active" {% if item.is_active %}checked{% endif %}></label>
+                                        <button class="btn-primary" type="submit">Actualizar</button>
+                                    </form>
+                                    <form method="post" class="ai-delete-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete_knowledge">
+                                        <input type="hidden" name="agent" value="{{ active_agent.id }}">
+                                        <input type="hidden" name="item" value="{{ item.id }}">
+                                        <button type="submit">Eliminar</button>
+                                    </form>
+                                </details>
+                            {% empty %}
+                                <div class="empty-panel"><strong>Sin datos todavia</strong><span>Sincroniza la empresa o agrega respuestas manuales.</span></div>
+                            {% endfor %}
+                        </article>
+
+                        <article>
+                            <h3>Preguntas frecuentes</h3>
+                            {% for faq in faq_items %}
+                                <details class="ai-knowledge-item">
+                                    <summary><span>FAQ</span><strong>{{ faq.question }}</strong></summary>
+                                    <form method="post" class="dashboard-form ai-agent-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="update_faq">
+                                        <input type="hidden" name="agent" value="{{ active_agent.id }}">
+                                        <input type="hidden" name="faq" value="{{ faq.id }}">
+                                        <label><span>Pregunta</span><input type="text" name="question" value="{{ faq.question }}"></label>
+                                        <label><span>Respuesta</span><textarea name="answer" rows="4">{{ faq.answer }}</textarea></label>
+                                        <label><span>Palabras clave</span><input type="text" name="keywords" value="{{ faq.keywords }}"></label>
+                                        <label class="checkbox-field"><span>Publico</span><input type="checkbox" name="is_public" {% if faq.is_public %}checked{% endif %}></label>
+                                        <label class="checkbox-field"><span>Activo</span><input type="checkbox" name="is_active" {% if faq.is_active %}checked{% endif %}></label>
+                                        <button class="btn-primary" type="submit">Actualizar</button>
+                                    </form>
+                                    <form method="post" class="ai-delete-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete_faq">
+                                        <input type="hidden" name="agent" value="{{ active_agent.id }}">
+                                        <input type="hidden" name="faq" value="{{ faq.id }}">
+                                        <button type="submit">Eliminar</button>
+                                    </form>
+                                </details>
+                            {% empty %}
+                                <div class="empty-panel"><strong>Sin FAQ todavia</strong><span>Agrega preguntas comunes para que el agente responda mejor.</span></div>
+                            {% endfor %}
+                        </article>
+                    </div>
+                </section>
+
+                <section class="ai-analytics-panel panel" id="analytics">
+                    <div class="panel-head">
+                        <div>
+                            <h2>Analytics del agente</h2>
+                            <p>Rendimiento de los ultimos {{ agent_analytics.days }} dias.</p>
+                        </div>
+                        <span class="ai-analytics-badge">{{ agent_analytics.conversion_rate }}% conversion</span>
+                    </div>
+                    <div class="ai-analytics-grid">
+                        <article>
+                            <span>Conversaciones</span>
+                            <strong>{{ agent_analytics.conversations }}</strong>
+                            <small>Chats abiertos por clientes</small>
+                        </article>
+                        <article>
+                            <span>Preguntas</span>
+                            <strong>{{ agent_analytics.questions }}</strong>
+                            <small>Mensajes recibidos</small>
+                        </article>
+                        <article>
+                            <span>Leads</span>
+                            <strong>{{ agent_analytics.leads }}</strong>
+                            <small>Contactos capturados</small>
+                        </article>
+                        <article>
+                            <span>Sin respuesta</span>
+                            <strong>{{ agent_analytics.unanswered }}</strong>
+                            <small>Uso del mensaje fallback</small>
+                        </article>
+                    </div>
+                    <div class="ai-analytics-body">
+                        <article class="ai-trend-card">
+                            <h3>Tendencia diaria</h3>
+                            <div class="ai-trend-list">
+                                {% for day in agent_analytics.timeline %}
+                                    <div class="ai-trend-row">
+                                        <span>{{ day.label }}</span>
+                                        <div>
+                                            <i class="conversations" style="--metric: {{ day.conversations }}"></i>
+                                            <i class="leads" style="--metric: {{ day.leads }}"></i>
+                                        </div>
+                                        <strong>{{ day.conversations }} / {{ day.leads }}</strong>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <p class="ai-trend-legend"><span></span> Conversaciones <em></em> Leads</p>
+                        </article>
+                        <article class="ai-top-questions">
+                            <h3>Preguntas principales</h3>
+                            {% for item in agent_analytics.top_questions %}
+                                <div class="ai-question-row">
+                                    <p>{{ item.question }}</p>
+                                    <strong>{{ item.total }}</strong>
+                                </div>
+                            {% empty %}
+                                <div class="empty-panel"><strong>Sin preguntas todavia</strong><span>Cuando los visitantes usen el agente, veras sus temas mas repetidos.</span></div>
+                            {% endfor %}
+                        </article>
+                        <article class="ai-status-breakdown">
+                            <h3>Estado de leads</h3>
+                            {% for status in agent_analytics.lead_statuses %}
+                                <div>
+                                    <span>{{ status.label }}</span>
+                                    <strong>{{ status.total }}</strong>
+                                </div>
+                            {% endfor %}
+                        </article>
+                    </div>
+                </section>
+
+                <section class="ai-leads-panel panel" id="leads">
+                    <div class="panel-head">
+                        <div>
+                            <h2>Gestion de leads</h2>
+                            <p>Contactos capturados por el agente publico del website.</p>
+                        </div>
+                    </div>
+                    <div class="ai-lead-stats">
+                        {% for stat in lead_stats_list %}
+                            <a class="{% if lead_status == stat.value %}active{% endif %}" href="{% url 'dashboard-ai-agents' %}?agent={{ active_agent.id }}&lead_status={{ stat.value }}#leads">
+                                <span>{{ stat.label }}</span>
+                                <strong>{{ stat.total }}</strong>
+                            </a>
+                        {% endfor %}
+                        <a class="{% if not lead_status %}active{% endif %}" href="{% url 'dashboard-ai-agents' %}?agent={{ active_agent.id }}#leads">
+                            <span>Todos</span>
+                            <strong>{{ active_agent.leads.count }}</strong>
+                        </a>
+                    </div>
+                    <form method="get" class="ai-lead-filters">
+                        <input type="hidden" name="agent" value="{{ active_agent.id }}">
+                        <label>
+                            <span>Buscar</span>
+                            <input type="search" name="lead_q" value="{{ lead_query }}" placeholder="Nombre, email, telefono o servicio">
+                        </label>
+                        <label>
+                            <span>Estado</span>
+                            <select name="lead_status">
+                                <option value="">Todos</option>
+                                {% for value,label in lead_status_choices %}
+                                    <option value="{{ value }}" {% if lead_status == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </label>
+                        <button type="submit">Filtrar</button>
+                    </form>
+                    <div class="ai-lead-list">
+                        {% for lead in lead_items %}
+                            <details class="ai-lead-card">
+                                <summary>
+                                    <div>
+                                        <strong>{{ lead.name|default:lead.email|default:"Lead sin nombre" }}</strong>
+                                        <span>{{ lead.service_interest|default:"Interes general" }}</span>
+                                        <small>{{ lead.email|default:"Sin email" }}{% if lead.phone %} - {{ lead.phone }}{% endif %}</small>
+                                    </div>
+                                    <em class="status-{{ lead.status }}">{{ lead.get_status_display }}</em>
+                                </summary>
+                                <section class="ai-lead-detail">
+                                    <article>
+                                        <h3>Mensaje</h3>
+                                        <p>{{ lead.message|default:"Sin mensaje adicional." }}</p>
+                                        <small>Creado: {{ lead.created_at|date:"d/m/Y H:i" }}</small>
+                                    </article>
+                                    <article>
+                                        <h3>Actualizar estado</h3>
+                                        <form method="post" class="dashboard-form ai-agent-form">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="update_lead_status">
+                                            <input type="hidden" name="agent" value="{{ active_agent.id }}">
+                                            <input type="hidden" name="lead" value="{{ lead.id }}">
+                                            <label><span>Estado</span>
+                                                <select name="status">
+                                                    {% for value,label in lead_status_choices %}
+                                                        <option value="{{ value }}" {% if lead.status == value %}selected{% endif %}>{{ label }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </label>
+                                            <label><span>Nota interna</span><textarea name="message" rows="3">{{ lead.message }}</textarea></label>
+                                            <button class="btn-primary" type="submit">Guardar lead</button>
+                                        </form>
+                                    </article>
+                                    {% if lead.conversation %}
+                                        <article class="ai-lead-conversation">
+                                            <h3>Conversacion</h3>
+                                            {% for message in lead.conversation.messages.all %}
+                                                <div class="ai-message-row {{ message.role }}">
+                                                    <span>{{ message.get_role_display }}</span>
+                                                    <p>{{ message.content }}</p>
+                                                </div>
+                                            {% empty %}
+                                                <p>No hay mensajes asociados.</p>
+                                            {% endfor %}
+                                        </article>
+                                    {% endif %}
+                                </section>
+                            </details>
+                        {% empty %}
+                            <div class="empty-panel"><strong>No hay leads para este filtro</strong><span>Cuando el widget capture contactos apareceran aqui.</span></div>
+                        {% endfor %}
+                    </div>
+                </section>
+
+                <section class="ai-agent-content-grid">
+                    <article class="panel">
+                        <div class="panel-head"><h2>Conversaciones</h2></div>
+                        {% for conversation in recent_conversations %}
+                            <div class="list-row"><span>{{ conversation.get_channel_display }}</span><strong>{{ conversation.get_status_display }}</strong></div>
+                        {% empty %}
+                            <div class="empty-panel"><strong>Sin conversaciones</strong><span>El historial aparecera cuando activemos el widget publico y el guia interno.</span></div>
+                        {% endfor %}
+                    </article>
+                </section>
+            </main>
+        </section>
+    {% else %}
+        <article class="panel empty-panel">
+            <strong>No tienes empresas para activar agentes.</strong>
+            <span>Crea una empresa y Cardbook generara tus asistentes automaticamente.</span>
+            <a class="btn-primary" href="{% url 'dashboard-company-create' %}">Crear empresa</a>
+        </article>
+    {% endif %}
+</section>
+{% endblock %}

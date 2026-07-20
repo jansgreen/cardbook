@@ -1,0 +1,35 @@
+{% if business_ai %}
+<article class="ai-business-card {% if variant == 'compact' %}compact{% endif %}">
+    <div class="ai-business-orb">AI</div>
+    <div class="ai-business-main">
+        <span>Asistente de negocio</span>
+        {% if business_ai.available %}
+            <h2>{{ business_ai.status_label }}</h2>
+            <p>{{ business_ai.status_detail }}</p>
+            <div class="ai-business-progress" aria-label="Presencia digital al {{ business_ai.score }} por ciento">
+                <div style="width: {{ business_ai.score }}%"></div>
+            </div>
+            <small>{{ business_ai.company.name }} - {{ business_ai.score }}% completo</small>
+        {% else %}
+            <h2>Activa tu asistente</h2>
+            <p>{{ business_ai.status_detail }}</p>
+            <a href="{% url 'dashboard-company-create' %}">Crear empresa</a>
+        {% endif %}
+    </div>
+    {% if business_ai.available %}
+        <div class="ai-business-actions">
+            {% if business_ai.top_suggestion %}
+                <strong>{{ business_ai.top_suggestion.title }}</strong>
+                <p>{{ business_ai.top_suggestion.description }}</p>
+                {% if business_ai.top_suggestion.action_url and business_ai.top_suggestion.action_label %}
+                    <a href="{{ business_ai.top_suggestion.action_url }}">{{ business_ai.top_suggestion.action_label }}</a>
+                {% endif %}
+            {% else %}
+                <strong>Sin tareas criticas</strong>
+                <p>Tu empresa no tiene alertas principales. Sigue publicando y revisando metricas.</p>
+            {% endif %}
+            <a class="secondary" href="{% url 'dashboard-ai-agents' %}?agent={{ business_ai.agent.id }}">Ver asistente</a>
+        </div>
+    {% endif %}
+</article>
+{% endif %}

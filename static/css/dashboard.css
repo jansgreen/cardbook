@@ -2297,6 +2297,14 @@
     color: #637189;
     font-weight: 800;
 }
+.notification-action-link {
+    width: max-content;
+    display: inline-flex;
+    margin-top: 8px;
+    color: #0057b8;
+    font-weight: 950;
+    text-decoration: none;
+}
 .notification-row form {
     margin: 0;
 }

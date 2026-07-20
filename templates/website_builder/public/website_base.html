@@ -11,6 +11,7 @@
     <meta name="twitter:card" content="{{ page.twitter_card }}">
     <link rel="canonical" href="{{ request.build_absolute_uri }}">
     <link rel="stylesheet" href="{% static 'css/websitebuilder.css' %}">
+    {% if public_ai_agent %}<link rel="stylesheet" href="{% static 'css/public_ai_agent.css' %}">{% endif %}
     <style>
         :root {
             --wb-primary: {{ website.primary_color }};
@@ -38,7 +39,9 @@
     </header>
     {% endif %}
     {% block website_content %}{% endblock %}
+    {% include "website_builder/public/_ai_agent_widget.html" %}
     <script src="{% static 'js/websitebuilder.js' %}"></script>
+    {% if public_ai_agent %}<script src="{% static 'js/public_ai_agent.js' %}"></script>{% endif %}
     {% if website.custom_js_enabled %}<script>{{ website.custom_js|safe }}</script>{% endif %}
 </body>
 </html>

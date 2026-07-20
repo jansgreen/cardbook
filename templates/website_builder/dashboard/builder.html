@@ -69,6 +69,28 @@
             <article class="builder-panel">
                 <div class="builder-panel-head">
                     <div>
+                        <span>Agente publico</span>
+                        <h2>Asistente IA del website</h2>
+                    </div>
+                    {% if website_ai_agent %}
+                        <strong class="builder-pill live">Visible</strong>
+                    {% else %}
+                        <strong class="builder-pill draft">Inactivo</strong>
+                    {% endif %}
+                </div>
+                {% if website_ai_agent %}
+                    <p>El widget del asistente se mostrara en el sitio publico y respondera usando la base de conocimiento de la empresa.</p>
+                {% else %}
+                    <p>Activa el agente del website desde Agentes IA, marca "Website visible" y sincroniza su base de conocimiento.</p>
+                {% endif %}
+                <div class="builder-form-actions">
+                    <a class="builder-primary-button" href="{% url 'dashboard-ai-agents' %}">Configurar agente</a>
+                </div>
+            </article>
+
+            <article class="builder-panel">
+                <div class="builder-panel-head">
+                    <div>
                         <span>Estilo visual</span>
                         <h2>Tema, colores y tipografia</h2>
                     </div>

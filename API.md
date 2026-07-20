@@ -220,6 +220,34 @@ Recommended Flutter boot flow:
 8. Load screen-specific endpoints as the user navigates.
 9. On `401`, call `/api/v1/accounts/token/refresh/` and retry once.
 
+## AI Agents
+
+Protected endpoints for the native Flutter app and dashboard:
+
+```http
+GET /api/v1/ai-agents/
+GET /api/v1/ai-agents/{id}/
+PATCH /api/v1/ai-agents/{id}/
+GET /api/v1/ai-agents/{id}/analytics/
+POST /api/v1/ai-agents/{id}/test/
+GET /api/v1/ai-agents/{id}/knowledge/
+POST /api/v1/ai-agents/{id}/knowledge/
+GET /api/v1/ai-agents/{id}/faqs/
+POST /api/v1/ai-agents/{id}/faqs/
+GET /api/v1/ai-agents/{id}/leads/
+GET /api/v1/ai-agents/{id}/training-gaps/
+POST /api/v1/ai-agents/{id}/training-gaps/
+POST /api/v1/ai-agents/{id}/sync-knowledge/
+```
+
+Public website widget endpoint:
+
+```http
+POST /ai/public/ask/
+```
+
+Production notes and rate limit variables are documented in `AI_AGENTS.md`.
+
 ## Public Marketplace
 
 ```http
