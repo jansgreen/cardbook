@@ -1,6 +1,7 @@
 from rest_framework import permissions, status
 from rest_framework.views import APIView
 
+from accesscontrol.services import PERM_MANAGE_AI_AGENTS, user_has_access_permission
 from cardbookweb.responses import StandardPagination, error_response, success_response
 from companies.permissions import can_access_company, can_manage_company
 
@@ -36,7 +37,11 @@ def get_user_agent(user, pk):
 
 
 def can_manage_agent(user, agent):
-    return bool(agent and agent.company and can_manage_company(user, agent.company))
+    return bool(
+        agent
+        and agent.company
+        and (can_manage_company(user, agent.company) or user_has_access_permission(user, PERM_MANAGE_AI_AGENTS, agent.company))
+    )
 
 
 class AIAgentListView(APIView):
@@ -277,4 +282,3 @@ class AIAgentSyncKnowledgeAPIView(APIView):
         items = sync_agent_knowledge(agent)
         serializer = AIAgentKnowledgeSerializer(items, many=True, context={"request": request})
         return success_response("Knowledge synced successfully.", {"count": len(items), "items": serializer.data})
-

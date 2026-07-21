@@ -5,6 +5,8 @@ from django.test import RequestFactory, TestCase
 from django.urls import resolve, reverse
 from rest_framework.test import APIClient
 
+from accesscontrol.models import AccessPermission, AccessRole, UserAccessGrant
+from accesscontrol.services import PERM_MANAGE_AI_AGENTS, ensure_default_permissions
 from companies.models import Company
 from referrals.models import ReferralNotification
 from websitebuilder.models import Page
@@ -376,6 +378,49 @@ class AIAgentDashboardTests(TestCase):
         self.assertContains(response, "Filtro Lead")
         self.assertContains(response, "Contactado")
 
+    def test_dashboard_exports_filtered_ai_leads_csv(self):
+        agent = sync_agents_for_user(self.user)[1]
+        AIAgentLead.objects.create(
+            agent=agent,
+            company=self.company,
+            name="Maria Cliente",
+            email="maria@example.com",
+            phone="555-0102",
+            service_interest="Website",
+            message="Necesito informacion.",
+            status=AIAgentLead.STATUS_NEW,
+        )
+        AIAgentLead.objects.create(
+            agent=agent,
+            company=self.company,
+            name="Pedro Cerrado",
+            email="pedro@example.com",
+            status=AIAgentLead.STATUS_CLOSED,
+        )
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("dashboard-ai-agent-leads-csv"), {
+            "agent": agent.id,
+            "lead_status": AIAgentLead.STATUS_NEW,
+            "lead_q": "Maria",
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "text/csv")
+        content = response.content.decode("utf-8")
+        self.assertIn("Maria Cliente", content)
+        self.assertIn("maria@example.com", content)
+        self.assertNotIn("Pedro Cerrado", content)
+
+    def test_dashboard_blocks_ai_leads_csv_without_company_access(self):
+        agent = sync_agents_for_user(self.user)[1]
+        outsider = get_user_model().objects.create_user(username="lead-outsider", password="pass12345")
+        self.client.force_login(outsider)
+
+        response = self.client.get(reverse("dashboard-ai-agent-leads-csv"), {"agent": agent.id})
+
+        self.assertEqual(response.status_code, 404)
+
     def test_dashboard_agent_test_simulator_answers_from_faq(self):
         agent = sync_agents_for_user(self.user)[1]
         AIAgentFAQ.objects.create(
@@ -396,6 +441,34 @@ class AIAgentDashboardTests(TestCase):
         self.assertContains(response, "Probar agente")
         self.assertContains(response, "Respuesta encontrada")
         self.assertContains(response, "Si, tenemos planes para emprendedores")
+
+    def test_ai_agent_manager_grant_can_access_dashboard_and_api(self):
+        ensure_default_permissions()
+        user_model = get_user_model()
+        manager = user_model.objects.create_user(
+            username="ai-manager",
+            email="ai-manager@example.com",
+            password="pass12345",
+        )
+        permission = AccessPermission.objects.get(code=PERM_MANAGE_AI_AGENTS)
+        role = AccessRole.objects.create(name="AI Manager Demo")
+        role.permissions.add(permission)
+        UserAccessGrant.objects.create(user=manager, company=self.company, role=role, is_active=True)
+        agent = sync_agents_for_user(self.user)[1]
+        self.client.force_login(manager)
+
+        dashboard_response = self.client.get(reverse("dashboard-ai-agents"), {"agent": agent.id})
+        api_client = APIClient()
+        api_client.force_authenticate(manager)
+        api_response = api_client.patch(reverse("api-ai-agent-detail", kwargs={"agent_id": agent.id}), {
+            "tone": "profesional y directo",
+        }, format="json")
+
+        self.assertEqual(dashboard_response.status_code, 200)
+        self.assertContains(dashboard_response, "Agentes IA")
+        self.assertEqual(api_response.status_code, 200)
+        agent.refresh_from_db()
+        self.assertEqual(agent.tone, "profesional y directo")
 
     def test_agent_unanswered_questions_detects_fallback_gaps(self):
         agent = sync_agents_for_user(self.user)[1]

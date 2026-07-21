@@ -46,6 +46,7 @@ from .services import (
     create_agent_payout,
     create_customer_portal_session,
     create_refund_for_payment,
+    payment_refundable_amount,
     FinanceConfigurationError,
     FinanceValidationError,
 )
@@ -148,6 +149,8 @@ class FinanceSectionPageView(FinanceWebViewMixin, APIView):
         return render(request, self.template_name, context)
 
     def post(self, request):
+        if self.section == "payments":
+            return self.post_payment_action(request)
         if self.section != "commissions":
             return redirect(reverse("finance-dashboard"))
         action = request.POST.get("action")
@@ -165,6 +168,40 @@ class FinanceSectionPageView(FinanceWebViewMixin, APIView):
             mark_commission_paid(commission, request.user, request=request)
             messages.success(request, "Comision marcada como pagada.")
         return redirect(reverse("finance-commissions"))
+
+    def post_payment_action(self, request):
+        if request.POST.get("action") != "refund_payment":
+            return redirect(reverse("finance-payments"))
+        if not has_finance_permission(request.user, "refunds"):
+            messages.error(request, "No tienes permiso para procesar reembolsos.")
+            return redirect(reverse("finance-payments"))
+        payment = get_object_or_404(Payment, pk=request.POST.get("payment_id"))
+        manual = str(request.POST.get("manual", "")).lower() in {"1", "true", "yes", "on"}
+        try:
+            refund = create_refund_for_payment(
+                payment=payment,
+                amount=request.POST.get("amount"),
+                reason=request.POST.get("reason", ""),
+                processed_by=request.user,
+                request=request,
+                manual=manual,
+            )
+        except FinanceValidationError as exc:
+            messages.error(request, str(exc))
+        except FinanceConfigurationError as exc:
+            create_audit_log(
+                action=AuditLog.ACTION_REFUND_FAILED,
+                title="Reembolso no procesado",
+                actor=request.user,
+                target=payment,
+                message=str(exc),
+                severity=AuditLog.SEVERITY_WARNING,
+                request=request,
+            )
+            messages.error(request, str(exc))
+        else:
+            messages.success(request, f"Reembolso {refund.stripe_refund_id} creado correctamente.")
+        return redirect(reverse("finance-payments"))
 
     def get_context_data(self, request):
         mapping = {
@@ -297,17 +334,23 @@ class FinanceSectionPageView(FinanceWebViewMixin, APIView):
         }
 
     def payments_context(self):
-        payments = Payment.objects.select_related("company", "invoice").order_by("-created_at")
+        payments = list(Payment.objects.select_related("company", "invoice").order_by("-created_at")[:100])
+        for payment in payments:
+            payment.refundable_amount = payment_refundable_amount(payment)
         return {
             "title": "Pagos",
             "subtitle": "Pagos recibidos, PaymentIntent, invoice, fees y neto.",
+            "payments": payments,
+            "can_process_refunds": has_finance_permission(self.request.user, "refunds") if hasattr(self, "request") else False,
+            "manual_refunds_enabled": settings.STRIPE_ALLOW_MANUAL_REFUNDS,
+            "stripe_configured": bool(settings.STRIPE_SECRET_KEY),
             "table_columns": ["Fecha", "Empresa", "Invoice", "Payment Intent", "Monto", "Moneda", "Metodo", "Neto", "Estado"],
             "table_rows": [
                 [p.created_at, p.company.name, p.stripe_invoice_id or "-", p.stripe_payment_intent_id, p.amount, p.currency, p.payment_method or "-", p.net_amount, p.status]
-                for p in payments[:100]
+                for p in payments
             ],
             "summary_cards": [
-                ("Pagos", payments.count(), "Total"),
+                ("Pagos", Payment.objects.count(), "Total"),
                 ("Exitosos", Payment.objects.filter(status=Payment.STATUS_SUCCEEDED).count(), "Succeeded"),
                 ("Fallidos", Payment.objects.filter(status=Payment.STATUS_FAILED).count(), "Failed"),
                 ("Neto", f"${overview_metrics()['net_revenue']}", "Disponible"),

@@ -1,4 +1,4 @@
-:root {
+﻿:root {
     --cb-navy: #071a36;
     --cb-blue: #2563eb;
     --cb-purple: #6d5dfc;
@@ -258,6 +258,12 @@
     background: var(--cb-background);
 }
 
+.companies-fluid-container {
+    width: min(100% - 56px, 1840px);
+    margin-inline: auto;
+    padding-inline: clamp(16px, 1.8vw, 30px);
+}
+
 .companies-directory-head {
     display: flex;
     align-items: flex-end;
@@ -281,6 +287,40 @@
     background: #fff;
     border: 1px solid var(--cb-border);
     border-radius: 999px;
+}
+
+.company-business-card-grid,
+.marketplace-website-grid {
+    align-items: stretch;
+}
+
+.company-business-card-preview {
+    min-height: clamp(296px, 18vw, 332px);
+}
+
+.company-business-card-heading h3 {
+    max-width: 100%;
+    hyphens: auto;
+}
+
+.company-business-card-bottom,
+.company-business-card-contact,
+.company-business-card-contact p {
+    min-width: 0;
+}
+
+.company-business-card-qr {
+    width: 136px;
+    min-height: 156px;
+    padding: 11px;
+}
+
+.company-business-card-qr img,
+.company-business-card-qr-fallback {
+    width: 112px;
+    height: 112px;
+    background: #fff;
+    image-rendering: auto;
 }
 
 /* White Card Job grid */
@@ -437,7 +477,7 @@
 }
 
 .white-card-public-item > small::after {
-    content: "Ver perfil  →";
+    content: "Ver perfil  ->";
     color: var(--cb-blue);
     font-weight: 900;
 }
@@ -462,6 +502,15 @@
 
     .white-card-public-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .company-business-card-bottom {
+        grid-template-columns: 1fr;
+        align-items: start;
+    }
+
+    .company-business-card-qr {
+        justify-self: start;
     }
 }
 
@@ -495,6 +544,11 @@
         align-items: flex-start;
         flex-direction: column;
     }
+
+    .companies-directory-head > span {
+        width: 100%;
+        border-radius: 16px;
+    }
 }
 
 @media (max-width: 520px) {
@@ -505,6 +559,39 @@
     .company-search-bar {
         grid-template-columns: 1fr;
         border-radius: 19px;
+    }
+
+    .companies-fluid-container {
+        width: min(100% - 24px, 1840px);
+        padding-inline: 0;
+    }
+
+    .company-business-card-preview {
+        min-height: auto;
+        padding: 18px;
+    }
+
+    .company-business-card-top {
+        flex-direction: column-reverse;
+    }
+
+    .company-business-card-heading {
+        max-width: 100%;
+    }
+
+    .company-business-card-media {
+        justify-content: flex-start;
+    }
+
+    .company-business-card-qr {
+        width: 132px;
+        min-height: 152px;
+    }
+
+    .company-business-card-qr img,
+    .company-business-card-qr-fallback {
+        width: 108px;
+        height: 108px;
     }
 
     .company-filter-menu,

@@ -98,7 +98,7 @@ class _DiagnosticsContent extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                '${report.okCount} OK · ${report.warningCount} avisos · ${report.failCount} fallos',
+                '${report.okCount} OK | ${report.warningCount} avisos | ${report.failCount} fallos',
                 style:
                     const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
               ),
@@ -118,7 +118,7 @@ class _DiagnosticsContent extends StatelessWidget {
                 icon: Icons.android_rounded,
                 label: 'App instalada',
                 value:
-                    '${report.appVersionName} (${report.appVersionCode}) · ${report.packageName}',
+                    '${report.appVersionName} (${report.appVersionCode}) | ${report.packageName}',
               ),
               _InfoRow(
                 icon: Icons.cloud_rounded,
@@ -134,7 +134,7 @@ class _DiagnosticsContent extends StatelessWidget {
                 icon: Icons.key_rounded,
                 label: 'Tokens locales',
                 value:
-                    'Access: ${_yesNo(report.hasAccessToken)} · Refresh: ${_yesNo(report.hasRefreshToken)}',
+                    'Access: ${_yesNo(report.hasAccessToken)} | Refresh: ${_yesNo(report.hasRefreshToken)}',
               ),
             ],
           ),

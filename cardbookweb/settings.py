@@ -30,6 +30,12 @@ DEPLOY_ENV = os.environ.get("CARDBOOK_DEPLOY_ENV", "local")
 CARDBOOK_LOG_LEVEL = os.environ.get("CARDBOOK_LOG_LEVEL", "INFO")
 DJANGO_LOG_LEVEL = os.environ.get("DJANGO_LOG_LEVEL", "WARNING")
 CARDBOOK_ENABLE_REQUEST_ID_HEADERS = env_bool("CARDBOOK_ENABLE_REQUEST_ID_HEADERS", True)
+CARDBOOK_SLOW_REQUEST_MS = env_int("CARDBOOK_SLOW_REQUEST_MS", 1000)
+CARDBOOK_REQUEST_LOG_EXCLUDED_PREFIXES = tuple(
+    prefix.strip()
+    for prefix in os.environ.get("CARDBOOK_REQUEST_LOG_EXCLUDED_PREFIXES", "/static/,/media/").split(",")
+    if prefix.strip()
+)
 AI_AGENT_PUBLIC_ASK_LIMIT = env_int("AI_AGENT_PUBLIC_ASK_LIMIT", 30)
 AI_AGENT_PUBLIC_ASK_WINDOW_SECONDS = env_int("AI_AGENT_PUBLIC_ASK_WINDOW_SECONDS", 60)
 AI_AGENT_PUBLIC_LEAD_LIMIT = env_int("AI_AGENT_PUBLIC_LEAD_LIMIT", 5)
@@ -39,6 +45,7 @@ AI_AGENT_MAX_LEAD_FIELD_LENGTH = env_int("AI_AGENT_MAX_LEAD_FIELD_LENGTH", 255)
 AI_AGENT_MAX_LEAD_MESSAGE_LENGTH = env_int("AI_AGENT_MAX_LEAD_MESSAGE_LENGTH", 1200)
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-insecure-cardbook-local-dev-key")
 DEBUG = env_bool("DJANGO_DEBUG", True)
+CARDBOOK_REQUEST_LOGGING_ENABLED = env_bool("CARDBOOK_REQUEST_LOGGING_ENABLED", not DEBUG)
 ALLOWED_HOSTS = [host.strip() for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if host.strip()]
 CSRF_TRUSTED_ORIGINS = [
     origin.strip()
@@ -279,6 +286,11 @@ LOGGING = {
             "propagate": False,
         },
         "cardbook": {
+            "handlers": ["console"],
+            "level": CARDBOOK_LOG_LEVEL,
+            "propagate": False,
+        },
+        "cardbook.requests": {
             "handlers": ["console"],
             "level": CARDBOOK_LOG_LEVEL,
             "propagate": False,

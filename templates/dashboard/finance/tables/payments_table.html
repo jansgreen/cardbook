@@ -1,0 +1,86 @@
+<section class="finance-panel">
+    <div class="finance-panel-head">
+        <div>
+            <h2>{{ title }}</h2>
+            <p class="finance-muted">{{ subtitle }}</p>
+        </div>
+        <div class="finance-table-tools">
+            <a class="finance-export-link" href="{% url 'finance-report-csv' 'payments' %}">Descargar CSV</a>
+        </div>
+    </div>
+
+    <div class="finance-refund-state {% if stripe_configured %}ready{% elif manual_refunds_enabled %}manual{% else %}blocked{% endif %}">
+        {% if stripe_configured %}
+            Stripe configurado: los reembolsos se enviaran a Stripe.
+        {% elif manual_refunds_enabled %}
+            Modo manual activo: se registraran reembolsos internos sin llamar a Stripe.
+        {% else %}
+            Reembolsos bloqueados: configura Stripe o habilita modo manual controlado.
+        {% endif %}
+    </div>
+
+    <div class="finance-table-wrap">
+        <table class="finance-table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Empresa</th>
+                    <th>Payment Intent</th>
+                    <th>Monto</th>
+                    <th>Neto</th>
+                    <th>Estado</th>
+                    <th>Reembolsable</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for payment in payments %}
+                    <tr>
+                        <td>{{ payment.created_at }}</td>
+                        <td>
+                            <strong>{{ payment.company.name }}</strong>
+                            <small>{{ payment.stripe_invoice_id|default:"Sin invoice" }}</small>
+                        </td>
+                        <td>{{ payment.stripe_payment_intent_id }}</td>
+                        <td>{{ payment.amount }} {{ payment.currency }}</td>
+                        <td>{{ payment.net_amount }} {{ payment.currency }}</td>
+                        <td>{% include "dashboard/finance/components/status_badge.html" with status=payment.status %}</td>
+                        <td>{{ payment.refundable_amount }} {{ payment.currency }}</td>
+                        <td>
+                            {% if can_process_refunds and payment.refundable_amount > 0 %}
+                                <form class="finance-inline-refund" method="post" action="{% url 'finance-payments' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="refund_payment">
+                                    <input type="hidden" name="payment_id" value="{{ payment.id }}">
+                                    <label>
+                                        <span>Monto</span>
+                                        <input type="number" name="amount" min="0.01" step="0.01" max="{{ payment.refundable_amount }}" value="{{ payment.refundable_amount }}">
+                                    </label>
+                                    <label>
+                                        <span>Motivo</span>
+                                        <input type="text" name="reason" maxlength="255" placeholder="Solicitud del cliente">
+                                    </label>
+                                    {% if manual_refunds_enabled and not stripe_configured %}
+                                        <input type="hidden" name="manual" value="1">
+                                    {% elif manual_refunds_enabled %}
+                                        <label class="finance-check">
+                                            <input type="checkbox" name="manual" value="1">
+                                            <span>Manual</span>
+                                        </label>
+                                    {% endif %}
+                                    <button type="submit">Reembolsar</button>
+                                </form>
+                            {% else %}
+                                <span class="finance-muted">Sin accion disponible</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="8">No hay pagos registrados.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>

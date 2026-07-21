@@ -349,6 +349,36 @@ class FinancialAnalyticsTests(APITestCase):
         self.assertContains(response, "finance-tabs")
         self.assertNotContains(response, "Cardbook API is running")
 
+    @override_settings(STRIPE_ALLOW_MANUAL_REFUNDS=True, STRIPE_SECRET_KEY="")
+    def test_finance_payments_page_can_process_manual_refund(self):
+        browser = Client()
+        browser.force_login(self.admin)
+
+        page = browser.get(reverse("finance-payments"), HTTP_HOST="127.0.0.1")
+        self.assertEqual(page.status_code, status.HTTP_200_OK)
+        self.assertContains(page, "Modo manual activo")
+        self.assertContains(page, "Reembolsar")
+
+        response = browser.post(
+            reverse("finance-payments"),
+            {
+                "action": "refund_payment",
+                "payment_id": self.payment.id,
+                "amount": "5.00",
+                "reason": "Solicitud del cliente",
+                "manual": "1",
+            },
+            HTTP_HOST="127.0.0.1",
+        )
+        self.assertRedirects(response, reverse("finance-payments"), fetch_redirect_response=False)
+
+        refund = Refund.objects.get(payment=self.payment)
+        self.assertEqual(refund.amount, Decimal("5.00"))
+        self.assertEqual(refund.status, Refund.STATUS_PENDING)
+        self.payment.refresh_from_db()
+        self.assertEqual(self.payment.status, Payment.STATUS_PARTIALLY_REFUNDED)
+        self.assertTrue(AuditLog.objects.filter(action=AuditLog.ACTION_REFUND_CREATED, actor=self.admin).exists())
+
     @override_settings(STRIPE_WEBHOOK_SECRET="whsec_test")
     def test_stripe_webhook_validates_signature_and_is_idempotent(self):
         payload = json.dumps({"id": "evt_test_001", "type": "payment_intent.succeeded"}).encode("utf-8")

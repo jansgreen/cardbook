@@ -11,6 +11,7 @@ PERM_MANAGE_ACCESS_CONTROL = "access.manage"
 PERM_CREATE_CARDBOOK_BUSINESS_CARDS = "cards.create_business_card.cardbook"
 PERM_MANAGE_WEBSITE_BUILDER = "websitebuilder.manage"
 PERM_PUBLISH_WEBSITE_BUILDER = "websitebuilder.publish"
+PERM_MANAGE_AI_AGENTS = "ai_agents.manage"
 
 DEFAULT_PERMISSIONS = [
     (PERM_MANAGE_ACCESS_CONTROL, "Administrar accesos", "Permite entrar al CRUD de roles, grupos y asignaciones."),
@@ -19,6 +20,7 @@ DEFAULT_PERMISSIONS = [
     (PERM_CREATE_CARDBOOK_BUSINESS_CARDS, "Crear tarjetas bajo Cardbook", "Permite crear perfiles y tarjetas de presentacion bajo la empresa Cardbook."),
     (PERM_MANAGE_WEBSITE_BUILDER, "Administrar Website Builder", "Permite crear y editar sitios web empresariales."),
     (PERM_PUBLISH_WEBSITE_BUILDER, "Publicar Website Builder", "Permite publicar o despublicar sitios web empresariales."),
+    (PERM_MANAGE_AI_AGENTS, "Administrar agentes IA", "Permite configurar agentes, leads, entrenamiento y conocimiento IA en empresas asignadas."),
     ("sales.earn_commission", "Recibir comision", "Marca al usuario como agente con porcentaje de comision."),
 ]
 
@@ -53,6 +55,14 @@ def ensure_default_permissions():
         permissions[PERM_MANAGE_WEBSITE_BUILDER],
         permissions[PERM_PUBLISH_WEBSITE_BUILDER],
     )
+    ai_manager_role, _ = AccessRole.objects.get_or_create(
+        name="Administrador de agentes IA",
+        defaults={
+            "description": "Usuario autorizado para entrenar, configurar y revisar agentes IA de empresas asignadas.",
+            "default_commission_percent": 0,
+        },
+    )
+    ai_manager_role.permissions.add(permissions[PERM_MANAGE_AI_AGENTS])
 
 
 def manageable_companies_for(user):

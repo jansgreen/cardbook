@@ -2,11 +2,12 @@ from dataclasses import dataclass
 from datetime import timedelta
 from collections import Counter
 
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.urls import reverse
 from django.utils import timezone
 
 from alliances.models import CompanyAlliance
+from accesscontrol.services import PERM_MANAGE_AI_AGENTS
 from business_feed.models import BusinessPost
 from cards.models import BusinessCard, DigitalCard
 from companies.models import Company
@@ -28,9 +29,19 @@ class AgentRecommendation:
 def get_user_companies(user):
     if user.is_superuser:
         return Company.objects.filter(is_active=True)
+    permitted = Company.objects.filter(
+        is_active=True,
+        access_grants__user=user,
+        access_grants__is_active=True,
+    ).filter(
+        Q(access_grants__role__permissions__code=PERM_MANAGE_AI_AGENTS, access_grants__role__permissions__is_active=True)
+        | Q(access_grants__group__permissions__code=PERM_MANAGE_AI_AGENTS, access_grants__group__permissions__is_active=True)
+        | Q(access_grants__group__roles__permissions__code=PERM_MANAGE_AI_AGENTS, access_grants__group__roles__permissions__is_active=True)
+    )
     return (
         Company.objects.filter(is_active=True, owner=user)
         | Company.objects.filter(is_active=True, members__user=user, members__is_active=True)
+        | permitted
     ).distinct()
 
 

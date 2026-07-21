@@ -13,6 +13,8 @@
 
     {% if section == "commissions" %}
         {% include "dashboard/finance/tables/commissions_table.html" %}
+    {% elif section == "payments" %}
+        {% include "dashboard/finance/tables/payments_table.html" %}
     {% elif section == "audit" %}
         {% include "dashboard/finance/tables/audit_table.html" %}
     {% elif section == "reports" %}

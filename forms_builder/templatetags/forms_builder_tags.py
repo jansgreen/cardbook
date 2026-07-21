@@ -9,11 +9,12 @@ register = template.Library()
 @register.inclusion_tag("forms_builder/public/embed.html", takes_context=True)
 def render_section_form(context, section):
     request = context.get("request")
-    form_definition = None
+    form_definition = getattr(section, "embedded_form", None)
     form_id = (section.settings or {}).get("form_id")
-    queryset = FormDefinition.objects.filter(company=section.layout.page.website.company, is_active=True).prefetch_related("fields")
-    if form_id:
-        form_definition = queryset.filter(pk=form_id).first()
+    if not form_definition:
+        queryset = FormDefinition.objects.filter(company=section.layout.page.website.company, is_active=True).prefetch_related("fields")
+        if form_id:
+            form_definition = queryset.filter(pk=form_id).first()
     if not form_definition:
         form_definition = queryset.order_by("name").first()
     status = request.GET.get("form_status") if request else ""
@@ -25,4 +26,3 @@ def render_section_form(context, section):
         "submission_form": PublicFormSubmissionForm(form_definition) if form_definition else None,
         "status": status if str(status_form_id) == str(form_definition.id if form_definition else "") else "",
     }
-

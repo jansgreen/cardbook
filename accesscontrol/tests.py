@@ -4,7 +4,7 @@ from django.urls import reverse
 
 from accesscontrol.models import AccessPermission, AccessRole, UserAccessGrant
 from accesscontrol.permissions import user_can_manage_access_catalog
-from accesscontrol.services import PERM_MANAGE_ACCESS_CONTROL, ensure_default_permissions
+from accesscontrol.services import PERM_MANAGE_ACCESS_CONTROL, PERM_MANAGE_AI_AGENTS, ensure_default_permissions
 from companies.models import Company
 
 
@@ -28,6 +28,12 @@ class AccessControlPermissionsTests(TestCase):
         )
         self.company = Company.objects.create(owner=self.owner, name="Jans Green", is_active=True)
         ensure_default_permissions()
+
+    def test_default_permissions_include_ai_agent_manager_role(self):
+        permission = AccessPermission.objects.get(code=PERM_MANAGE_AI_AGENTS)
+        role = AccessRole.objects.get(name="Administrador de agentes IA")
+
+        self.assertTrue(role.permissions.filter(pk=permission.pk).exists())
 
     def test_regular_user_cannot_open_access_control(self):
         self.client.force_login(self.user)

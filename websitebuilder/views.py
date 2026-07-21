@@ -13,6 +13,7 @@ from ai_agents.services import public_agent_suggested_questions
 from cardbookweb.responses import error_response, success_response
 from companies.models import Company
 from companies.permissions import can_access_company
+from forms_builder.models import FormDefinition
 from .forms import BlockDashboardForm, ComponentDashboardForm, PageDashboardForm, SectionDashboardForm
 from .models import (
     Block,
@@ -277,6 +278,36 @@ def get_public_page(website, page_slug=None):
     return page
 
 
+def attach_embedded_forms(sections, company):
+    sections = list(sections)
+    form_sections = [section for section in sections if section.section_type in {"contact_form", "form_builder"}]
+    if not form_sections:
+        return sections
+
+    form_ids = []
+    for section in form_sections:
+        form_id = (section.settings or {}).get("form_id")
+        if not form_id:
+            continue
+        try:
+            form_ids.append(int(form_id))
+        except (TypeError, ValueError):
+            continue
+
+    forms_queryset = FormDefinition.objects.filter(company=company, is_active=True).prefetch_related("fields")
+    forms_by_id = {form.id: form for form in forms_queryset.filter(id__in=form_ids)}
+    fallback_form = forms_queryset.order_by("name").first()
+
+    for section in form_sections:
+        form_id = (section.settings or {}).get("form_id")
+        try:
+            form_id = int(form_id) if form_id else None
+        except (TypeError, ValueError):
+            form_id = None
+        section.embedded_form = forms_by_id.get(form_id) or fallback_form
+    return sections
+
+
 def register_visit(request, website, page, language):
     agent = request.META.get("HTTP_USER_AGENT", "")
     device = "mobile" if "Mobile" in agent else "desktop"
@@ -325,12 +356,18 @@ class PublicSiteView(TemplateView):
         language = self.request.GET.get("lang") or website.default_language or "es"
         register_visit(self.request, website, page, language)
         layout = getattr(page, "layout", None)
+        sections = layout.sections.filter(is_active=True).prefetch_related(
+            "components__blocks",
+            "translations",
+            "components__translations",
+            "components__blocks__translations",
+        ) if layout and layout.is_active else []
         context.update({
             "website": website,
             "page": page,
             "language": language,
             "menu_pages": website.pages.filter(is_active=True, is_published=True, show_in_menu=True).order_by("order", "title"),
-            "sections": layout.sections.filter(is_active=True).prefetch_related("components__blocks", "translations", "components__translations", "components__blocks__translations") if layout and layout.is_active else [],
+            "sections": attach_embedded_forms(sections, website.company),
             "public_ai_agent": public_website_agent(website),
         })
         context["public_ai_suggestions"] = public_agent_suggested_questions(context["public_ai_agent"])
@@ -364,12 +401,18 @@ class DashboardWebsitePreviewView(LoginRequiredMixin, TemplateView):
         page = self.get_page(website)
         language = self.request.GET.get("lang") or website.default_language or "es"
         layout = getattr(page, "layout", None)
+        sections = layout.sections.filter(is_active=True).prefetch_related(
+            "components__blocks",
+            "translations",
+            "components__translations",
+            "components__blocks__translations",
+        ) if layout and layout.is_active else []
         context.update({
             "website": website,
             "page": page,
             "language": language,
             "menu_pages": website.pages.filter(is_active=True, show_in_menu=True).order_by("order", "title"),
-            "sections": layout.sections.filter(is_active=True).prefetch_related("components__blocks", "translations", "components__translations", "components__blocks__translations") if layout and layout.is_active else [],
+            "sections": attach_embedded_forms(sections, website.company),
             "public_ai_agent": public_website_agent(website),
         })
         context["public_ai_suggestions"] = public_agent_suggested_questions(context["public_ai_agent"])

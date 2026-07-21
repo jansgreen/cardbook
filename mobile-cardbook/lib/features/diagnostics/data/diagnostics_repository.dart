@@ -33,7 +33,9 @@ class DiagnosticsRepository {
     final checks = await Future.wait<DiagnosticCheck>([
       _checkPublicHealth(),
       _checkReadiness(),
+      _checkMobileConfig(),
       _checkApiAuth(access),
+      _checkMobileDashboard(access),
       _checkAndroidVersion(),
     ]);
 
@@ -124,6 +126,64 @@ class DiagnosticsRepository {
       return DiagnosticCheck.fail(
         title: 'Sesion API',
         target: '/api/v1/accounts/me/',
+        message: _errorMessage(error),
+        statusCode: error.response?.statusCode,
+      );
+    }
+  }
+
+  Future<DiagnosticCheck> _checkMobileConfig() async {
+    try {
+      final response = await _apiClient.dio.get<Map<String, dynamic>>(
+        '/mobile/config/',
+        options: Options(extra: {'diagnostic': true}),
+      );
+      final data = response.data ?? {};
+      final message = data['message']?.toString() ??
+          data['status']?.toString() ??
+          'Configuracion movil disponible';
+      return DiagnosticCheck.ok(
+        title: 'Config movil',
+        target: '/api/v1/mobile/config/',
+        message: message,
+        statusCode: response.statusCode,
+      );
+    } on DioException catch (error) {
+      return DiagnosticCheck.fail(
+        title: 'Config movil',
+        target: '/api/v1/mobile/config/',
+        message: _errorMessage(error),
+        statusCode: error.response?.statusCode,
+      );
+    }
+  }
+
+  Future<DiagnosticCheck> _checkMobileDashboard(String? access) async {
+    if (access == null || access.isEmpty) {
+      return const DiagnosticCheck(
+        title: 'Dashboard movil',
+        target: '/api/v1/mobile/dashboard/',
+        message:
+            'No hay token local. Inicia sesion para probar el resumen movil.',
+        state: DiagnosticState.warning,
+      );
+    }
+
+    try {
+      final response = await _apiClient.dio.get<Map<String, dynamic>>(
+        '/mobile/dashboard/',
+        options: Options(extra: {'diagnostic': true}),
+      );
+      return DiagnosticCheck.ok(
+        title: 'Dashboard movil',
+        target: '/api/v1/mobile/dashboard/',
+        message: 'Resumen movil disponible para la sesion actual',
+        statusCode: response.statusCode,
+      );
+    } on DioException catch (error) {
+      return DiagnosticCheck.fail(
+        title: 'Dashboard movil',
+        target: '/api/v1/mobile/dashboard/',
         message: _errorMessage(error),
         statusCode: error.response?.statusCode,
       );

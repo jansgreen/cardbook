@@ -55,6 +55,27 @@ class ObservabilityTests(APITestCase):
         self.assertEqual(response["X-Request-ID"], "trace-test-123")
         self.assertEqual(response.json()["request_id"], "trace-test-123")
 
+    @override_settings(CARDBOOK_REQUEST_LOGGING_ENABLED=True, CARDBOOK_SLOW_REQUEST_MS=0)
+    def test_request_logging_includes_trace_fields(self):
+        with self.assertLogs("cardbook.requests", level="INFO") as logs:
+            response = self.client.get("/health/", HTTP_X_REQUEST_ID="trace-log-123")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        joined_logs = "\n".join(logs.output)
+        self.assertIn("trace-log-123", joined_logs)
+        self.assertIn("duration_ms", joined_logs)
+        self.assertIn("/health/", joined_logs)
+
+    @override_settings(CARDBOOK_REQUEST_LOGGING_ENABLED=True)
+    def test_request_logging_records_client_errors(self):
+        with self.assertLogs("cardbook.requests", level="WARNING") as logs:
+            response = self.client.get("/missing-observability-page/", HTTP_X_REQUEST_ID="trace-404")
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        joined_logs = "\n".join(logs.output)
+        self.assertIn("trace-404", joined_logs)
+        self.assertIn("404", joined_logs)
+
     @override_settings(
         DEBUG=False,
         EMAIL_BACKEND="django.core.mail.backends.console.EmailBackend",
@@ -129,3 +150,20 @@ class ProductionAuditCommandTests(TestCase):
     def test_production_audit_strict_fails_on_errors(self):
         with self.assertRaises(CommandError):
             call_command("production_audit", "--strict", "--skip-db", stdout=StringIO())
+
+
+class OpsSnapshotCommandTests(TestCase):
+    def test_ops_snapshot_outputs_safe_json(self):
+        output = StringIO()
+
+        call_command("ops_snapshot", "--json", stdout=output)
+
+        payload = json.loads(output.getvalue())
+        self.assertTrue(payload["success"])
+        self.assertEqual(payload["service"], "cardbook")
+        self.assertIn("counts", payload)
+        self.assertIn("accounts", payload["counts"])
+        self.assertIn("companies", payload["counts"])
+        serialized = json.dumps(payload)
+        self.assertNotIn("password", serialized.lower())
+        self.assertNotIn("secret", serialized.lower())

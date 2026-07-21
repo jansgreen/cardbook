@@ -389,6 +389,9 @@
                             <h2>Gestion de leads</h2>
                             <p>Contactos capturados por el agente publico del website.</p>
                         </div>
+                        {% if lead_export_url %}
+                            <a class="ai-export-link" href="{{ lead_export_url }}">Exportar CSV</a>
+                        {% endif %}
                     </div>
                     <div class="ai-lead-stats">
                         {% for stat in lead_stats_list %}

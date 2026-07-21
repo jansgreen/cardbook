@@ -1,13 +1,17 @@
+import csv
+
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count, Q
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from django.views import View
 
+from accesscontrol.services import PERM_MANAGE_AI_AGENTS, user_has_access_permission
 from companies.permissions import can_manage_company
 
 from .forms import AIAgentFAQForm, AIAgentKnowledgeBaseForm, AIAgentLeadStatusForm, AIAgentSettingsForm
@@ -38,6 +42,27 @@ from .services import (
     sync_agent_knowledge,
     sync_agents_for_user,
 )
+
+
+def can_manage_agent(user, agent):
+    if not agent or not agent.company:
+        return bool(user and user.is_authenticated and user.is_superuser)
+    return can_manage_company(user, agent.company) or user_has_access_permission(user, PERM_MANAGE_AI_AGENTS, agent.company)
+
+
+def filtered_agent_leads(agent, *, lead_status="", query=""):
+    leads = agent.leads.select_related("conversation").prefetch_related("conversation__messages")
+    if lead_status:
+        leads = leads.filter(status=lead_status)
+    if query:
+        leads = leads.filter(
+            Q(name__icontains=query)
+            | Q(email__icontains=query)
+            | Q(phone__icontains=query)
+            | Q(service_interest__icontains=query)
+            | Q(message__icontains=query)
+        )
+    return leads
 
 
 class DashboardAIAgentsView(LoginRequiredMixin, TemplateView):
@@ -73,17 +98,7 @@ class DashboardAIAgentsView(LoginRequiredMixin, TemplateView):
         leads = AIAgentLead.objects.none()
         lead_stats = {}
         if active_agent:
-            leads = active_agent.leads.select_related("conversation").prefetch_related("conversation__messages")
-            if lead_status:
-                leads = leads.filter(status=lead_status)
-            if lead_query:
-                leads = leads.filter(
-                    Q(name__icontains=lead_query)
-                    | Q(email__icontains=lead_query)
-                    | Q(phone__icontains=lead_query)
-                    | Q(service_interest__icontains=lead_query)
-                    | Q(message__icontains=lead_query)
-                )
+            leads = filtered_agent_leads(active_agent, lead_status=lead_status, query=lead_query)
             lead_counts = active_agent.leads.values("status").annotate(total=Count("id"))
             lead_stats = {item["status"]: item["total"] for item in lead_counts}
         lead_stats_list = [
@@ -103,6 +118,7 @@ class DashboardAIAgentsView(LoginRequiredMixin, TemplateView):
             "knowledge_items": active_agent.knowledge_items.all()[:12] if active_agent else [],
             "faq_items": active_agent.faqs.all()[:12] if active_agent else [],
             "lead_items": leads[:20],
+            "lead_export_url": f"{reverse('dashboard-ai-agent-leads-csv')}?agent={active_agent.id}&lead_status={lead_status}&lead_q={lead_query}" if active_agent else "",
             "lead_status": lead_status,
             "lead_query": lead_query,
             "lead_stats": lead_stats,
@@ -125,7 +141,7 @@ class DashboardAIAgentsView(LoginRequiredMixin, TemplateView):
             return redirect("dashboard-ai-agents")
 
         active_agent = get_object_or_404(AIAgent, pk=request.POST.get("agent"), company__in=self.get_companies())
-        if active_agent.company and not can_manage_company(request.user, active_agent.company):
+        if not can_manage_agent(request.user, active_agent):
             messages.error(request, "No tienes permiso para configurar este agente.")
             return redirect("dashboard-ai-agents")
 
@@ -250,6 +266,46 @@ class DashboardAIAgentsView(LoginRequiredMixin, TemplateView):
 
         messages.error(request, "Accion no reconocida.")
         return redirect("dashboard-ai-agents")
+
+
+class DashboardAIAgentLeadsCSVView(LoginRequiredMixin, View):
+    login_url = "/login/"
+
+    def get_companies(self):
+        return get_user_companies(self.request.user)
+
+    def get(self, request, *args, **kwargs):
+        agent = get_object_or_404(
+            AIAgent.objects.filter(company__in=self.get_companies()).select_related("company"),
+            pk=request.GET.get("agent"),
+        )
+        if not can_manage_agent(request.user, agent):
+            messages.error(request, "No tienes permiso para exportar leads de este agente.")
+            return redirect("dashboard-ai-agents")
+
+        leads = filtered_agent_leads(
+            agent,
+            lead_status=request.GET.get("lead_status", ""),
+            query=(request.GET.get("lead_q") or "").strip(),
+        )
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = f'attachment; filename="cardbook-ai-leads-{agent.id}.csv"'
+        writer = csv.writer(response)
+        writer.writerow(["ID", "Fecha", "Empresa", "Agente", "Nombre", "Email", "Telefono", "Interes", "Estado", "Mensaje"])
+        for lead in leads:
+            writer.writerow([
+                lead.id,
+                lead.created_at.isoformat(),
+                agent.company.name if agent.company else "",
+                agent.name,
+                lead.name,
+                lead.email,
+                lead.phone,
+                lead.service_interest,
+                lead.get_status_display(),
+                lead.message,
+            ])
+        return response
 
 
 @method_decorator(csrf_exempt, name="dispatch")

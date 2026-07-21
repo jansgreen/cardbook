@@ -2,9 +2,9 @@ name: Cardbook CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, stable/cardbook-core]
   pull_request:
-    branches: [main]
+    branches: [main, stable/cardbook-core]
   workflow_dispatch:
 
 jobs:
@@ -31,6 +31,21 @@ jobs:
 
       - name: Django system check
         run: python manage.py check
+
+      - name: Check migration drift
+        run: python manage.py makemigrations --dry-run --check
+
+      - name: Run critical backend tests
+        run: >
+          python manage.py test
+          cardbookweb
+          mobile
+          accesscontrol
+          ai_agents
+          financial_analytics
+          forms_builder
+          websitebuilder
+          web.tests_mvp_flow
 
       - name: Collect static files
         run: python manage.py collectstatic --noinput
@@ -68,4 +83,3 @@ jobs:
 
       - name: Run Flutter tests
         run: flutter test
-
