@@ -100,7 +100,7 @@ try {
     Step "Production gate listo"
     Write-Host "Validacion completada. Para desplegar desde esta rama:" -ForegroundColor Green
     Write-Host "  git push heroku stable/cardbook-core:main"
-    Write-Host "  heroku run python manage.py migrate --app cardbook"
+    Write-Host "  heroku run --app cardbook --exit-code --no-tty -- python manage.py migrate"
     Write-Host "  heroku open --app cardbook"
 }
 finally {

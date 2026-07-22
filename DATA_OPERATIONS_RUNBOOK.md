@@ -37,7 +37,7 @@ El gate de produccion ahora ejecuta `ops_snapshot --json` despues de los tests c
 En Heroku:
 
 ```powershell
-heroku run python manage.py ops_snapshot --json --app cardbook
+heroku run --app cardbook --exit-code --no-tty -- python manage.py ops_snapshot --json
 ```
 
 Esto confirma que el dyno puede acceder a la base de datos y que los modelos principales cargan sin romper imports.

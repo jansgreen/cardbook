@@ -7,7 +7,8 @@ param(
     [switch]$SkipFlutter,
     [switch]$SkipCollectstatic,
     [switch]$SkipSmokeBeforeDeploy,
-    [switch]$AllowDeploymentPending
+    [switch]$AllowDeploymentPending,
+    [switch]$AllowReadinessWarnings
 )
 
 $ErrorActionPreference = "Stop"
@@ -57,10 +58,10 @@ try {
     Invoke-Checked { git push heroku "${SourceRef}:${TargetRef}" } "git push heroku fallo"
 
     Step "Run migrations"
-    Invoke-Checked { heroku run python manage.py migrate --app $AppName } "heroku migrate fallo"
+    Invoke-Checked { heroku run --app $AppName --exit-code --no-tty -- python manage.py migrate } "heroku migrate fallo"
 
     Step "Operational snapshot on Heroku"
-    Invoke-Checked { heroku run python manage.py ops_snapshot --json --app $AppName } "ops_snapshot remoto fallo"
+    Invoke-Checked { heroku run --app $AppName --exit-code --no-tty -- python manage.py ops_snapshot --json } "ops_snapshot remoto fallo"
 
     Step "Smoke test after deploy"
     $smokeArgs = @(
@@ -69,6 +70,7 @@ try {
         "-PublicBaseUrl", $PublicBaseUrl
     )
     if ($AllowDeploymentPending) { $smokeArgs += "-AllowDeploymentPending" }
+    if ($AllowReadinessWarnings) { $smokeArgs += "-AllowReadinessWarnings" }
     Invoke-Checked { powershell @smokeArgs } "smoke post-deploy fallo"
 
     Step "Release listo"

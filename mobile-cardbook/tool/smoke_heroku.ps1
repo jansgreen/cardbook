@@ -1,7 +1,8 @@
 param(
     [string]$PublicBaseUrl = "https://cardbook-45cf0409dc07.herokuapp.com",
     [string]$ExpectedVersion = "",
-    [switch]$AllowDeploymentPending
+    [switch]$AllowDeploymentPending,
+    [switch]$AllowReadinessWarnings
 )
 
 $ErrorActionPreference = "Continue"
@@ -27,19 +28,96 @@ function Fail($Message) {
     }
 }
 
-function Invoke-CardbookJson($Path) {
+function Read-ErrorResponseBody($Response) {
+    if (-not $Response) { return "" }
+    try {
+        $stream = $Response.GetResponseStream()
+        if (-not $stream) { return "" }
+        $reader = [System.IO.StreamReader]::new($stream)
+        $body = $reader.ReadToEnd()
+        $reader.Close()
+        return $body
+    }
+    catch {
+        return ""
+    }
+}
+
+function Parse-JsonBody($Body, $Url) {
+    if (-not $Body) { return $null }
+    try {
+        return $Body | ConvertFrom-Json
+    }
+    catch {
+        Fail "Respuesta JSON invalida desde ${Url}: $($_.Exception.Message)"
+        return $null
+    }
+}
+
+function Invoke-CardbookJson($Path, [switch]$AllowHttpError) {
     $url = "$($PublicBaseUrl.TrimEnd('/'))$Path"
+    $script:LastJsonStatusCode = 0
+    $curl = Get-Command curl.exe -ErrorAction SilentlyContinue
+    if ($curl) {
+        try {
+            $raw = & $curl.Source -s -w "`n__STATUS__:%{http_code}" $url
+            $statusLine = $raw | Select-Object -Last 1
+            $bodyLines = @($raw | Select-Object -SkipLast 1)
+            $body = ($bodyLines -join "`n").Trim()
+            if ($statusLine -match "__STATUS__:(\d+)") {
+                $script:LastJsonStatusCode = [int]$Matches[1]
+            }
+            $json = Parse-JsonBody $body $url
+            if ($script:LastJsonStatusCode -ge 200 -and $script:LastJsonStatusCode -lt 400) {
+                Pass "$url -> $script:LastJsonStatusCode"
+                return $json
+            }
+            if ($AllowHttpError) {
+                Warn "$url respondio $script:LastJsonStatusCode"
+                return $json
+            }
+            $details = ""
+            if ($json -and $json.production_config_issues) {
+                $details = " " + (($json.production_config_issues | ForEach-Object { $_ }) -join " | ")
+            }
+            Fail "$url respondio $script:LastJsonStatusCode$details"
+            return $json
+        }
+        catch {
+            Warn "curl.exe no pudo consultar ${url}: $($_.Exception.Message). Usando Invoke-WebRequest."
+        }
+    }
+
     try {
         $response = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 20
+        $script:LastJsonStatusCode = [int]$response.StatusCode
         if ($response.StatusCode -lt 200 -or $response.StatusCode -ge 400) {
-            Fail "$url respondio $($response.StatusCode)"
+            if (-not $AllowHttpError) {
+                Fail "$url respondio $($response.StatusCode)"
+            }
             return $null
         }
 
         Pass "$url -> $($response.StatusCode)"
-        return $response.Content | ConvertFrom-Json
+        return Parse-JsonBody $response.Content $url
     }
     catch {
+        $response = $_.Exception.Response
+        $body = Read-ErrorResponseBody $response
+        if ($response) {
+            $script:LastJsonStatusCode = [int]$response.StatusCode
+            $json = Parse-JsonBody $body $url
+            if ($AllowHttpError) {
+                Warn "$url respondio $($script:LastJsonStatusCode)"
+                return $json
+            }
+            $details = ""
+            if ($json -and $json.production_config_issues) {
+                $details = " " + (($json.production_config_issues | ForEach-Object { $_ }) -join " | ")
+            }
+            Fail "No se pudo consultar ${url}: $($_.Exception.Message)$details"
+            return $json
+        }
         Fail "No se pudo consultar ${url}: $($_.Exception.Message)"
         return $null
     }
@@ -82,9 +160,21 @@ if ($health) {
     }
 }
 
-$ready = Invoke-CardbookJson "/health/ready/"
+$ready = Invoke-CardbookJson "/health/ready/" -AllowHttpError
 if ($ready) {
-    if ($ready.database -eq "ok") {
+    if ($script:LastJsonStatusCode -ge 400) {
+        $issues = @()
+        if ($ready.production_config_issues) {
+            $issues = $ready.production_config_issues | ForEach-Object { $_ }
+        }
+        if ($AllowReadinessWarnings -and $ready.database -eq "ok") {
+            Warn "readiness degradado permitido para beta: $($issues -join ' | ')"
+        }
+        else {
+            Fail "readiness respondio $script:LastJsonStatusCode: $($issues -join ' | ')"
+        }
+    }
+    elseif ($ready.database -eq "ok") {
         Pass "database ready"
     }
     else {
@@ -127,4 +217,3 @@ if ($failures.Count -gt 0) {
 }
 
 exit 0
-

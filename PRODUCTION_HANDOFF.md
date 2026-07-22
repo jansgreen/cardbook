@@ -41,8 +41,8 @@ Este comando ejecuta:
 
 - `production_gate`.
 - `git push heroku stable/cardbook-core:main`.
-- `heroku run python manage.py migrate --app cardbook`.
-- `heroku run python manage.py ops_snapshot --json --app cardbook`.
+- `heroku run --app cardbook --exit-code --no-tty -- python manage.py migrate`.
+- `heroku run --app cardbook --exit-code --no-tty -- python manage.py ops_snapshot --json`.
 - Smoke test publico.
 
 ## Deploy manual equivalente
@@ -50,8 +50,8 @@ Este comando ejecuta:
 ```powershell
 .\tool\production_gate.ps1
 git push heroku stable/cardbook-core:main
-heroku run python manage.py migrate --app cardbook
-heroku run python manage.py ops_snapshot --json --app cardbook
+heroku run --app cardbook --exit-code --no-tty -- python manage.py migrate
+heroku run --app cardbook --exit-code --no-tty -- python manage.py ops_snapshot --json
 .\mobile-cardbook\tool\smoke_heroku.ps1
 ```
 
@@ -79,6 +79,13 @@ Para produccion real tambien faltan valores privados:
 
 ```powershell
 .\mobile-cardbook\tool\smoke_heroku.ps1
+```
+
+Si la app esta en beta y aun no tienes S3, SMTP o Stripe reales, puedes permitir `/health/ready/` degradado sin esconder las advertencias:
+
+```powershell
+.\mobile-cardbook\tool\smoke_heroku.ps1 -AllowReadinessWarnings
+.\tool\release_heroku.ps1 -Deploy -AllowReadinessWarnings
 ```
 
 Debe validar:

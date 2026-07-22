@@ -43,6 +43,8 @@ class HealthView(View):
                     issues.append("DEFAULT_FROM_EMAIL is not configured for production.")
             if not getattr(settings, "USE_S3_MEDIA_STORAGE", False):
                 issues.append("DJANGO_USE_S3_MEDIA_STORAGE is disabled; uploaded media will not be persistent on ephemeral hosts.")
+                if getattr(settings, "SERVE_MEDIA_FILES", False):
+                    issues.append("DJANGO_SERVE_MEDIA_FILES is enabled; local media may work for beta but Heroku can delete uploads on dyno restart.")
             elif not getattr(settings, "AWS_STORAGE_BUCKET_NAME", ""):
                 issues.append("AWS_STORAGE_BUCKET_NAME is required when S3 media storage is enabled.")
             if not getattr(settings, "STRIPE_SECRET_KEY", ""):
