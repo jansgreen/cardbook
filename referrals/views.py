@@ -11,9 +11,10 @@ from rest_framework.views import APIView
 
 from cardbookweb.responses import error_response, success_response
 from companies.models import Company
-from .models import AgentCardSale, AgentProfile, Commission, Referral, ReferralInvitation, ReferralNotification
+from .models import AgentApplication, AgentCardSale, AgentProfile, Commission, Referral, ReferralInvitation, ReferralNotification
 from .permissions import IsAdminUser, IsAgentUser
 from .serializers import (
+    AgentApplicationSerializer,
     AgentInviteSerializer,
     AgentProfileSerializer,
     CommissionSerializer,
@@ -100,6 +101,21 @@ class RegisterSourceAPIView(APIView):
         except ValueError as exc:
             return error_response(str(exc), status_code=status.HTTP_400_BAD_REQUEST)
         return success_response("Referral source registered.", ReferralSerializer(referral).data)
+
+
+class AgentApplicationAPIView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = AgentApplicationSerializer(data=request.data)
+        if not serializer.is_valid():
+            return error_response("Agent application failed.", serializer.errors)
+        application = serializer.save()
+        return success_response(
+            "Agent application submitted.",
+            AgentApplicationSerializer(application, context={"request": request}).data,
+            status.HTTP_201_CREATED,
+        )
 
 
 class MyReferralsAPIView(generics.ListAPIView):
@@ -236,7 +252,9 @@ class ReferralDashboardView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         agent = getattr(self.request.user, "agent_profile", None)
+        application = AgentApplication.objects.filter(email__iexact=self.request.user.email).first()
         context["agent"] = agent
+        context["agent_application"] = application
         context["is_referral_admin"] = self.request.user.is_staff
         context["admin_stats"] = admin_stats() if self.request.user.is_staff else None
         context["agent_stats"] = agent_stats(agent) if agent else None

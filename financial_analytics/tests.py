@@ -43,6 +43,8 @@ class FinancialAnalyticsTests(APITestCase):
             ]
         )
         self.admin.user_permissions.set(permissions)
+        self.admin.is_superuser = True
+        self.admin.save(update_fields=["is_superuser"])
         self.company = make_company(owner=self.admin, name="Finance Test Co")
         self.subscription = Subscription.objects.create(
             company=self.company,

@@ -5,6 +5,25 @@
 {% block topbar_subtitle %}Vista general de tu actividad{% endblock %}
 {% block dashboard_content %}
 <section class="dashboard-heading"><p>Panel principal</p><h1>Resumen de actividad</h1></section>
+{% if dashboard_user_type == "company" and company_count == 0 %}
+    <section class="dashboard-next-step">
+        <div>
+            <span>Primer paso</span>
+            <h2>Crea tu empresa para activar Cardbook</h2>
+            <p>Desde una empresa podras crear perfiles de negocio, tarjetas de presentacion, website, formularios y agentes IA.</p>
+        </div>
+        <a href="{% url 'dashboard-company-create' %}">Crear empresa</a>
+    </section>
+{% elif dashboard_user_type == "agent" and not agent_profile %}
+    <section class="dashboard-next-step">
+        <div>
+            <span>Agente Cardbook</span>
+            <h2>Tu perfil de agente aun no esta activo</h2>
+            <p>Revisa el panel de referidos para ver tu estado. Cuando tu perfil este aprobado, tendras codigo y enlace de referido.</p>
+        </div>
+        <a href="{% url 'dashboard-referrals' %}">Ver referidos</a>
+    </section>
+{% endif %}
 <section class="stats-grid">
     <article><span>Empresas</span><strong>{{ company_count }}</strong></article>
     <article><span>Perfiles</span><strong>{{ card_count }}</strong></article>
@@ -18,7 +37,7 @@
         {% for company in companies %}
             <div class="list-row"><span>{{ company.name }}</span><a href="{% url 'dashboard-company-update' company.id %}">Editar</a></div>
         {% empty %}
-            <p>No tienes empresas todavia.</p>
+            <p>No tienes empresas todavia. Crea la primera para activar perfiles, tarjetas, website y analytics.</p>
         {% endfor %}
     </article>
     <article class="panel">
@@ -36,7 +55,7 @@
         {% for card in cards %}
             <div class="list-row"><span>{{ card.slug }} - {{ card.company.name }}</span><a href="{% url 'public-card-web' card.slug %}">Publico</a></div>
         {% empty %}
-            <p>No tienes perfiles activos.</p>
+            <p>No tienes perfiles activos. Crea una empresa y luego publica tu primer perfil del negocio.</p>
         {% endfor %}
     </article>
     <article class="panel wide">
@@ -44,7 +63,7 @@
         {% for business_card in business_cards %}
             <div class="list-row"><span>{{ business_card.display_name }} - {{ business_card.company_name }}</span><a href="{% url 'public-business-card' business_card.slug %}">Compartir</a></div>
         {% empty %}
-            <p>No tienes tarjetas de presentacion activas.</p>
+            <p>No tienes tarjetas de presentacion activas. Cuando tengas un perfil del negocio podras crear una tarjeta lista para compartir.</p>
         {% endfor %}
     </article>
 </section>

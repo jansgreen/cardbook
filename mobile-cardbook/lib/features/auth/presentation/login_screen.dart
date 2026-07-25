@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mobile_cardbook/features/auth/data/auth_repository.dart';
+import 'package:mobile_cardbook/features/auth/data/session_controller.dart';
 import 'package:mobile_cardbook/features/push/data/push_notification_service.dart';
+import 'package:mobile_cardbook/shared/navigation/mobile_navigation.dart';
 import 'package:mobile_cardbook/shared/theme/app_theme.dart';
 import 'package:mobile_cardbook/shared/widgets/app_gradient_background.dart';
 import 'package:mobile_cardbook/shared/widgets/glass_card.dart';
@@ -36,13 +37,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _restoreSession() async {
-    final hasSession =
-        await ref.read(authRepositoryProvider).hasStoredSession();
+    final bootstrap = await ref.read(sessionControllerProvider.future);
     if (!mounted) return;
-    if (hasSession) {
+    if (bootstrap != null) {
       await ref.read(pushNotificationControllerProvider).registerDevice();
       if (!mounted) return;
-      context.go('/');
+      context.go(defaultMobileRoute(bootstrap));
       return;
     }
     setState(() => _checkingSession = false);
@@ -54,12 +54,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       _error = null;
     });
     try {
-      await ref.read(authRepositoryProvider).login(
-            username: _username.text.trim(),
-            password: _password.text,
-          );
+      final bootstrap =
+          await ref.read(sessionControllerProvider.notifier).login(
+                username: _username.text.trim(),
+                password: _password.text,
+              );
       await ref.read(pushNotificationControllerProvider).registerDevice();
-      if (mounted) context.go('/');
+      if (mounted) context.go(defaultMobileRoute(bootstrap));
     } catch (error) {
       setState(
           () => _error = 'No pudimos iniciar sesion. Revisa tus credenciales.');

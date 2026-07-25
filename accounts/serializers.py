@@ -18,6 +18,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             "phone_number",
             "avatar",
             "preferred_language",
+            "registration_intent",
             "created_at",
             "updated_at",
         ]
@@ -27,6 +28,11 @@ class ProfileSerializer(serializers.ModelSerializer):
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, validators=[validate_password])
     password_confirm = serializers.CharField(write_only=True)
+    registration_intent = serializers.ChoiceField(
+        choices=Profile.INTENT_CHOICES,
+        required=False,
+        allow_blank=True,
+    )
 
     class Meta:
         model = Profile
@@ -41,6 +47,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             "phone_number",
             "avatar",
             "preferred_language",
+            "registration_intent",
         ]
         read_only_fields = ["id"]
 

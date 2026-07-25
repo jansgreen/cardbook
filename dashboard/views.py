@@ -23,6 +23,7 @@ from company_ratings.models import CompanyRating
 from jobcards.models import SavedJobCard
 from jobcards.services import get_company_for_user, recommended_job_cards
 from memberships.models import CompanyMember
+from referrals.models import AgentProfile
 from referrals.services import record_agent_card_sale
 from .forms import BusinessCardForm, BusinessPostForm, CompanyForm, DigitalCardForm
 
@@ -56,6 +57,7 @@ class DashboardHomeView(DashboardContextMixin, TemplateView):
             "cards": cards[:5],
             "business_cards": self.get_business_cards()[:5],
             "business_ai": business_assistant_context(self.request.user),
+            "agent_profile": AgentProfile.objects.filter(user=self.request.user).first(),
             "company_count": companies.count(),
             "card_count": cards.count(),
             "business_card_count": self.get_business_cards().count(),
@@ -245,6 +247,7 @@ class DashboardCardsView(DashboardContextMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context["company_count"] = self.get_companies().count()
         context["cards"] = self.get_cards()
         return context
 
@@ -254,6 +257,7 @@ class DashboardBusinessCardsView(DashboardContextMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context["company_count"] = self.get_companies().count()
         context["business_cards"] = self.get_business_cards()
         return context
 

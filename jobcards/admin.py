@@ -20,8 +20,17 @@ class CompanySpecialtyAdmin(admin.ModelAdmin):
 
 @admin.register(WhiteCardJob)
 class WhiteCardJobAdmin(admin.ModelAdmin):
-    list_display = ("display_name", "specialty", "is_available", "is_active", "card_views", "profile_views", "created_at")
-    list_filter = ("is_active", "is_available", "specialty__category", "specialty")
+    list_display = (
+        "display_name",
+        "specialty",
+        "is_available",
+        "is_active",
+        "is_physical_card_imported",
+        "card_views",
+        "profile_views",
+        "created_at",
+    )
+    list_filter = ("is_active", "is_available", "is_physical_card_imported", "specialty__category", "specialty")
     search_fields = ("user__username", "user__first_name", "user__last_name", "phone_number", "address", "short_description")
     actions = ("activate_cards", "deactivate_cards", "mark_available", "mark_unavailable")
 

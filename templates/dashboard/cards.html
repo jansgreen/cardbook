@@ -64,10 +64,17 @@
             </article>
         {% empty %}
             <article class="empty-management-state">
-                <p>No hay perfiles del negocio activos.</p>
-                <h2>Crea tu primer perfil publico</h2>
-                <span>Publica datos de contacto, redes sociales, QR personalizado y enlaces listos para compartir.</span>
-                <a class="btn btn-primary" href="{% url 'dashboard-card-create' %}">Nuevo perfil</a>
+                {% if company_count %}
+                    <p>No hay perfiles del negocio activos.</p>
+                    <h2>Crea tu primer perfil publico</h2>
+                    <span>Publica datos de contacto, redes sociales, QR personalizado y enlaces listos para compartir.</span>
+                    <a class="btn btn-primary" href="{% url 'dashboard-card-create' %}">Nuevo perfil</a>
+                {% else %}
+                    <p>Primero necesitas una empresa.</p>
+                    <h2>Crea una empresa antes de publicar perfiles</h2>
+                    <span>Los perfiles del negocio viven debajo de una empresa para mantener permisos, QR y analytics organizados.</span>
+                    <a class="btn btn-primary" href="{% url 'dashboard-company-create' %}">Crear empresa</a>
+                {% endif %}
             </article>
         {% endfor %}
     </div>

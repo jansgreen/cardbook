@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import AgentCardSale, AgentProfile, Commission, Referral, ReferralInvitation, ReferralNotification
+from .models import AgentApplication, AgentCardSale, AgentProfile, Commission, Referral, ReferralInvitation, ReferralNotification
 from .services import approve_commission, mark_commission_paid
 
 
@@ -22,6 +22,14 @@ class AgentProfileAdmin(admin.ModelAdmin):
     list_filter = ["is_active", "created_at", "approved_at"]
     search_fields = ["agent_id", "referral_code", "user__username", "user__email", "user__first_name", "user__last_name"]
     readonly_fields = ["agent_id", "referral_code", "approved_at", "created_at"]
+
+
+@admin.register(AgentApplication)
+class AgentApplicationAdmin(admin.ModelAdmin):
+    list_display = ["full_name", "email", "phone_number", "city", "status", "created_at", "reviewed_at"]
+    list_filter = ["status", "created_at", "reviewed_at"]
+    search_fields = ["full_name", "email", "phone_number", "city", "reason"]
+    readonly_fields = ["created_at"]
 
 
 @admin.register(ReferralInvitation)

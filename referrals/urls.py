@@ -4,6 +4,7 @@ from .views import (
     AdminAgentListAPIView,
     AdminCommissionListAPIView,
     AdminReferralListAPIView,
+    AgentApplicationAPIView,
     AgentInviteAPIView,
     AgentLinkAPIView,
     AgentMeAPIView,
@@ -21,6 +22,7 @@ from .views import (
 
 
 urlpatterns = [
+    path("agent/apply/", AgentApplicationAPIView.as_view(), name="api-referral-agent-apply"),
     path("agent/invite/", AgentInviteAPIView.as_view(), name="api-referral-agent-invite"),
     path("agent/me/", AgentMeAPIView.as_view(), name="api-referral-agent-me"),
     path("agent/link/", AgentLinkAPIView.as_view(), name="api-referral-agent-link"),

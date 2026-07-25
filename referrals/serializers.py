@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from rest_framework import serializers
 
-from .models import AgentProfile, Commission, Referral, ReferralInvitation, ReferralNotification
+from .models import AgentApplication, AgentProfile, Commission, Referral, ReferralInvitation, ReferralNotification
 from .services import build_referral_link, generate_commission, invite_agent
 
 
@@ -54,6 +54,24 @@ class ReferralInvitationSerializer(serializers.ModelSerializer):
 class RegisterSourceSerializer(serializers.Serializer):
     referral_code = serializers.CharField(max_length=20)
     source_url = serializers.URLField(required=False, allow_blank=True)
+
+
+class AgentApplicationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AgentApplication
+        fields = [
+            "id",
+            "full_name",
+            "email",
+            "phone_number",
+            "city",
+            "experience",
+            "reason",
+            "status",
+            "created_at",
+            "reviewed_at",
+        ]
+        read_only_fields = ["id", "status", "created_at", "reviewed_at"]
 
 
 class ReferralSerializer(serializers.ModelSerializer):

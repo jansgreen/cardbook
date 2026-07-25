@@ -21,72 +21,15 @@
         </div>
 
         <nav class="sidebar-nav" aria-label="Dashboard">
-            <a class="{% if request.resolver_match.url_name == 'dashboard-home' %}active{% endif %}" href="{% url 'dashboard-home' %}">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h7V4H4v9Zm0 7h7v-5H4v5Zm9 0h7v-9h-7v9Zm0-16v5h7V4h-7Z"/></svg>
-                <span>Resumen</span>
-            </a>
-            <a class="{% if 'company' in request.resolver_match.url_name or request.resolver_match.url_name == 'dashboard-companies' %}active{% endif %}" href="{% url 'dashboard-companies' %}">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21V7l9-4 9 4v14h-6v-6H9v6H3Zm5-10h2V9H8v2Zm0 3h2v-2H8v2Zm6-3h2V9h-2v2Zm0 3h2v-2h-2v2Z"/></svg>
-                <span>Empresas</span>
-            </a>
-            <a class="{% if request.resolver_match.url_name == 'dashboard-company-website' %}active{% endif %}" href="{% if active_company %}{% url 'dashboard-company-website' active_company.id %}{% else %}{% url 'dashboard-companies' %}{% endif %}">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v14a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V5Zm3-1a1 1 0 0 0-1 1v2h12V5a1 1 0 0 0-1-1H7Zm11 5H6v10a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V9Zm-9 3h6v2H9v-2Zm0 4h4v2H9v-2Z"/></svg>
-                <span>Website Builder</span>
-            </a>
-            <a class="{% if 'form-builder' in request.resolver_match.url_name or 'form-field' in request.resolver_match.url_name %}active{% endif %}" href="{% if active_company %}{% url 'dashboard-form-builder-list' active_company.id %}{% else %}{% url 'dashboard-companies' %}{% endif %}">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm0 2v14h14V5H5Zm3 3h8v2H8V8Zm0 4h8v2H8v-2Zm0 4h5v2H8v-2Z"/></svg>
-                <span>Forms Builder</span>
-            </a>
-            <a class="{% if request.resolver_match.url_name == 'dashboard-ai-agents' %}active{% endif %}" href="{% url 'dashboard-ai-agents' %}">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 1 7 7v1.1a4 4 0 0 1 2 3.5V17a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4v-3.4a4 4 0 0 1 2-3.5V9a7 7 0 0 1 7-7Zm-5 9a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2H7Zm5-7a5 5 0 0 0-5 5h10a5 5 0 0 0-5-5Zm-3 9.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm6 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z"/></svg>
-                <span>Agentes IA</span>
-            </a>
-            <a class="{% if request.resolver_match.url_name == 'dashboard-cards' or request.resolver_match.url_name == 'dashboard-card-create' or request.resolver_match.url_name == 'dashboard-card-update' %}active{% endif %}" href="{% url 'dashboard-cards' %}">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Zm0 4h16V7H4v2Zm3 6h6v-2H7v2Z"/></svg>
-                <span>Perfil del negocio</span>
-            </a>
-            <a class="{% if 'business-card' in request.resolver_match.url_name or request.resolver_match.url_name == 'dashboard-business-cards' %}active{% endif %}" href="{% url 'dashboard-business-cards' %}">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5A2.5 2.5 0 0 1 5.5 4h13A2.5 2.5 0 0 1 21 6.5v11a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5v-11Zm3 2v2h7v-2H6Zm0 4v1.6h11.5v-1.6H6Zm0 3.2v1.6h8.5v-1.6H6Zm10.2-7.2a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6Z"/></svg>
-                <span>Presentacion</span>
-            </a>
-            <a class="{% if request.resolver_match.url_name == 'dashboard-analytics' %}active{% endif %}" href="{% url 'dashboard-analytics' %}">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V10h4v11H5Zm5 0V3h4v18h-4Zm5 0v-7h4v7h-4Z"/></svg>
-                <span>Estadistica</span>
-            </a>
-            <a class="{% if request.resolver_match.url_name == 'dashboard-book' %}active{% endif %}" href="{% url 'dashboard-book' %}">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4a3 3 0 0 1 3-3h11v18H8a3 3 0 0 0-3 3V4Zm3-1a1 1 0 0 0-1 1v13.2A4.96 4.96 0 0 1 8 17h9V3H8Zm2 4h5v2h-5V7Zm0 4h5v2h-5v-2Z"/></svg>
-                <span>Book</span>
-            </a>
-            <a class="{% if request.resolver_match.url_name == 'dashboard-notifications' %}active{% endif %}" href="{% url 'dashboard-notifications' %}">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22a2.8 2.8 0 0 0 2.7-2h-5.4A2.8 2.8 0 0 0 12 22Zm7-6V10a7 7 0 0 0-5-6.7V2h-4v1.3A7 7 0 0 0 5 10v6l-2 2v1h18v-1l-2-2Zm-2 1H7v-.2l.6-.6c.9-.9 1.4-2.1 1.4-3.4V10a3 3 0 1 1 6 0v2.8c0 1.3.5 2.5 1.4 3.4l.6.6v.2Z"/></svg>
-                <span>Notificaciones</span>
-                {% if dashboard_unread_notifications %}<small class="nav-badge">{{ dashboard_unread_notifications }}</small>{% endif %}
-            </a>
-            <a class="{% if request.resolver_match.url_name == 'dashboard-white-card-job' %}active{% endif %}" href="{% url 'dashboard-white-card-job' %}">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v14a2 2 0 0 1-3.1 1.7L12 17.4l-4.9 3.3A2 2 0 0 1 4 19V5Zm3-1a1 1 0 0 0-1 1v14l6-4 6 4V5a1 1 0 0 0-1-1H7Zm2 5h6v2H9V9Zm0 4h4v2H9v-2Z"/></svg>
-                <span>White Card Job</span>
-            </a>
-            {% can_manage_accesses request.user as show_access_control %}
-            {% if show_access_control %}
-            <a class="{% if request.resolver_match.url_name == 'dashboard-access-control' %}active{% endif %}" href="{% url 'dashboard-access-control' %}">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 10 4.6-.6 8-5 8-10V5l-8-3Zm0 3.1 5 1.9v4c0 3.7-2.1 6.8-5 7.8-2.9-1-5-4.1-5-7.8V7l5-1.9Zm-1 9.4 5-5-1.4-1.4L11 11.7 9.4 10.1 8 11.5l3 3Z"/></svg>
-                <span>Accesos</span>
-            </a>
-            {% endif %}
-            <a class="{% if request.resolver_match.url_name == 'dashboard-referrals' %}active{% endif %}" href="{% url 'dashboard-referrals' %}">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 11a4 4 0 1 0-3.7-5.5A5.98 5.98 0 0 0 2 10a6 6 0 0 0 10.3 4.2A4 4 0 1 0 16 11Zm-8 3a4 4 0 1 1 3.3-6.3A4 4 0 0 0 12 11c0 .6.1 1.1.4 1.6A4 4 0 0 1 8 14Zm8-5a2 2 0 1 1 0-4 2 2 0 0 1 0 4Zm0 11a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"/></svg>
-                <span>Referidos</span>
-            </a>
-            {% if request.user.is_superuser or perms.subscriptions.can_view_financial_dashboard %}
-            <a class="{% if request.resolver_match.url_name == 'finance-dashboard' or request.resolver_match.url_name == 'finance-revenue' or request.resolver_match.url_name == 'finance-subscriptions' or request.resolver_match.url_name == 'finance-companies' or request.resolver_match.url_name == 'finance-referrals' or request.resolver_match.url_name == 'finance-commissions' or request.resolver_match.url_name == 'finance-payments' or request.resolver_match.url_name == 'finance-refunds' or request.resolver_match.url_name == 'finance-reports' or request.resolver_match.url_name == 'finance-audit' %}active{% endif %}" href="{% url 'finance-dashboard' %}">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm0 4h16V6H4v2Zm3 4v2h5v-2H7Zm0 4v2h9v-2H7Zm11-4a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/></svg>
-                <span>Finanzas</span>
-            </a>
-            {% endif %}
-            <a href="{% url 'web-home' %}">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm6.9 9h-3.1a15.8 15.8 0 0 0-1.1-5 8.1 8.1 0 0 1 4.2 5ZM12 4.1c.8 1.1 1.5 3.1 1.8 5H10.2c.3-1.9 1-3.9 1.8-5ZM4.3 13h3.5c.1 1.8.5 3.5 1.1 4.9A8 8 0 0 1 4.3 13Zm3.5-2H4.3a8 8 0 0 1 4.6-4.9A15.6 15.6 0 0 0 7.8 11Zm4.2 8.9c-.8-1.1-1.5-3.1-1.8-5h3.6c-.3 1.9-1 3.9-1.8 5Zm2.2-7H9.8a14 14 0 0 1 0-2h4.4a14 14 0 0 1 0 2Zm.9 4.9c.6-1.4 1-3.1 1.1-4.9h3.5a8 8 0 0 1-4.6 4.9Zm1.1-6.9c-.1-1.8-.5-3.5-1.1-5a8.1 8.1 0 0 1 4.6 5h-3.5Z"/></svg>
-                <span>Sitio publico</span>
-            </a>
+            {% for item in dashboard_menu %}
+                <a class="{% if item.is_active %}active{% endif %}" href="{{ item.url }}">
+                    {{ item.icon|safe }}
+                    <span>{{ item.label }}</span>
+                    {% if item.badge_context == "dashboard_unread_notifications" and dashboard_unread_notifications %}
+                        <small class="nav-badge">{{ dashboard_unread_notifications }}</small>
+                    {% endif %}
+                </a>
+            {% endfor %}
         </nav>
 
         <div class="sidebar-foot">

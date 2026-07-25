@@ -108,7 +108,8 @@ Este comando revisa Django, metadata de Google Play, paginas legales, endpoints 
 .\tool\mobile_qa.ps1 -BuildDebug
 ```
 
-Para la matriz manual de pruebas, ver `docs/phase_19_mobile_qa.md`.
+Para la matriz manual de pruebas base, ver `docs/phase_19_mobile_qa.md`.
+Para el flujo real actualizado con tarjetas fisicas, OCR, borradores y build, ver `docs/phase_23_mobile_real_flow_qa.md`.
 
 ## Push notifications
 

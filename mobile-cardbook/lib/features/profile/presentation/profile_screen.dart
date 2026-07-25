@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:mobile_cardbook/core/config/api_config.dart';
 import 'package:mobile_cardbook/core/config/app_version.dart';
 import 'package:mobile_cardbook/core/platform/native_actions.dart';
-import 'package:mobile_cardbook/features/auth/data/auth_repository.dart';
+import 'package:mobile_cardbook/features/auth/data/session_controller.dart';
 import 'package:mobile_cardbook/features/profile/data/profile_repository.dart';
 import 'package:mobile_cardbook/features/updates/presentation/update_status_card.dart';
 import 'package:mobile_cardbook/shared/theme/app_theme.dart';
@@ -194,7 +194,7 @@ class _ProfileContent extends ConsumerWidget {
   }
 
   Future<void> _logout(BuildContext context, WidgetRef ref) async {
-    await ref.read(authRepositoryProvider).logout();
+    await ref.read(sessionControllerProvider.notifier).logout();
     ref.invalidate(profileProvider);
     if (context.mounted) context.go('/login');
   }

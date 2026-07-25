@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from memberships.models import CompanyMember
+from referrals.models import AgentApplication, AgentProfile, Referral
 
 
 class AndroidApiFlowTests(APITestCase):
@@ -62,6 +63,88 @@ class AndroidApiFlowTests(APITestCase):
         data = self.register_user()
         self.assertIn("access", data["tokens"])
         self.assertIn("refresh", data["tokens"])
+
+    def test_register_saves_registration_intent(self):
+        data = self.register_user(username="jobintent", email="jobintent@example.com")
+        user = get_user_model().objects.get(id=data["user"]["id"])
+        self.assertEqual(user.registration_intent, "")
+
+        response = self.client.post(
+            reverse("register"),
+            {
+                "username": "mobilejob",
+                "email": "mobilejob@example.com",
+                "password": "StrongPassword123!",
+                "password_confirm": "StrongPassword123!",
+                "preferred_language": "es",
+                "registration_intent": "job",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        user = get_user_model().objects.get(username="mobilejob")
+        self.assertEqual(user.registration_intent, "job")
+
+    def test_register_rejects_invalid_agent_referral_code(self):
+        response = self.client.post(
+            reverse("register"),
+            {
+                "username": "badagent",
+                "email": "badagent@example.com",
+                "password": "StrongPassword123!",
+                "password_confirm": "StrongPassword123!",
+                "registration_intent": "agent",
+                "referral_code": "AGT-NOPE",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(get_user_model().objects.filter(username="badagent").exists())
+
+    def test_register_agent_with_valid_referral_code_creates_referral(self):
+        agent = get_user_model().objects.create_user(
+            username="agentowner",
+            email="agentowner@example.com",
+            password="StrongPassword123!",
+        )
+        AgentProfile.objects.create(user=agent, referral_code="AGT-MOBILE")
+
+        response = self.client.post(
+            reverse("register"),
+            {
+                "username": "goodagent",
+                "email": "goodagent@example.com",
+                "password": "StrongPassword123!",
+                "password_confirm": "StrongPassword123!",
+                "registration_intent": "agent",
+                "referral_code": "AGT-MOBILE",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        user = get_user_model().objects.get(username="goodagent")
+        self.assertEqual(user.registration_intent, "agent")
+        self.assertTrue(Referral.objects.filter(referred_user=user, referral_code="AGT-MOBILE").exists())
+
+    def test_agent_application_api_creates_pending_application(self):
+        response = self.client.post(
+            "/api/v1/referrals/agent/apply/",
+            {
+                "full_name": "Ana Mobile",
+                "email": "ana.mobile@example.com",
+                "phone_number": "+18095550123",
+                "city": "Santo Domingo",
+                "experience": "Ventas y tecnologia.",
+                "reason": "Quiero representar Cardbook con empresas locales.",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(AgentApplication.objects.filter(email="ana.mobile@example.com").exists())
 
     def test_android_end_to_end_flow(self):
         self.authenticate()

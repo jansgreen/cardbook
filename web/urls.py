@@ -1,6 +1,6 @@
 from django.urls import path
 
-from accounts.web_views import WebLoginView, WebLogoutView, WebRegisterView
+from accounts.web_views import AgentApplicationView, RegistrationIntentView, WebLoginView, WebLogoutView, WebRegisterView
 from .views import (
     AboutView,
     AndroidApkDownloadView,
@@ -19,6 +19,8 @@ urlpatterns = [
     path("", HomeView.as_view(), name="web-home"),
     path("empresas/", PublicCompaniesView.as_view(), name="web-companies"),
     path("login/", WebLoginView.as_view(), name="web-login"),
+    path("register/start/", RegistrationIntentView.as_view(), name="web-register-intent"),
+    path("register/agent-application/", AgentApplicationView.as_view(), name="web-agent-application"),
     path("register/", WebRegisterView.as_view(), name="web-register"),
     path("logout/", WebLogoutView.as_view(), name="web-logout"),
     path("about/", AboutView.as_view(), name="web-about"),

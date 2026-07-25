@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Aplicar como agente - Cardbook{% endblock %}
+{% block content %}
+<section class="auth-page">
+    <div class="auth-shell register-shell">
+        <div class="auth-panel auth-brand-panel">
+            <img class="auth-logo" src="{% static 'img/logo.png' %}" alt="Cardbook logo">
+            <p class="eyebrow">Programa de agentes</p>
+            <h1>Aplica para ser agente Cardbook</h1>
+            <p>Si no tienes codigo de referido, dejanos tus datos. El equipo puede revisar tu solicitud y aprobarte como agente.</p>
+            <div class="auth-points">
+                <span>Comisiones</span>
+                <span>Referidos</span>
+                <span>Empresas</span>
+            </div>
+        </div>
+
+        <div class="auth-panel auth-form-panel">
+            <h2>Solicitud de agente</h2>
+            <p class="auth-subtitle">Despues de aplicar continuaras al registro normal de usuario.</p>
+            <form method="post" class="auth-form register-form" novalidate>
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <div class="form-alert">{{ form.non_field_errors }}</div>
+                {% endif %}
+                <label>Nombre completo{{ form.full_name }}{{ form.full_name.errors }}</label>
+                <label>Email{{ form.email }}{{ form.email.errors }}</label>
+                <label>Telefono{{ form.phone_number }}{{ form.phone_number.errors }}</label>
+                <label>Ciudad{{ form.city }}{{ form.city.errors }}</label>
+                <label class="form-wide">Experiencia{{ form.experience }}{{ form.experience.errors }}</label>
+                <label class="form-wide">Por que quieres ser agente?{{ form.reason }}{{ form.reason.errors }}</label>
+                <button class="btn btn-primary auth-submit" type="submit">Enviar solicitud y registrarme</button>
+            </form>
+            <p class="auth-switch"><a href="{% url 'web-register-intent' %}">Volver a la seleccion</a></p>
+        </div>
+    </div>
+</section>
+{% endblock %}

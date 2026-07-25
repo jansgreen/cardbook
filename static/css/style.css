@@ -956,6 +956,67 @@ textarea { min-height: 130px; resize: vertical; }
 .register-form {
     grid-template-columns: repeat(2, 1fr);
 }
+.register-form .form-wide {
+    grid-column: 1 / -1;
+}
+.register-intent-shell {
+    width: min(1120px, 100%);
+}
+.registration-intent-form {
+    gap: 18px;
+}
+.intent-choice-grid {
+    display: grid;
+    gap: 12px;
+}
+.intent-choice-card {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px;
+    border: 1px solid rgba(0,87,184,.14);
+    border-radius: 14px;
+    background: #fbfdff;
+    cursor: pointer;
+    transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+.intent-choice-card:hover,
+.intent-choice-card:has(input:checked) {
+    border-color: rgba(0,87,184,.45);
+    box-shadow: 0 14px 34px rgba(0, 56, 117, .12);
+    transform: translateY(-2px);
+}
+.intent-choice-card input {
+    margin-top: 4px;
+    accent-color: var(--cb-blue);
+}
+.intent-choice-card strong {
+    display: block;
+    color: var(--cb-blue-dark);
+    font-size: 1rem;
+}
+.intent-choice-card small {
+    display: block;
+    margin-top: 5px;
+    color: var(--cb-muted);
+    line-height: 1.45;
+}
+.agent-code-panel {
+    display: none;
+    padding: 16px;
+    border-radius: 14px;
+    background: #f3f7fc;
+    border: 1px solid rgba(0,87,184,.1);
+}
+.registration-intent-form:has(input[value="agent"]:checked) .agent-code-panel {
+    display: block;
+}
+.agent-code-panel p {
+    margin: 8px 0 0;
+    color: var(--cb-muted);
+    font-size: .9rem;
+}
 .auth-form label {
     display: grid;
     gap: 7px;

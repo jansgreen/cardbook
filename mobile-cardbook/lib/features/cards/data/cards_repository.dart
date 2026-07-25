@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dio/dio.dart';
 import 'package:mobile_cardbook/core/network/api_client.dart';
 import 'package:mobile_cardbook/core/network/api_response.dart';
 import 'package:mobile_cardbook/core/storage/offline_cache.dart';
@@ -68,8 +69,10 @@ class CardRepository {
 
   Future<Map<String, dynamic>> createBusiness(
       Map<String, dynamic> payload) async {
-    final response = await _apiClient.dio
-        .post<Map<String, dynamic>>('/cards/business-cards/', data: payload);
+    final response = await _apiClient.dio.post<Map<String, dynamic>>(
+      '/cards/business-cards/',
+      data: await _businessPayload(payload),
+    );
     return extractData(response.data);
   }
 
@@ -77,12 +80,35 @@ class CardRepository {
       int id, Map<String, dynamic> payload) async {
     final response = await _apiClient.dio.patch<Map<String, dynamic>>(
         '/cards/business-cards/$id/',
-        data: payload);
+        data: await _businessPayload(payload));
     return extractData(response.data);
   }
 
   Future<void> deleteBusiness(int id) async {
     await _apiClient.dio
         .delete<Map<String, dynamic>>('/cards/business-cards/$id/');
+  }
+
+  Future<dynamic> _businessPayload(Map<String, dynamic> payload) async {
+    final frontPath = payload.remove('_physical_card_front_path')?.toString();
+    final backPath = payload.remove('_physical_card_back_path')?.toString();
+    if ((frontPath == null || frontPath.isEmpty) &&
+        (backPath == null || backPath.isEmpty)) {
+      return payload;
+    }
+    final formData = FormData.fromMap(payload);
+    if (frontPath != null && frontPath.isNotEmpty) {
+      formData.files.add(MapEntry(
+        'physical_card_front_image',
+        await MultipartFile.fromFile(frontPath),
+      ));
+    }
+    if (backPath != null && backPath.isNotEmpty) {
+      formData.files.add(MapEntry(
+        'physical_card_back_image',
+        await MultipartFile.fromFile(backPath),
+      ));
+    }
+    return formData;
   }
 }

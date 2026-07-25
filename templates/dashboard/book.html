@@ -5,12 +5,22 @@
 {% block dashboard_content %}
 <section class="dashboard-heading action-heading">
     <div>
-        <p>Red profesional</p>
-        <h1>Book</h1>
+        <p>{% if dashboard_user_type == "job" %}Coleccion profesional{% else %}Red profesional{% endif %}</p>
+        <h1>{% if dashboard_user_type == "job" %}Mi Book{% else %}Book{% endif %}</h1>
     </div>
     <span class="status-pill">{{ book_count }} negocios guardados</span>
 </section>
 
+{% if dashboard_user_type == "job" %}
+<section class="book-job-intro">
+    <div>
+        <span>Gratis para candidatos</span>
+        <h2>Guarda tarjetas y perfiles digitales que compartan contigo</h2>
+        <p>Tu Book conserva negocios, contactos profesionales, perfiles digitales y tarjetas de presentacion sin necesidad de crear una empresa.</p>
+    </div>
+    <a href="{% url 'web-companies' %}">Explorar empresas</a>
+</section>
+{% else %}
 <section class="book-hiring-shell">
     <div class="book-hiring-head">
         <div>
@@ -111,6 +121,7 @@
         {% endfor %}
     </div>
 </section>
+{% endif %}
 
 <section class="dashboard-heading">
     <p>Tarjetas empresariales</p>
@@ -149,8 +160,14 @@
         </article>
     {% empty %}
         <article class="panel">
-            <h2>Tu Book esta vacio</h2>
-            <p>Cuando otro negocio comparta su perfil o tarjeta contigo, usa el boton "Guardar en Book" para conservarlo en tu cuenta.</p>
+            {% if dashboard_user_type == "job" %}
+                <h2>Guarda tarjetas que compartan contigo</h2>
+                <p>Cuando una empresa o profesional te comparta su perfil digital, guardalo aqui para tenerlo siempre en tu cuenta.</p>
+                <div class="quick-actions"><a href="{% url 'web-companies' %}">Explorar empresas</a></div>
+            {% else %}
+                <h2>Tu Book esta vacio</h2>
+                <p>Cuando otro negocio comparta su perfil o tarjeta contigo, usa el boton "Guardar en Book" para conservarlo en tu cuenta.</p>
+            {% endif %}
         </article>
     {% endfor %}
 </section>

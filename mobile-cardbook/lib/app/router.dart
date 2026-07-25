@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:mobile_cardbook/features/ai_agents/presentation/ai_agents_screen.dart';
 import 'package:mobile_cardbook/features/alliances/presentation/alliances_screen.dart';
 import 'package:mobile_cardbook/features/auth/presentation/login_screen.dart';
 import 'package:mobile_cardbook/features/auth/presentation/register_screen.dart';
@@ -11,6 +12,7 @@ import 'package:mobile_cardbook/features/companies/presentation/company_detail_s
 import 'package:mobile_cardbook/features/companies/presentation/company_form_screen.dart';
 import 'package:mobile_cardbook/features/companies/presentation/companies_screen.dart';
 import 'package:mobile_cardbook/features/diagnostics/presentation/diagnostics_screen.dart';
+import 'package:mobile_cardbook/features/forms/presentation/forms_screen.dart';
 import 'package:mobile_cardbook/features/home/presentation/home_screen.dart';
 import 'package:mobile_cardbook/features/jobs/presentation/job_form_screen.dart';
 import 'package:mobile_cardbook/features/jobs/presentation/jobs_screen.dart';
@@ -108,6 +110,10 @@ final appRouter = GoRouter(
     ),
     GoRoute(
         path: '/websites', builder: (context, state) => const WebsitesScreen()),
+    GoRoute(path: '/forms', builder: (context, state) => const FormsScreen()),
+    GoRoute(
+        path: '/ai-agents',
+        builder: (context, state) => const AIAgentsScreen()),
     GoRoute(
         path: '/notifications',
         builder: (context, state) => const NotificationsScreen()),

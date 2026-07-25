@@ -100,6 +100,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
+    "dashboard.middleware.DashboardAccessPolicyMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
@@ -118,6 +119,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "referrals.context_processors.dashboard_notifications",
                 "ai_agents.context_processors.dashboard_ai_guide",
+                "dashboard.context_processors.dashboard_access_menu",
             ],
         },
     },

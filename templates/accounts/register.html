@@ -18,7 +18,17 @@
 
         <div class="auth-panel auth-form-panel">
             <h2>Registro</h2>
-            <p class="auth-subtitle">Despues de crear tu cuenta entraras directo al dashboard.</p>
+            <p class="auth-subtitle">
+                {% if registration_intent == "company" %}
+                    Configuraremos tu cuenta para crear y administrar empresas.
+                {% elif registration_intent == "job" %}
+                    Configuraremos tu cuenta para crear tu White Card Job.
+                {% elif registration_intent == "agent" %}
+                    Configuraremos tu cuenta como aspirante o referido de agente Cardbook.
+                {% else %}
+                    Despues de crear tu cuenta entraras directo al dashboard.
+                {% endif %}
+            </p>
             <form method="post" class="auth-form register-form" novalidate>
                 {% csrf_token %}
                 {% if form.non_field_errors %}

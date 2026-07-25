@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_cardbook/core/config/api_config.dart';
 import 'package:mobile_cardbook/core/platform/native_actions.dart';
+import 'package:mobile_cardbook/features/book/data/book_repository.dart';
 import 'package:mobile_cardbook/features/cards/data/cards_repository.dart';
+import 'package:mobile_cardbook/features/home/data/mobile_bootstrap_repository.dart';
 import 'package:mobile_cardbook/shared/theme/app_theme.dart';
 import 'package:mobile_cardbook/shared/widgets/app_gradient_background.dart';
 import 'package:mobile_cardbook/shared/widgets/glass_card.dart';
@@ -42,6 +44,10 @@ class CardDetailScreen extends ConsumerWidget {
     final publicUrl = slug.isEmpty
         ? ApiConfig.publicBase
         : '${ApiConfig.publicBase}$publicPath';
+    final bootstrap = ref.watch(mobileBootstrapProvider).valueOrNull;
+    final canManage = isBusinessCard
+        ? (bootstrap?.can('can_create_business_card') ?? false)
+        : (bootstrap?.can('can_create_digital_card') ?? false);
 
     return Scaffold(
       body: AppGradientBackground(
@@ -75,14 +81,15 @@ class CardDetailScreen extends ConsumerWidget {
                     ),
                     icon: const Icon(Icons.share_rounded),
                   ),
-                  IconButton(
-                    onPressed: () => context.push(
-                        isBusinessCard
-                            ? '/cards/business/form'
-                            : '/cards/digital/form',
-                        extra: card),
-                    icon: const Icon(Icons.edit_rounded),
-                  ),
+                  if (canManage)
+                    IconButton(
+                      onPressed: () => context.push(
+                          isBusinessCard
+                              ? '/cards/business/form'
+                              : '/cards/digital/form',
+                          extra: card),
+                      icon: const Icon(Icons.edit_rounded),
+                    ),
                 ],
               ),
               const SizedBox(height: 12),
@@ -198,16 +205,87 @@ class CardDetailScreen extends ConsumerWidget {
                     ),
                     _ActionSlot(
                       child: NativeActionButton(
-                        icon: Icons.delete_outline_rounded,
-                        label: 'Eliminar',
-                        color: AppColors.red,
-                        onTap: () =>
-                            _confirmDelete(context, ref, title, isBusinessCard),
+                        icon: Icons.bookmark_add_rounded,
+                        label: 'Book',
+                        color: AppColors.cyan,
+                        onTap: () => _saveToBook(context, ref, isBusinessCard),
                       ),
                     ),
+                    if (canManage)
+                      _ActionSlot(
+                        child: NativeActionButton(
+                          icon: Icons.delete_outline_rounded,
+                          label: 'Eliminar',
+                          color: AppColors.red,
+                          onTap: () => _confirmDelete(
+                              context, ref, title, isBusinessCard),
+                        ),
+                      ),
                   ],
                 ),
               ),
+              if (isBusinessCard &&
+                  (_text(card['physical_card_front_image']).isNotEmpty ||
+                      _text(card['physical_card_back_image']).isNotEmpty)) ...[
+                const SizedBox(height: 18),
+                GlassCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(Icons.document_scanner_rounded,
+                              color: AppColors.gold, size: 20),
+                          SizedBox(width: 8),
+                          Text('Tarjeta fisica importada',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.w900)),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          FilledButton.icon(
+                            onPressed: () => NativeActions.shareText(
+                              title,
+                              'Mira mi tarjeta de presentacion en Cardbook: $publicUrl',
+                            ),
+                            icon: const Icon(Icons.ios_share_rounded),
+                            label: const Text('Compartir tarjeta'),
+                          ),
+                          OutlinedButton.icon(
+                            onPressed: () async {
+                              await NativeActions.copyText(publicUrl);
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('Enlace copiado.')),
+                              );
+                            },
+                            icon: const Icon(Icons.copy_rounded),
+                            label: const Text('Copiar enlace'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      _ImportedScanPreview(
+                        label: 'Frente',
+                        url: _text(card['physical_card_front_image']),
+                      ),
+                      if (_text(card['physical_card_back_image'])
+                          .isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        _ImportedScanPreview(
+                          label: 'Reverso',
+                          url: _text(card['physical_card_back_image']),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: 18),
               GlassCard(
                 child: Column(
@@ -273,6 +351,152 @@ class CardDetailScreen extends ConsumerWidget {
       }
     }
   }
+
+  Future<void> _saveToBook(
+      BuildContext context, WidgetRef ref, bool isBusinessCard) async {
+    final id = card['id'];
+    if (id is! int) return;
+    try {
+      final repository = ref.read(bookRepositoryProvider);
+      if (isBusinessCard) {
+        await repository.saveBusinessCard(id);
+      } else {
+        await repository.saveDigitalCard(id);
+      }
+      ref.invalidate(bookProvider);
+      ref.invalidate(mobileBookProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Guardado en Book.')),
+        );
+      }
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No pudimos guardar en Book.')),
+        );
+      }
+    }
+  }
+}
+
+class _ImportedScanPreview extends StatelessWidget {
+  const _ImportedScanPreview({required this.label, required this.url});
+
+  final String label;
+  final String url;
+
+  @override
+  Widget build(BuildContext context) {
+    if (url.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900)),
+        const SizedBox(height: 8),
+        AspectRatio(
+          aspectRatio: 1.75,
+          child: InkWell(
+            onTap: () => _showFullScanImage(context, label: label, url: url),
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            child: Container(
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                color: AppColors.panelSoft,
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(color: AppColors.stroke),
+              ),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.network(url, fit: BoxFit.cover),
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: Container(
+                      margin: const EdgeInsets.all(10),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppColors.ink.withValues(alpha: .72),
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(color: AppColors.stroke),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.zoom_out_map_rounded,
+                              size: 14, color: AppColors.text),
+                          SizedBox(width: 5),
+                          Text(
+                            'Ampliar',
+                            style: TextStyle(
+                                fontSize: 11, fontWeight: FontWeight.w800),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+void _showFullScanImage(BuildContext context,
+    {required String label, required String url}) {
+  showDialog<void>(
+    context: context,
+    builder: (dialogContext) {
+      return Dialog(
+        backgroundColor: AppColors.ink,
+        insetPadding: const EdgeInsets.all(16),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          child: Stack(
+            children: [
+              InteractiveViewer(
+                minScale: .7,
+                maxScale: 4,
+                child: AspectRatio(
+                  aspectRatio: 1.75,
+                  child: Image.network(url, fit: BoxFit.contain),
+                ),
+              ),
+              Positioned(
+                left: 12,
+                top: 12,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.ink.withValues(alpha: .75),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    label,
+                    style: const TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                ),
+              ),
+              Positioned(
+                right: 6,
+                top: 6,
+                child: IconButton.filledTonal(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  icon: const Icon(Icons.close_rounded),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
 }
 
 class _ActionSlot extends StatelessWidget {

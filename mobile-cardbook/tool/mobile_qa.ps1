@@ -90,6 +90,8 @@ Push-Location $ProjectRoot
 try {
     Invoke-Step "Django system check" { .\cb_env\Scripts\python.exe manage.py check }
     Invoke-Step "Mobile BFF tests" { .\cb_env\Scripts\python.exe manage.py test mobile }
+    Invoke-Step "Cards API tests" { .\cb_env\Scripts\python.exe manage.py test cards }
+    Invoke-Step "White Card Job tests" { .\cb_env\Scripts\python.exe manage.py test jobcards }
     Invoke-Step "Support API tests" { .\cb_env\Scripts\python.exe manage.py test support }
     Invoke-Step "Push API tests" { .\cb_env\Scripts\python.exe manage.py test pushnotifications }
 }

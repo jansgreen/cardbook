@@ -85,8 +85,13 @@
     {% else %}
         <article class="referral-empty-agent">
             <p>Sin perfil de agente</p>
-            <h2>Tu usuario todavia no tiene un perfil de agente activo.</h2>
-            <span>Un administrador puede invitarte o crear tu AgentProfile desde el admin/API.</span>
+            {% if agent_application %}
+                <h2>Tu solicitud esta en revision.</h2>
+                <span>Solicitud enviada el {{ agent_application.created_at|date:"d M Y" }}. Estado: {{ agent_application.get_status_display }}.</span>
+            {% else %}
+                <h2>Tu usuario todavia no tiene un perfil de agente activo.</h2>
+                <span>Un administrador puede aprobar tu solicitud o crear tu AgentProfile desde el admin/API.</span>
+            {% endif %}
         </article>
     {% endif %}
 

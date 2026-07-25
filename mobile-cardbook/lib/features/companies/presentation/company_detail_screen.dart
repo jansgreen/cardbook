@@ -5,6 +5,7 @@ import 'package:mobile_cardbook/core/config/api_config.dart';
 import 'package:mobile_cardbook/core/platform/native_actions.dart';
 import 'package:mobile_cardbook/features/book/data/book_repository.dart';
 import 'package:mobile_cardbook/features/companies/data/companies_repository.dart';
+import 'package:mobile_cardbook/features/home/data/mobile_bootstrap_repository.dart';
 import 'package:mobile_cardbook/features/notifications/data/notifications_repository.dart';
 import 'package:mobile_cardbook/shared/theme/app_theme.dart';
 import 'package:mobile_cardbook/shared/widgets/app_gradient_background.dart';
@@ -33,6 +34,11 @@ class CompanyDetailScreen extends ConsumerWidget {
     final logo = _text(company['logo']);
     final slug = _text(company['slug']);
     final companyId = _intValue(company['id']);
+    final bootstrap = ref.watch(mobileBootstrapProvider).valueOrNull;
+    final canCreateDigital = bootstrap?.can('can_create_digital_card') ?? false;
+    final canCreateBusiness =
+        bootstrap?.can('can_create_business_card') ?? false;
+    final canCreateCompany = bootstrap?.can('can_create_company') ?? false;
     final publicUrl = slug.isEmpty
         ? ApiConfig.publicBase
         : '${ApiConfig.publicBase}/business/$slug/';
@@ -67,11 +73,12 @@ class CompanyDetailScreen extends ConsumerWidget {
                     ),
                     icon: const Icon(Icons.share_rounded),
                   ),
-                  IconButton(
-                    onPressed: () =>
-                        context.push('/companies/form', extra: company),
-                    icon: const Icon(Icons.edit_rounded),
-                  ),
+                  if (canCreateCompany)
+                    IconButton(
+                      onPressed: () =>
+                          context.push('/companies/form', extra: company),
+                      icon: const Icon(Icons.edit_rounded),
+                    ),
                 ],
               ),
               const SizedBox(height: 12),
@@ -178,24 +185,26 @@ class CompanyDetailScreen extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    _ActionSlot(
-                      child: NativeActionButton(
-                        icon: Icons.badge_rounded,
-                        label: 'Crear perfil',
-                        color: AppColors.blue,
-                        onTap: () => context.push('/cards/digital/form',
-                            extra: {'initialCompany': company}),
+                    if (canCreateDigital)
+                      _ActionSlot(
+                        child: NativeActionButton(
+                          icon: Icons.badge_rounded,
+                          label: 'Crear perfil',
+                          color: AppColors.blue,
+                          onTap: () => context.push('/cards/digital/form',
+                              extra: {'initialCompany': company}),
+                        ),
                       ),
-                    ),
-                    _ActionSlot(
-                      child: NativeActionButton(
-                        icon: Icons.contact_mail_rounded,
-                        label: 'Crear tarjeta',
-                        color: AppColors.gold,
-                        onTap: () => context.push('/cards/business/form',
-                            extra: {'initialCompany': company}),
+                    if (canCreateBusiness)
+                      _ActionSlot(
+                        child: NativeActionButton(
+                          icon: Icons.contact_mail_rounded,
+                          label: 'Crear tarjeta',
+                          color: AppColors.gold,
+                          onTap: () => context.push('/cards/business/form',
+                              extra: {'initialCompany': company}),
+                        ),
                       ),
-                    ),
                     _ActionSlot(
                       child: NativeActionButton(
                         icon: Icons.open_in_new_rounded,
@@ -224,14 +233,15 @@ class CompanyDetailScreen extends ConsumerWidget {
                             : () => _requestAlliance(context, ref, companyId),
                       ),
                     ),
-                    _ActionSlot(
-                      child: NativeActionButton(
-                        icon: Icons.delete_outline_rounded,
-                        label: 'Eliminar',
-                        color: AppColors.red,
-                        onTap: () => _confirmDelete(context, ref, name),
+                    if (canCreateCompany)
+                      _ActionSlot(
+                        child: NativeActionButton(
+                          icon: Icons.delete_outline_rounded,
+                          label: 'Eliminar',
+                          color: AppColors.red,
+                          onTap: () => _confirmDelete(context, ref, name),
+                        ),
                       ),
-                    ),
                   ],
                 ),
               ),

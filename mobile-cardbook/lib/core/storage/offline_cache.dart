@@ -43,6 +43,13 @@ class OfflineCache {
     await file.writeAsString(jsonEncode(value), flush: true);
   }
 
+  Future<void> remove(String key) async {
+    final file = await _fileFor(key);
+    if (await file.exists()) {
+      await file.delete();
+    }
+  }
+
   Future<File> _fileFor(String key) async {
     final directory = await getApplicationSupportDirectory();
     final cacheDirectory =

@@ -45,6 +45,35 @@ class AgentProfile(models.Model):
         return f"{self.agent_id} - {self.user}"
 
 
+class AgentApplication(models.Model):
+    STATUS_PENDING = "pending"
+    STATUS_REVIEWING = "reviewing"
+    STATUS_APPROVED = "approved"
+    STATUS_REJECTED = "rejected"
+    STATUS_CHOICES = [
+        (STATUS_PENDING, "Pending"),
+        (STATUS_REVIEWING, "Reviewing"),
+        (STATUS_APPROVED, "Approved"),
+        (STATUS_REJECTED, "Rejected"),
+    ]
+
+    full_name = models.CharField(max_length=180)
+    email = models.EmailField()
+    phone_number = models.CharField(max_length=40, blank=True)
+    city = models.CharField(max_length=120, blank=True)
+    experience = models.TextField(blank=True)
+    reason = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.full_name} - {self.email}"
+
+
 class ReferralInvitation(models.Model):
     STATUS_PENDING = "pending"
     STATUS_ACCEPTED = "accepted"

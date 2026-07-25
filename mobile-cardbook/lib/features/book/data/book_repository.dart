@@ -55,6 +55,24 @@ class BookRepository {
     return extractData(response.data);
   }
 
+  Future<Map<String, dynamic>> saveDigitalCard(int cardId,
+      {String notes = ''}) async {
+    final response = await _apiClient.dio.post<Map<String, dynamic>>(
+      '/book/',
+      data: {'digital_card': cardId, 'notes': notes},
+    );
+    return extractData(response.data);
+  }
+
+  Future<Map<String, dynamic>> saveBusinessCard(int cardId,
+      {String notes = ''}) async {
+    final response = await _apiClient.dio.post<Map<String, dynamic>>(
+      '/book/',
+      data: {'business_card': cardId, 'notes': notes},
+    );
+    return extractData(response.data);
+  }
+
   Future<void> remove(int id) async {
     await _apiClient.dio.delete<Map<String, dynamic>>('/book/$id/');
   }

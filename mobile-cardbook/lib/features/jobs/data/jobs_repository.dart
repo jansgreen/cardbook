@@ -72,9 +72,24 @@ class JobRepository {
 
   Future<dynamic> _payload(Map<String, dynamic> payload,
       {required String photoPath}) async {
-    if (photoPath.trim().isEmpty) return payload;
+    final frontPath = payload.remove('_physical_card_front_path')?.toString();
+    final backPath = payload.remove('_physical_card_back_path')?.toString();
+    if (photoPath.trim().isEmpty &&
+        (frontPath == null || frontPath.isEmpty) &&
+        (backPath == null || backPath.isEmpty)) {
+      return payload;
+    }
     final data = Map<String, dynamic>.from(payload);
-    data['photo'] = await MultipartFile.fromFile(photoPath);
+    if (photoPath.trim().isNotEmpty) {
+      data['photo'] = await MultipartFile.fromFile(photoPath);
+    }
+    if (frontPath != null && frontPath.isNotEmpty) {
+      data['physical_card_front_image'] =
+          await MultipartFile.fromFile(frontPath);
+    }
+    if (backPath != null && backPath.isNotEmpty) {
+      data['physical_card_back_image'] = await MultipartFile.fromFile(backPath);
+    }
     return FormData.fromMap(data);
   }
 }

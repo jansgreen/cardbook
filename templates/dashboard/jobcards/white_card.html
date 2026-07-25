@@ -14,6 +14,16 @@
             <a href="{{ public_url }}" target="_blank" rel="noopener">Vista publica</a>
         {% endif %}
     </div>
+    {% if not job_card %}
+        <section class="dashboard-next-step white-card-next-step">
+            <div>
+                <span>Tu tarjeta laboral</span>
+                <h2>Crea tu White Card Job para compartirla con empresas</h2>
+                <p>Selecciona la categoria donde quieres laborar, agrega tus datos y el sistema generara tu tarjeta publica con QR.</p>
+            </div>
+            <a href="#white-card-form">Completar datos</a>
+        </section>
+    {% endif %}
 
     <section class="white-card-crud-strip">
         <article class="{% if not job_card %}active{% endif %}">
@@ -39,7 +49,7 @@
     </section>
 
     <div class="white-card-dashboard-grid">
-        <form class="panel dashboard-form white-card-form {% if not can_create_job_card %}locked{% endif %}" method="post" enctype="multipart/form-data">
+        <form id="white-card-form" class="panel dashboard-form white-card-form {% if not can_create_job_card %}locked{% endif %}" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="white-card-form-head">
                     <div>

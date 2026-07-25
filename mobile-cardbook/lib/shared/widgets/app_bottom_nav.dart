@@ -1,21 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mobile_cardbook/features/home/data/mobile_bootstrap_repository.dart';
+import 'package:mobile_cardbook/shared/navigation/mobile_navigation.dart';
 import 'package:mobile_cardbook/shared/theme/app_theme.dart';
 
-class AppBottomNav extends StatelessWidget {
+class AppBottomNav extends ConsumerWidget {
   const AppBottomNav({required this.currentIndex, super.key});
 
   final int? currentIndex;
 
   @override
-  Widget build(BuildContext context) {
-    final items = [
-      _NavItem('Inicio', Icons.home_outlined, '/'),
-      _NavItem('Empresas', Icons.business_center_outlined, '/companies'),
-      _NavItem('Tarjetas', Icons.qr_code_2_outlined, '/cards'),
-      _NavItem('Book', Icons.bookmarks_outlined, '/book'),
-      _NavItem('Perfil', Icons.person_outline, '/profile'),
-    ];
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bootstrap = ref.watch(mobileBootstrapProvider);
+    final items = bootstrap.maybeWhen(
+      data: bottomNavigationFromBootstrap,
+      orElse: () => const [
+        AppNavItem(
+          key: 'home',
+          label: 'Inicio',
+          description: 'Resumen general.',
+          icon: Icons.home_rounded,
+          path: '/',
+        ),
+        AppNavItem(
+          key: 'profile',
+          label: 'Perfil',
+          description: 'Cuenta.',
+          icon: Icons.person_rounded,
+          path: '/profile',
+        ),
+      ],
+    );
+    final currentPath = GoRouterState.of(context).uri.path;
 
     return SafeArea(
       top: false,
@@ -40,8 +57,7 @@ class AppBottomNav extends StatelessWidget {
             for (int i = 0; i < items.length; i++)
               _BottomNavButton(
                 item: items[i],
-                selected: i == currentIndex,
-                isPrimary: false,
+                selected: itemIsSelected(items[i], currentPath, i),
                 onTap: () => context.go(items[i].path),
               ),
           ],
@@ -49,51 +65,27 @@ class AppBottomNav extends StatelessWidget {
       ),
     );
   }
-}
 
-class _NavItem {
-  const _NavItem(this.label, this.icon, this.path);
-  final String label;
-  final IconData icon;
-  final String path;
+  bool itemIsSelected(AppNavItem item, String currentPath, int index) {
+    if (currentPath == item.path) return true;
+    if (item.path != '/' && currentPath.startsWith(item.path)) return true;
+    return currentIndex != null && index == currentIndex && currentPath == '/';
+  }
 }
 
 class _BottomNavButton extends StatelessWidget {
   const _BottomNavButton({
     required this.item,
     required this.selected,
-    required this.isPrimary,
     required this.onTap,
   });
 
-  final _NavItem item;
+  final AppNavItem item;
   final bool selected;
-  final bool isPrimary;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    if (isPrimary) {
-      return GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width: 54,
-          height: 54,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: AppGradients.primary,
-            boxShadow: [
-              BoxShadow(
-                color: Color(0x663B36FF),
-                blurRadius: 18,
-                offset: Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Icon(item.icon, color: Colors.white),
-        ),
-      );
-    }
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),

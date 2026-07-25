@@ -40,8 +40,10 @@ class AuthRepository {
     required String email,
     required String password,
     required String passwordConfirm,
+    required String registrationIntent,
     String firstName = '',
     String lastName = '',
+    String referralCode = '',
   }) async {
     final response = await _apiClient.dio.post<Map<String, dynamic>>(
       '/accounts/register/',
@@ -53,6 +55,9 @@ class AuthRepository {
         'first_name': firstName,
         'last_name': lastName,
         'preferred_language': 'es',
+        'registration_intent': registrationIntent,
+        if (referralCode.trim().isNotEmpty)
+          'referral_code': referralCode.trim(),
       },
     );
     final data = response.data?['data'] as Map<String, dynamic>? ?? {};
@@ -84,5 +89,26 @@ class AuthRepository {
       }
     }
     await _tokenStorage.clear();
+  }
+
+  Future<void> applyAsAgent({
+    required String fullName,
+    required String email,
+    required String reason,
+    String phoneNumber = '',
+    String city = '',
+    String experience = '',
+  }) async {
+    await _apiClient.dio.post<Map<String, dynamic>>(
+      '/referrals/agent/apply/',
+      data: {
+        'full_name': fullName,
+        'email': email,
+        'phone_number': phoneNumber,
+        'city': city,
+        'experience': experience,
+        'reason': reason,
+      },
+    );
   }
 }

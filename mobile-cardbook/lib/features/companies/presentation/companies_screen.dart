@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_cardbook/features/companies/data/companies_repository.dart';
+import 'package:mobile_cardbook/features/home/data/mobile_bootstrap_repository.dart';
 import 'package:mobile_cardbook/shared/theme/app_theme.dart';
 import 'package:mobile_cardbook/shared/widgets/app_bottom_nav.dart';
 import 'package:mobile_cardbook/shared/widgets/app_gradient_background.dart';
@@ -12,13 +13,29 @@ import 'package:mobile_cardbook/shared/widgets/glass_card.dart';
 import 'package:mobile_cardbook/shared/widgets/section_header.dart';
 import 'package:mobile_cardbook/shared/widgets/status_badge.dart';
 
-class CompaniesScreen extends ConsumerWidget {
+class CompaniesScreen extends ConsumerStatefulWidget {
   const CompaniesScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CompaniesScreen> createState() => _CompaniesScreenState();
+}
+
+class _CompaniesScreenState extends ConsumerState<CompaniesScreen> {
+  final _search = TextEditingController();
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final companies = ref.watch(companiesProvider);
     final recommended = ref.watch(recommendedCompaniesProvider);
+    final bootstrap = ref.watch(mobileBootstrapProvider);
+    final canCreateCompany =
+        bootstrap.valueOrNull?.can('can_create_company') ?? false;
 
     return Scaffold(
       body: AppGradientBackground(
@@ -39,14 +56,21 @@ class CompaniesScreen extends ConsumerWidget {
                 const SizedBox(height: 24),
                 const _CompaniesHero(),
                 const SizedBox(height: 18),
+                _SearchBox(
+                  controller: _search,
+                  onChanged: (_) => setState(() {}),
+                ),
+                const SizedBox(height: 18),
                 GlassCard(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       SectionHeader(
                         title: 'Mis empresas',
-                        actionLabel: 'Nueva',
-                        onAction: () => context.push('/companies/form'),
+                        actionLabel: canCreateCompany ? 'Nueva' : null,
+                        onAction: canCreateCompany
+                            ? () => context.push('/companies/form')
+                            : null,
                       ),
                       const SizedBox(height: 12),
                       companies.when(
@@ -57,35 +81,47 @@ class CompaniesScreen extends ConsumerWidget {
                           actionLabel: 'Reintentar',
                           onAction: () => ref.invalidate(companiesProvider),
                         ),
-                        data: (items) => items.isEmpty
-                            ? AsyncStateView.empty(
-                                'Crea tu primera empresa para publicar perfiles, tarjetas, websites y alianzas.',
-                                title: 'Empieza con una empresa',
-                                icon: Icons.add_business_rounded,
-                                actionLabel: 'Crear empresa',
-                                onAction: () => context.push('/companies/form'),
-                              )
-                            : Column(
-                                children: [
-                                  for (final company in items) ...[
-                                    CompanyTile(
-                                      name: company['name']?.toString() ??
-                                          'Empresa',
-                                      description:
-                                          company['description']?.toString() ??
-                                              company['category']?.toString() ??
-                                              'Empresa Cardbook',
-                                      rating: _compactNumber(
-                                          company['efficient_count']),
-                                      logoUrl: company['logo']?.toString(),
-                                      onTap: () => context.push(
-                                          '/companies/detail',
-                                          extra: company),
-                                    ),
-                                    const SizedBox(height: 10),
+                        data: (items) {
+                          final filtered = _filterCompanies(items);
+                          return filtered.isEmpty
+                              ? AsyncStateView.empty(
+                                  canCreateCompany
+                                      ? 'Crea tu primera empresa para publicar perfiles, tarjetas, websites y alianzas.'
+                                      : 'No tienes empresas propias. Puedes explorar recomendadas y guardar negocios en Book.',
+                                  title: canCreateCompany
+                                      ? 'Empieza con una empresa'
+                                      : 'Sin empresas propias',
+                                  icon: canCreateCompany
+                                      ? Icons.add_business_rounded
+                                      : Icons.travel_explore_rounded,
+                                  actionLabel:
+                                      canCreateCompany ? 'Crear empresa' : null,
+                                  onAction: canCreateCompany
+                                      ? () => context.push('/companies/form')
+                                      : null,
+                                )
+                              : Column(
+                                  children: [
+                                    for (final company in filtered) ...[
+                                      CompanyTile(
+                                        name: company['name']?.toString() ??
+                                            'Empresa',
+                                        description: company['description']
+                                                ?.toString() ??
+                                            company['category']?.toString() ??
+                                            'Empresa Cardbook',
+                                        rating: _compactNumber(
+                                            company['efficient_count']),
+                                        logoUrl: company['logo']?.toString(),
+                                        onTap: () => context.push(
+                                            '/companies/detail',
+                                            extra: company),
+                                      ),
+                                      const SizedBox(height: 10),
+                                    ],
                                   ],
-                                ],
-                              ),
+                                );
+                        },
                       ),
                     ],
                   ),
@@ -107,32 +143,36 @@ class CompaniesScreen extends ConsumerWidget {
                           onAction: () =>
                               ref.invalidate(recommendedCompaniesProvider),
                         ),
-                        data: (items) => items.isEmpty
-                            ? const AsyncStateView.empty(
-                                'Vuelve mas tarde para ver empresas sugeridas por afinidad.',
-                                title: 'Sin sugerencias por ahora',
-                                icon: Icons.travel_explore_rounded,
-                              )
-                            : Column(
-                                children: [
-                                  for (final company in items.take(6)) ...[
-                                    CompanyTile(
-                                      name: company['name']?.toString() ??
-                                          'Empresa',
-                                      description:
-                                          company['category']?.toString() ??
-                                              'Empresa sugerida',
-                                      rating: _compactNumber(
-                                          company['efficient_count']),
-                                      logoUrl: company['logo']?.toString(),
-                                      onTap: () => context.push(
-                                          '/companies/detail',
-                                          extra: company),
-                                    ),
-                                    const SizedBox(height: 10),
+                        data: (items) {
+                          final filtered = _filterCompanies(items);
+                          return filtered.isEmpty
+                              ? const AsyncStateView.empty(
+                                  'Vuelve mas tarde para ver empresas sugeridas por afinidad.',
+                                  title: 'Sin sugerencias por ahora',
+                                  icon: Icons.travel_explore_rounded,
+                                )
+                              : Column(
+                                  children: [
+                                    for (final company
+                                        in filtered.take(12)) ...[
+                                      CompanyTile(
+                                        name: company['name']?.toString() ??
+                                            'Empresa',
+                                        description:
+                                            company['category']?.toString() ??
+                                                'Empresa sugerida',
+                                        rating: _compactNumber(
+                                            company['efficient_count']),
+                                        logoUrl: company['logo']?.toString(),
+                                        onTap: () => context.push(
+                                            '/companies/detail',
+                                            extra: company),
+                                      ),
+                                      const SizedBox(height: 10),
+                                    ],
                                   ],
-                                ],
-                              ),
+                                );
+                        },
                       ),
                     ],
                   ),
@@ -146,11 +186,59 @@ class CompaniesScreen extends ConsumerWidget {
     );
   }
 
+  List<Map<String, dynamic>> _filterCompanies(
+      List<Map<String, dynamic>> items) {
+    final query = _search.text.trim().toLowerCase();
+    if (query.isEmpty) return items;
+    return items.where((company) {
+      final haystack = [
+        company['name'],
+        company['description'],
+        company['category'],
+        company['services'],
+        company['city'],
+        company['region'],
+      ].map((value) => value?.toString().toLowerCase() ?? '').join(' ');
+      return haystack.contains(query);
+    }).toList();
+  }
+
   static String _compactNumber(dynamic value) {
     final number =
         value is num ? value : num.tryParse(value?.toString() ?? '') ?? 0;
     if (number >= 1000) return '${(number / 1000).toStringAsFixed(1)}k';
     return number.toInt().toString();
+  }
+}
+
+class _SearchBox extends StatelessWidget {
+  const _SearchBox({
+    required this.controller,
+    required this.onChanged,
+  });
+
+  final TextEditingController controller;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      onChanged: onChanged,
+      decoration: InputDecoration(
+        hintText: 'Buscar por nombre, categoria, ciudad o servicio',
+        prefixIcon: const Icon(Icons.search_rounded),
+        suffixIcon: controller.text.trim().isEmpty
+            ? const Icon(Icons.filter_list_rounded)
+            : IconButton(
+                onPressed: () {
+                  controller.clear();
+                  onChanged('');
+                },
+                icon: const Icon(Icons.close_rounded),
+              ),
+      ),
+    );
   }
 }
 

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Como usaras Cardbook{% endblock %}
+{% block content %}
+<section class="auth-page">
+    <div class="auth-shell register-intent-shell">
+        <div class="auth-panel auth-brand-panel">
+            <img class="auth-logo" src="{% static 'img/logo.png' %}" alt="Cardbook logo">
+            <p class="eyebrow">Nuevo registro</p>
+            <h1>Primero dinos que quieres lograr</h1>
+            <p>Cardbook adapta el dashboard segun tu objetivo: empresa, busqueda de trabajo o agente comercial.</p>
+            <div class="auth-points">
+                <span>Empresas</span>
+                <span>White Card Job</span>
+                <span>Agentes</span>
+            </div>
+        </div>
+
+        <div class="auth-panel auth-form-panel">
+            <h2>Para que usaras Cardbook?</h2>
+            <p class="auth-subtitle">Selecciona una opcion para preparar tu experiencia inicial.</p>
+            <form method="post" class="auth-form registration-intent-form" novalidate>
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <div class="form-alert">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                <div class="intent-choice-grid">
+                    {% for radio in form.usage %}
+                        <label class="intent-choice-card">
+                            {{ radio.tag }}
+                            <span>
+                                <strong>{{ radio.choice_label }}</strong>
+                                {% if radio.choice_value == "company" %}
+                                    <small>Crear empresas, perfiles digitales, tarjetas y website.</small>
+                                {% elif radio.choice_value == "job" %}
+                                    <small>Crear tu White Card Job para presentarte como candidato.</small>
+                                {% else %}
+                                    <small>Vender servicios Cardbook con codigo de referido.</small>
+                                {% endif %}
+                            </span>
+                        </label>
+                    {% endfor %}
+                </div>
+                {{ form.usage.errors }}
+
+                <div class="agent-code-panel">
+                    <label>Codigo de referido de agente {{ form.referral_code }}{{ form.referral_code.errors }}</label>
+                    <p>No tienes codigo? Selecciona Agente de Cardbook y continua para aplicar.</p>
+                </div>
+
+                <button class="btn btn-primary auth-submit" type="submit">Continuar</button>
+            </form>
+            <p class="auth-switch">Ya tienes cuenta? <a href="{% url 'web-login' %}">Iniciar sesion</a></p>
+        </div>
+    </div>
+</section>
+{% endblock %}

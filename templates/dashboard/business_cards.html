@@ -52,10 +52,17 @@
             </article>
         {% empty %}
             <article class="empty-management-state">
-                <p>No hay tarjetas de presentacion activas.</p>
-                <h2>Crea una tarjeta lista para compartir</h2>
-                <span>Usa el formato comercial convencional con QR, colores, servicios y tipografia ajustable.</span>
-                <a class="btn btn-primary" href="{% url 'dashboard-business-card-create' %}">Nueva tarjeta</a>
+                {% if company_count %}
+                    <p>No hay tarjetas de presentacion activas.</p>
+                    <h2>Crea una tarjeta lista para compartir</h2>
+                    <span>Usa el formato comercial convencional con QR, colores, servicios y tipografia ajustable.</span>
+                    <a class="btn btn-primary" href="{% url 'dashboard-business-card-create' %}">Nueva tarjeta</a>
+                {% else %}
+                    <p>Primero necesitas una empresa.</p>
+                    <h2>Crea una empresa antes de crear tarjetas</h2>
+                    <span>Las tarjetas de presentacion necesitan una empresa base para logo, equipo, permisos y datos comerciales.</span>
+                    <a class="btn btn-primary" href="{% url 'dashboard-company-create' %}">Crear empresa</a>
+                {% endif %}
             </article>
         {% endfor %}
     </div>

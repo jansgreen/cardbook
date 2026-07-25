@@ -26,6 +26,13 @@ class AccessControlPermissionsTests(TestCase):
             email="access@example.com",
             password="pass12345",
         )
+        self.superuser = self.User.objects.create_user(
+            username="superaccess",
+            email="superaccess@example.com",
+            password="pass12345",
+            is_staff=True,
+            is_superuser=True,
+        )
         self.company = Company.objects.create(owner=self.owner, name="Jans Green", is_active=True)
         ensure_default_permissions()
 
@@ -43,14 +50,13 @@ class AccessControlPermissionsTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response["Location"], reverse("dashboard-home"))
 
-    def test_company_owner_can_open_access_control_but_not_catalog(self):
+    def test_company_owner_cannot_open_access_control(self):
         self.client.force_login(self.owner)
 
         response = self.client.get(reverse("dashboard-access-control"))
 
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Miembros activos")
-        self.assertContains(response, "Modo lectura")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], reverse("dashboard-home"))
         self.assertFalse(user_can_manage_access_catalog(self.owner, self.company))
 
     def test_company_owner_cannot_create_global_permission(self):
@@ -71,7 +77,7 @@ class AccessControlPermissionsTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertFalse(AccessPermission.objects.filter(code="test.owner_denied").exists())
 
-    def test_access_manage_grant_can_create_global_permission(self):
+    def test_superuser_can_create_global_permission(self):
         permission = AccessPermission.objects.get(code=PERM_MANAGE_ACCESS_CONTROL)
         role = AccessRole.objects.create(name="Administrador de accesos")
         role.permissions.add(permission)
@@ -81,7 +87,7 @@ class AccessControlPermissionsTests(TestCase):
             role=role,
             is_active=True,
         )
-        self.client.force_login(self.access_manager)
+        self.client.force_login(self.superuser)
 
         response = self.client.post(
             reverse("dashboard-access-control"),
@@ -97,4 +103,4 @@ class AccessControlPermissionsTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertTrue(AccessPermission.objects.filter(code="test.catalog_allowed").exists())
-        self.assertTrue(user_can_manage_access_catalog(self.access_manager, self.company))
+        self.assertTrue(user_can_manage_access_catalog(self.superuser, self.company))
