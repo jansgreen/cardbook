@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="{% static 'css/cards.css' %}">
 </head>
 <body>
-    <main class="public-card-page">
+    <main class="public-card-page" data-card-click-url="{% url 'card-click' card.id %}">
         <section class="public-card-layout">
             <article class="public-card">
                 <header class="card-cover">
@@ -28,18 +28,53 @@
                             {% endfor %}
                         </select>
                     </form>
-                    <div class="action-grid">
-                        {% if card.phone_number %}<a href="tel:{{ card.phone_number }}">Llamar</a>{% endif %}
-                        {% if card.email %}<a href="mailto:{{ card.email }}">Email</a>{% endif %}
-                        {% if card.website %}<a href="{{ card.website }}" target="_blank" rel="noopener">Website</a>{% endif %}
-                        <button type="button" data-share data-share-title="{% if translation %}{{ translation.full_name }}{% else %}{{ card.user.get_full_name|default:card.user.username }}{% endif %}" data-share-text="Perfil digital de Cardbook">Compartir</button>
-                    </div>
-                    <div class="detail-list">
-                        {% if card.phone_number %}<p><strong>Telefono</strong><span>{{ card.phone_number }}</span></p>{% endif %}
-                        {% if card.email %}<p><strong>Email</strong><span>{{ card.email }}</span></p>{% endif %}
-                        {% if card.website %}<p><strong>Web</strong><span>{{ card.website }}</span></p>{% endif %}
-                        {% if translation and translation.address %}<p><strong>Direccion</strong><span>{{ translation.address }}</span></p>{% endif %}
-                        {% if translation and translation.services %}<p><strong>Servicios</strong><span>{{ translation.services }}</span></p>{% endif %}
+                    <div class="business-cta-zone" data-card-click-url="{% url 'card-click' card.id %}">
+                        <div class="action-grid primary-actions">
+                            {% if card.company.enable_quote_requests and card.email and card.company.show_email %}
+                                <a class="action-highlight" href="mailto:{{ card.email }}?subject=Solicitud%20de%20cotizacion%20desde%20Cardbook" data-track-click="quote_request">Solicitar cotizacion</a>
+                            {% endif %}
+                            {% if card.company.enable_appointments and card.email and card.company.show_email %}
+                                <a class="action-highlight" href="mailto:{{ card.email }}?subject=Solicitud%20de%20cita%20desde%20Cardbook" data-track-click="appointment_request">Reservar cita</a>
+                            {% endif %}
+                            {% if card.phone_number and card.company.show_phone %}
+                                <a href="tel:{{ card.phone_number }}" data-track-click="phone_click">Llamar</a>
+                            {% endif %}
+                            {% if card.whatsapp_url and card.company.show_whatsapp %}
+                                <a href="{{ card.whatsapp_url }}" target="_blank" rel="noopener" data-track-click="whatsapp_click">WhatsApp</a>
+                            {% endif %}
+                        </div>
+
+                        <div class="action-grid secondary-contact-actions">
+                            {% if card.company.enable_messages and card.email and card.company.show_email %}
+                                <a href="mailto:{{ card.email }}?subject=Mensaje%20desde%20Cardbook" data-track-click="message_click">Enviar mensaje</a>
+                            {% endif %}
+                            {% if translation and translation.address and card.company.enable_directions and card.company.show_address %}
+                                <a href="https://www.google.com/maps/search/?api=1&query={{ translation.address|urlencode }}" target="_blank" rel="noopener" data-track-click="directions_click">Obtener direccion</a>
+                            {% elif card.company.address and card.company.enable_directions and card.company.show_address %}
+                                <a href="https://www.google.com/maps/search/?api=1&query={{ card.company.address|urlencode }}" target="_blank" rel="noopener" data-track-click="directions_click">Obtener direccion</a>
+                            {% endif %}
+                            {% if card.website and card.company.show_website %}
+                                <a href="{{ card.website }}" target="_blank" rel="noopener" data-track-click="website_click">Visitar sitio web</a>
+                            {% endif %}
+                            <button type="button" data-share data-share-title="{% if translation %}{{ translation.full_name }}{% else %}{{ card.user.get_full_name|default:card.user.username }}{% endif %}" data-share-text="Perfil digital de Cardbook">Compartir</button>
+                        </div>
+
+                        <section class="contact-reveal-panel">
+                            <button class="contact-reveal-toggle" type="button" data-contact-reveal data-track-click="contact_reveal" aria-expanded="false">
+                                {% if card.company.enable_quote_requests or card.company.enable_appointments or card.company.enable_messages or card.whatsapp_url %}
+                                    Ver mas informacion de contacto
+                                {% else %}
+                                    Ver informacion de contacto
+                                {% endif %}
+                            </button>
+                            <div class="detail-list contact-reveal-content" hidden>
+                                {% if card.phone_number and card.company.show_phone %}<p><strong>Telefono</strong><a href="tel:{{ card.phone_number }}" data-track-click="phone_click">{{ card.phone_number }}</a></p>{% endif %}
+                                {% if card.email and card.company.show_email %}<p><strong>Email</strong><a href="mailto:{{ card.email }}" data-track-click="email_click">{{ card.email }}</a></p>{% endif %}
+                                {% if card.website and card.company.show_website %}<p><strong>Web</strong><a href="{{ card.website }}" target="_blank" rel="noopener" data-track-click="website_click">{{ card.website }}</a></p>{% endif %}
+                                {% if translation and translation.address and card.company.show_address %}<p><strong>Direccion</strong><span>{{ translation.address }}</span></p>{% elif card.company.address and card.company.show_address %}<p><strong>Direccion</strong><span>{{ card.company.address }}</span></p>{% endif %}
+                                {% if translation and translation.services %}<p><strong>Servicios</strong><span>{{ translation.services }}</span></p>{% elif card.company.services %}<p><strong>Servicios</strong><span>{{ card.company.services }}</span></p>{% endif %}
+                            </div>
+                        </section>
                     </div>
                     {% if translation and translation.custom_message %}<blockquote>{{ translation.custom_message }}</blockquote>{% endif %}
                     <div class="secondary-actions">

@@ -50,6 +50,43 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
+    const trackCardClick = (element) => {
+        const clickType = element.dataset.trackClick;
+        const clickUrl = element.closest("[data-card-click-url]")?.dataset.cardClickUrl;
+        if (!clickType || !clickUrl) return;
+
+        const payload = JSON.stringify({ click_type: clickType });
+        if (navigator.sendBeacon) {
+            const body = new Blob([payload], { type: "application/json" });
+            navigator.sendBeacon(clickUrl, body);
+            return;
+        }
+        fetch(clickUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: payload,
+            keepalive: true,
+        }).catch(() => {});
+    };
+
+    document.querySelectorAll("[data-track-click]").forEach((element) => {
+        if (element.hasAttribute("data-contact-reveal")) return;
+        element.addEventListener("click", () => trackCardClick(element));
+    });
+
+    document.querySelectorAll("[data-contact-reveal]").forEach((button) => {
+        button.addEventListener("click", () => {
+            const panel = button.closest(".contact-reveal-panel");
+            const content = panel?.querySelector(".contact-reveal-content");
+            if (!content) return;
+
+            const isHidden = content.hasAttribute("hidden");
+            if (isHidden) trackCardClick(button);
+            content.toggleAttribute("hidden", !isHidden);
+            button.setAttribute("aria-expanded", isHidden ? "true" : "false");
+        });
+    });
+
     document.querySelectorAll("img[data-fallback-text]").forEach((image) => {
         image.addEventListener("error", () => {
             const fallback = document.createElement("span");

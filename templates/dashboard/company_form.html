@@ -4,5 +4,20 @@
 {% block topbar_subtitle %}Mantén la informacion comercial limpia y actualizada{% endblock %}
 {% block dashboard_content %}
 <section class="dashboard-heading"><p>Empresas</p><h1>{% if object %}Editar {{ object.name }}{% else %}Crear empresa{% endif %}</h1></section>
-<div class="form-layout"><form class="panel dashboard-form" method="post" enctype="multipart/form-data">{% csrf_token %}{% for field in form %}<label>{{ field.label }}{{ field }}{{ field.errors }}</label>{% endfor %}<div class="form-actions"><a class="btn btn-outline" href="{% url 'dashboard-companies' %}">Cancelar</a><button class="btn btn-primary" type="submit">Guardar empresa</button></div></form></div>
+<div class="form-layout">
+    <form class="panel dashboard-form" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% for field in form %}
+            <label class="{% if field.field.widget.input_type == 'checkbox' %}checkbox-field{% endif %}">
+                <span>{{ field.label }}</span>
+                {{ field }}
+                {{ field.errors }}
+            </label>
+        {% endfor %}
+        <div class="form-actions">
+            <a class="btn btn-outline" href="{% url 'dashboard-companies' %}">Cancelar</a>
+            <button class="btn btn-primary" type="submit">Guardar empresa</button>
+        </div>
+    </form>
+</div>
 {% endblock %}

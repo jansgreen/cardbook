@@ -419,9 +419,35 @@ class DashboardAnalyticsView(DashboardContextMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         cards = self.get_cards()
+        click_labels = {
+            "contact_reveal": "Informacion revelada",
+            "phone_click": "Llamadas",
+            "whatsapp_click": "WhatsApp",
+            "email_click": "Email",
+            "website_click": "Website",
+            "quote_request": "Cotizaciones",
+            "appointment_request": "Citas",
+            "directions_click": "Direcciones",
+            "message_click": "Mensajes",
+            "social_click": "Redes sociales",
+            "phone": "Llamadas legacy",
+            "email": "Email legacy",
+            "website": "Website legacy",
+            "whatsapp": "WhatsApp legacy",
+            "social": "Redes legacy",
+        }
+        click_rows = CardClick.objects.filter(card__in=cards).values("click_type").annotate(total=Count("id")).order_by("-total")
         context.update({
             "cards": cards.annotate(view_total=Count("views", distinct=True), click_total=Count("clicks", distinct=True)),
             "total_views": CardView.objects.filter(card__in=cards).count(),
             "total_clicks": CardClick.objects.filter(card__in=cards).count(),
+            "click_breakdown": [
+                {
+                    "type": row["click_type"],
+                    "label": click_labels.get(row["click_type"], row["click_type"].replace("_", " ").title()),
+                    "total": row["total"],
+                }
+                for row in click_rows
+            ],
         })
         return context

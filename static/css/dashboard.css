@@ -78,6 +78,7 @@
 .dashboard-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; }
 .panel.wide { grid-column: 1 / -1; }
 .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.panel-muted { color: #637189; font-weight: 750; font-size: .92rem; }
 .panel h2, .dash-card h2 { margin: 0; color: #003875; }
 .panel-action { color: #0057b8; font-weight: 900; }
 .list-row { display: flex; justify-content: space-between; gap: 12px; padding: 13px 0; border-top: 1px solid #e8edf4; }

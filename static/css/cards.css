@@ -34,13 +34,23 @@ h1 { margin: 4px 0 0; color: var(--dark); font-family: var(--font-display); font
 .public-language-form { display: inline-flex; align-items: center; gap: 8px; margin: 18px auto 0; padding: 7px 8px 7px 12px; border-radius: 999px; background: #eaf3ff; color: var(--dark); font-weight: 850; }
 .public-language-form label { font-size: .82rem; }
 .public-language-form select { border: 0; border-radius: 999px; padding: 7px 28px 7px 10px; background: white; color: var(--blue); font: inherit; font-weight: 850; cursor: pointer; }
-.action-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 20px 0; }
+.business-cta-zone { margin: 20px 0; }
+.action-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 12px 0; }
 .action-grid a, .action-grid button, .secondary-actions a, .qr-card button { border: 0; border-radius: 999px; padding: 12px 10px; background: var(--blue); color: white; font: inherit; font-weight: 800; cursor: pointer; }
 .action-grid button { background: var(--gold); color: var(--dark); }
+.primary-actions { margin-top: 20px; }
+.primary-actions .action-highlight { background: var(--gold); color: var(--dark); box-shadow: 0 12px 24px rgba(216, 164, 65, .22); }
+.secondary-contact-actions a { background: #eaf3ff; color: var(--blue); }
 .detail-list { display: grid; gap: 10px; text-align: left; margin-top: 18px; }
 .detail-list p { margin: 0; padding: 12px; border-radius: 8px; background: var(--bg); }
 .detail-list strong { display: block; color: var(--dark); }
-.detail-list span { color: var(--muted); overflow-wrap: anywhere; }
+.detail-list span, .detail-list a { color: var(--muted); overflow-wrap: anywhere; }
+.detail-list a { font-weight: 800; text-decoration: underline; text-decoration-color: rgba(0, 87, 184, .22); text-underline-offset: 3px; }
+.contact-reveal-panel { margin-top: 14px; }
+.contact-reveal-toggle { width: 100%; border: 1px solid rgba(0, 87, 184, .16); border-radius: 999px; padding: 12px 14px; background: #f5f8fc; color: var(--dark); font: inherit; font-weight: 850; cursor: pointer; }
+.contact-reveal-content[hidden] { display: none; }
+.contact-reveal-content { animation: contactReveal .2s ease; }
+@keyframes contactReveal { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
 blockquote { margin: 18px 0; color: var(--dark); font-weight: 700; border-left: 4px solid var(--gold); padding-left: 12px; text-align: left; }
 .secondary-actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
 .secondary-actions a { background: #eaf3ff; color: var(--blue); }

@@ -16,7 +16,39 @@ from accesscontrol.services import PERM_CREATE_CARDBOOK_BUSINESS_CARDS, user_has
 class CompanyForm(forms.ModelForm):
     class Meta:
         model = Company
-        fields = ["name", "logo", "address", "phone_number", "email", "website", "description", "category", "services", "city", "region"]
+        fields = [
+            "name",
+            "logo",
+            "address",
+            "phone_number",
+            "email",
+            "website",
+            "description",
+            "category",
+            "services",
+            "city",
+            "region",
+            "show_phone",
+            "show_whatsapp",
+            "show_email",
+            "show_website",
+            "show_address",
+            "enable_quote_requests",
+            "enable_appointments",
+            "enable_messages",
+            "enable_directions",
+        ]
+        labels = {
+            "show_phone": "Mostrar boton de llamada",
+            "show_whatsapp": "Mostrar WhatsApp",
+            "show_email": "Mostrar email",
+            "show_website": "Mostrar sitio web",
+            "show_address": "Mostrar direccion",
+            "enable_quote_requests": "Permitir solicitudes de cotizacion",
+            "enable_appointments": "Permitir reservas o citas",
+            "enable_messages": "Permitir mensajes",
+            "enable_directions": "Permitir obtener direccion",
+        }
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Nombre de la empresa"}),
             "logo": forms.ClearableFileInput(attrs={"class": "form-control"}),
@@ -29,6 +61,15 @@ class CompanyForm(forms.ModelForm):
             "services": forms.Textarea(attrs={"class": "form-control", "rows": 3, "placeholder": "Servicios principales separados por coma"}),
             "city": forms.TextInput(attrs={"class": "form-control", "placeholder": "Ciudad"}),
             "region": forms.TextInput(attrs={"class": "form-control", "placeholder": "Region o estado"}),
+            "show_phone": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "show_whatsapp": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "show_email": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "show_website": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "show_address": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "enable_quote_requests": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "enable_appointments": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "enable_messages": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "enable_directions": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
 
 
