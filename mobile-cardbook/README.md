@@ -14,7 +14,7 @@ Aplicacion Flutter nativa para Cardbook. Consume la API REST del backend Django 
 cd mobile-cardbook
 flutter create .
 flutter pub get
-flutter run --dart-define=CARDBOOK_API_BASE_URL=https://cardbook-45cf0409dc07.herokuapp.com
+flutter run --dart-define=CARDBOOK_API_BASE_URL=https://incardbook.com
 ```
 
 Para desarrollo local con emulador Android:
@@ -89,7 +89,7 @@ En Bash:
 
 ```bash
 ./tool/build_release.sh
-./tool/build_release.sh https://cardbook-45cf0409dc07.herokuapp.com aab true
+./tool/build_release.sh https://incardbook.com aab true
 ```
 
 Mas detalle en `docs/phase_10_release_build.md`.

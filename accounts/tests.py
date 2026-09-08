@@ -1,4 +1,4 @@
-﻿from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -35,8 +35,8 @@ class AndroidApiFlowTests(APITestCase):
             {
                 "name": name,
                 "phone_number": "+18095550100",
-                "email": "hello@cardbook.test",
-                "website": "https://cardbook.test",
+                "email": "hello@incardbook.test",
+                "website": "https://incardbook.test",
                 "description": "Digital cards for local businesses.",
             },
             format="json",
@@ -51,8 +51,8 @@ class AndroidApiFlowTests(APITestCase):
                 "company": company_id,
                 "job_title": "Founder",
                 "phone_number": "+18095550100",
-                "email": "demo@cardbook.test",
-                "website": "https://cardbook.test/demo",
+                "email": "demo@incardbook.test",
+                "website": "https://incardbook.test/demo",
             },
             format="json",
         )
@@ -162,7 +162,7 @@ class AndroidApiFlowTests(APITestCase):
                 "language": "es",
                 "full_name": "Demo User",
                 "bio": "Especialista en tarjetas digitales.",
-                "services": "Diseño, QR, perfiles digitales",
+                "services": "Dise�o, QR, perfiles digitales",
                 "address": "Santo Domingo",
                 "custom_message": "Conecta conmigo.",
             },
@@ -200,7 +200,7 @@ class PermissionSecurityTests(APITestCase):
     def create_user(self, username):
         return get_user_model().objects.create_user(
             username=username,
-            email=f"{username}@cardbook.test",
+            email=f"{username}@incardbook.test",
             password=self.password,
         )
 

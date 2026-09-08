@@ -2,7 +2,7 @@ param(
     [string]$AppName = "cardbook",
     [string]$SourceRef = "stable/cardbook-core",
     [string]$TargetRef = "main",
-    [string]$PublicBaseUrl = "https://cardbook-45cf0409dc07.herokuapp.com",
+    [string]$PublicBaseUrl = "https://incardbook.com",
     [switch]$Deploy,
     [switch]$SkipFlutter,
     [switch]$SkipCollectstatic,

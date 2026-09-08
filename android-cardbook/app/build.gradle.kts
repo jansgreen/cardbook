@@ -1,4 +1,4 @@
-﻿plugins {
+plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
 }
@@ -17,7 +17,7 @@ android {
         targetSdk = 35
         versionCode = 4
         versionName = "0.3.1"
-        buildConfigField("String", "CARDBOOK_API_BASE_URL", "\"https://cardbook-45cf0409dc07.herokuapp.com/\"")
+        buildConfigField("String", "CARDBOOK_API_BASE_URL", "\"https://incardbook.com/\"")
     }
 
     buildTypes {

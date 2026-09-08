@@ -14,7 +14,7 @@ from cardbookweb.test_utils import make_digital_card, make_user, make_white_card
 
 class QRRendererTests(TestCase):
     def test_renderer_outputs_svg_with_expected_shape(self):
-        svg = render_styled_qr_svg("https://cardbook.test/demo", QRStyle(shape="diamond"))
+        svg = render_styled_qr_svg("https://incardbook.test/demo", QRStyle(shape="diamond"))
 
         self.assertTrue(svg.startswith("<svg"))
         self.assertIn("viewBox", svg)
@@ -79,7 +79,7 @@ class ObservabilityTests(APITestCase):
     @override_settings(
         DEBUG=False,
         EMAIL_BACKEND="django.core.mail.backends.console.EmailBackend",
-        DEFAULT_FROM_EMAIL="Cardbook <no-reply@cardbook.test>",
+        DEFAULT_FROM_EMAIL="Cardbook <no-reply@incardbook.test>",
         USE_S3_MEDIA_STORAGE=True,
         AWS_STORAGE_BUCKET_NAME="cardbook-test-media",
         STRIPE_SECRET_KEY="sk_test_demo",
@@ -109,8 +109,8 @@ class ProductionAuditCommandTests(TestCase):
     @override_settings(
         DEBUG=False,
         SECRET_KEY="prod-check-7f9a4d2c8b1e6h3k9m5p2r8t4w6y1z0q-cardbook-strong-secret",
-        ALLOWED_HOSTS=["cardbook.test"],
-        CSRF_TRUSTED_ORIGINS=["https://cardbook.test"],
+        ALLOWED_HOSTS=["incardbook.test"],
+        CSRF_TRUSTED_ORIGINS=["https://incardbook.test"],
         SECURE_SSL_REDIRECT=True,
         SESSION_COOKIE_SECURE=True,
         CSRF_COOKIE_SECURE=True,
@@ -119,8 +119,8 @@ class ProductionAuditCommandTests(TestCase):
         USE_S3_MEDIA_STORAGE=True,
         AWS_STORAGE_BUCKET_NAME="cardbook-test-media",
         EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend",
-        EMAIL_HOST="smtp.cardbook.test",
-        DEFAULT_FROM_EMAIL="Cardbook <no-reply@cardbook.test>",
+        EMAIL_HOST="smtp.incardbook.test",
+        DEFAULT_FROM_EMAIL="Cardbook <no-reply@incardbook.test>",
         STRIPE_SECRET_KEY="sk_test_demo",
         STRIPE_WEBHOOK_SECRET="whsec_demo",
         CARDBOOK_ENABLE_REQUEST_ID_HEADERS=True,

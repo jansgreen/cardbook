@@ -11,11 +11,11 @@ from memberships.models import CompanyMember
 
 
 AGENTS = [
-    ("agent_demo_1", "agent.demo1@cardbook.test", "Amelia", "Torres", Decimal("12.50")),
-    ("agent_demo_2", "agent.demo2@cardbook.test", "Bruno", "Castillo", Decimal("15.00")),
-    ("agent_demo_3", "agent.demo3@cardbook.test", "Clara", "Mendoza", Decimal("10.00")),
-    ("agent_demo_4", "agent.demo4@cardbook.test", "Diego", "Rivas", Decimal("18.00")),
-    ("agent_demo_5", "agent.demo5@cardbook.test", "Elena", "Suarez", Decimal("20.00")),
+    ("agent_demo_1", "agent.demo1@incardbook.test", "Amelia", "Torres", Decimal("12.50")),
+    ("agent_demo_2", "agent.demo2@incardbook.test", "Bruno", "Castillo", Decimal("15.00")),
+    ("agent_demo_3", "agent.demo3@incardbook.test", "Clara", "Mendoza", Decimal("10.00")),
+    ("agent_demo_4", "agent.demo4@incardbook.test", "Diego", "Rivas", Decimal("18.00")),
+    ("agent_demo_5", "agent.demo5@incardbook.test", "Elena", "Suarez", Decimal("20.00")),
 ]
 
 
@@ -40,7 +40,7 @@ class Command(BaseCommand):
                     "region": "Distrito Nacional",
                     "services": "Tarjetas digitales, perfiles empresariales, agentes comerciales",
                     "description": "Empresa principal de la plataforma Cardbook.",
-                    "website": "https://cardbook.local",
+                    "website": "https://incardbook.local",
                     "is_active": True,
                 },
             )

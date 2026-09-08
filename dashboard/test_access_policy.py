@@ -13,7 +13,7 @@ class DashboardAccessPolicyTests(TestCase):
     def create_user(self, username, intent="", **extra):
         return get_user_model().objects.create_user(
             username=username,
-            email=f"{username}@cardbook.test",
+            email=f"{username}@incardbook.test",
             password=self.password,
             registration_intent=intent,
             **extra,

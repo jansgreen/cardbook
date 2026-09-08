@@ -1,6 +1,6 @@
 param(
     [string]$ProjectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path,
-    [string]$PublicBaseUrl = "https://cardbook-45cf0409dc07.herokuapp.com",
+    [string]$PublicBaseUrl = "https://incardbook.com",
     [switch]$SkipCollectstatic,
     [switch]$SkipFlutter,
     [switch]$SkipSmoke

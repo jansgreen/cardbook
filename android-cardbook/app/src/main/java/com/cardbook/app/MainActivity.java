@@ -53,8 +53,8 @@ public class MainActivity extends Activity {
     private static final int GOLD = Color.rgb(216, 164, 65);
     private static final int INK = Color.rgb(5, 22, 48);
     private static final int WHITE = Color.WHITE;
-    private static final String BASE_URL = "https://cardbook-45cf0409dc07.herokuapp.com/";
-    private static final String BASE_HOST = "cardbook-45cf0409dc07.herokuapp.com";
+    private static final String BASE_URL = "https://incardbook.com/";
+    private static final String BASE_HOST = "incardbook.com";
     private static final String VERSION_URL = BASE_URL + "android/version/";
 
     private FrameLayout container;

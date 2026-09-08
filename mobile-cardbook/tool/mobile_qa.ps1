@@ -1,5 +1,5 @@
 param(
-    [string]$ApiBaseUrl = "https://cardbook-45cf0409dc07.herokuapp.com",
+    [string]$ApiBaseUrl = "https://incardbook.com",
     [switch]$BuildDebug,
     [switch]$BuildRelease,
     [switch]$InstallOnDevice,

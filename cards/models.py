@@ -121,6 +121,7 @@ class BusinessCard(NameTypographyMixin, models.Model):
     accent_color = models.CharField(max_length=7, default="#d8a441")
     background_color = models.CharField(max_length=7, default="#003875")
     text_color = models.CharField(max_length=7, default="#ffffff")
+    show_profile_photo = models.BooleanField(default=True)
     include_qr = models.BooleanField(default=True)
     physical_card_front_image = models.ImageField(upload_to="business_cards/scans/", blank=True, null=True)
     physical_card_back_image = models.ImageField(upload_to="business_cards/scans/", blank=True, null=True)

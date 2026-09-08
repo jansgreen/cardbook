@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-API_BASE_URL="${1:-https://cardbook-45cf0409dc07.herokuapp.com}"
+API_BASE_URL="${1:-https://incardbook.com}"
 BUILD_TARGET="${2:-apk}"
 REQUIRE_RELEASE_SIGNING="${3:-false}"
 

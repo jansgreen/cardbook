@@ -1,5 +1,5 @@
 param(
-    [string]$PublicBaseUrl = "https://cardbook-45cf0409dc07.herokuapp.com",
+    [string]$PublicBaseUrl = "https://incardbook.com",
     [string]$ExpectedVersion = "",
     [switch]$AllowDeploymentPending,
     [switch]$AllowReadinessWarnings

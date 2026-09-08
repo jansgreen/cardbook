@@ -121,14 +121,14 @@ class Command(BaseCommand):
         website_total = 0
 
         for index, item in enumerate(COMPANIES, start=1):
-            owner = self.get_user(User, f"demo_owner_{index}", item["team"][0][0], f"owner{index}@cardbook.demo")
+            owner = self.get_user(User, f"demo_owner_{index}", item["team"][0][0], f"owner{index}@incardbook.demo")
             company, created = Company.objects.update_or_create(
                 name=item["name"],
                 defaults={
                     "owner": owner,
                     "address": f"{item['city']}, {item['region']}",
                     "phone_number": f"+1 555 20{index:02d} 0100",
-                    "email": f"contacto{index}@cardbook.demo",
+                    "email": f"contacto{index}@incardbook.demo",
                     "website": item["domain"],
                     "description": item["description"],
                     "category": item["category"],
@@ -151,7 +151,7 @@ class Command(BaseCommand):
                     User,
                     f"demo_emp_{index}_{employee_index}",
                     full_name,
-                    f"employee{index}{employee_index}@cardbook.demo",
+                    f"employee{index}{employee_index}@incardbook.demo",
                 )
                 CompanyMember.objects.get_or_create(company=company, user=user, defaults={"role": CompanyMember.ROLE_STAFF})
                 profile, _ = DigitalCard.objects.get_or_create(
@@ -208,7 +208,7 @@ class Command(BaseCommand):
 
         job_total = 0
         for index, (full_name, specialty_name, category, description) in enumerate(JOBS, start=1):
-            user = self.get_user(User, f"demo_job_{index}", full_name, f"job{index}@cardbook.demo")
+            user = self.get_user(User, f"demo_job_{index}", full_name, f"job{index}@incardbook.demo")
             specialty, _ = Specialty.objects.get_or_create(
                 name=specialty_name,
                 defaults={"category": category, "description": f"Perfil laboral de {specialty_name}."},

@@ -8,7 +8,7 @@ from websitebuilder.services import create_starter_website
 
 def make_user(username="user", **extra):
     defaults = {
-        "email": f"{username}@cardbook.test",
+        "email": f"{username}@incardbook.test",
         "password": "StrongPassword123!",
     }
     defaults.update(extra)
@@ -24,8 +24,8 @@ def make_company(owner=None, name="Cardbook Test Co", **extra):
         "services": "Tarjetas digitales, QR, websites",
         "city": "Santo Domingo",
         "region": "DN",
-        "website": "https://cardbook.test",
-        "email": "hello@cardbook.test",
+        "website": "https://incardbook.test",
+        "email": "hello@incardbook.test",
         "phone_number": "+18095550100",
     }
     defaults.update(extra)
@@ -38,8 +38,8 @@ def make_digital_card(user=None, company=None, **extra):
     defaults = {
         "job_title": "Founder",
         "phone_number": "+18095550100",
-        "email": "card@cardbook.test",
-        "website": "https://cardbook.test/card",
+        "email": "card@incardbook.test",
+        "website": "https://incardbook.test/card",
     }
     defaults.update(extra)
     return DigitalCard.objects.create(user=user, company=company, **defaults)

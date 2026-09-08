@@ -22,7 +22,7 @@ class AgentCardPermissionTests(APITestCase):
             {
                 "company": company.id,
                 "job_title": "Agente",
-                "email": "agent@cardbook.test",
+                "email": "agent@incardbook.test",
             },
             format="json",
             HTTP_HOST="127.0.0.1:8000",

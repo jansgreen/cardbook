@@ -6,7 +6,7 @@ from django.template.loader import render_to_string
 def send_submission_email(submission):
     subject = f"Nuevo envio: {submission.form.name}"
     message = render_to_string("forms_builder/email/submission.txt", {"submission": submission})
-    from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@cardbook.local")
+    from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@incardbook.com")
     reply_to = [submission.sender_email] if submission.sender_email else None
     try:
         email = EmailMessage(

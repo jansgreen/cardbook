@@ -1,5 +1,8 @@
 ﻿from django import forms
 
+import re
+from urllib.parse import parse_qs, urlparse
+
 from business_feed.models import BusinessPost
 from cards.models import BusinessCard, DigitalCard
 from cards.services import (
@@ -11,6 +14,40 @@ from cards.services import (
 from companies.models import Company
 from companies.permissions import can_access_company
 from accesscontrol.services import PERM_CREATE_CARDBOOK_BUSINESS_CARDS, user_has_access_permission
+
+
+WHATSAPP_ALLOWED_HOSTS = {"wa.me", "www.wa.me", "api.whatsapp.com", "web.whatsapp.com"}
+
+
+def normalize_whatsapp_url(value):
+    raw_value = (value or "").strip()
+    if not raw_value:
+        return raw_value
+
+    phone_candidate = re.sub(r"[\s().-]", "", raw_value)
+    if re.fullmatch(r"\+?\d{7,15}", phone_candidate):
+        return f"https://wa.me/{phone_candidate.lstrip('+')}"
+
+    candidate = raw_value if "://" in raw_value else f"https://{raw_value}"
+    parsed = urlparse(candidate)
+    host = parsed.netloc.lower()
+
+    if host not in WHATSAPP_ALLOWED_HOSTS:
+        raise forms.ValidationError("Ingresa un enlace valido de WhatsApp, por ejemplo https://wa.me/18095550100.")
+
+    if host in {"wa.me", "www.wa.me"}:
+        number = parsed.path.strip("/")
+        if not re.fullmatch(r"\+?\d{7,15}", number):
+            raise forms.ValidationError("El enlace de WhatsApp debe incluir un numero valido.")
+        return f"https://wa.me/{number.lstrip('+')}"
+
+    query_phone = parse_qs(parsed.query).get("phone", [""])[0]
+    if query_phone:
+        normalized_phone = re.sub(r"[\s().+-]", "", query_phone)
+        if re.fullmatch(r"\d{7,15}", normalized_phone):
+            return f"https://wa.me/{normalized_phone}"
+
+    return candidate
 
 
 class CompanyForm(forms.ModelForm):
@@ -148,6 +185,18 @@ class BusinessPostForm(forms.ModelForm):
 
 
 class DigitalCardForm(forms.ModelForm):
+    whatsapp_url = forms.CharField(
+        required=False,
+        label="WhatsApp",
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "https://wa.me/18095550100 o solo el numero",
+                "inputmode": "url",
+            }
+        ),
+    )
+
     class Meta:
         model = DigitalCard
         fields = [
@@ -203,7 +252,6 @@ class DigitalCardForm(forms.ModelForm):
             "qr_dot_color": forms.TextInput(attrs={"class": "form-control color-input", "type": "color"}),
             "qr_marker_color": forms.TextInput(attrs={"class": "form-control color-input", "type": "color"}),
             "qr_background_color": forms.TextInput(attrs={"class": "form-control color-input", "type": "color"}),
-            "whatsapp_url": forms.URLInput(attrs={"class": "form-control", "placeholder": "https://wa.me/18095550100"}),
             "instagram_url": forms.URLInput(attrs={"class": "form-control", "placeholder": "https://instagram.com/usuario"}),
             "facebook_url": forms.URLInput(attrs={"class": "form-control", "placeholder": "https://facebook.com/usuario"}),
             "linkedin_url": forms.URLInput(attrs={"class": "form-control", "placeholder": "https://linkedin.com/in/usuario"}),
@@ -224,6 +272,9 @@ class DigitalCardForm(forms.ModelForm):
         if not can_create_profile_for_company(self.user, company):
             raise forms.ValidationError("No perteneces a esta empresa.")
         return company
+
+    def clean_whatsapp_url(self):
+        return normalize_whatsapp_url(self.cleaned_data.get("whatsapp_url"))
 
 
 class BusinessCardForm(forms.ModelForm):
@@ -246,6 +297,7 @@ class BusinessCardForm(forms.ModelForm):
             "accent_color",
             "background_color",
             "text_color",
+            "show_profile_photo",
             "include_qr",
         ]
         labels = {
@@ -265,6 +317,7 @@ class BusinessCardForm(forms.ModelForm):
             "accent_color": "Color de acento",
             "background_color": "Color de fondo",
             "text_color": "Color de texto",
+            "show_profile_photo": "Mostrar foto de perfil",
             "include_qr": "Incluir QR al perfil",
         }
         widgets = {
@@ -284,6 +337,7 @@ class BusinessCardForm(forms.ModelForm):
             "accent_color": forms.TextInput(attrs={"class": "form-control color-input", "type": "color"}),
             "background_color": forms.TextInput(attrs={"class": "form-control color-input", "type": "color"}),
             "text_color": forms.TextInput(attrs={"class": "form-control color-input", "type": "color"}),
+            "show_profile_photo": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "include_qr": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
 

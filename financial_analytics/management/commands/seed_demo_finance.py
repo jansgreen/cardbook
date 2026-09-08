@@ -21,7 +21,7 @@ class Command(BaseCommand):
         finance_admin, _ = User.objects.update_or_create(
             username="finance_admin",
             defaults={
-                "email": "finance.admin@demo.cardbook.test",
+                "email": "finance.admin@demo.incardbook.test",
                 "first_name": "Finance",
                 "last_name": "Admin",
                 "is_staff": True,

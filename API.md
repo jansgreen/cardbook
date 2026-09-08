@@ -1,4 +1,4 @@
-﻿# Cardbook API
+# Cardbook API
 
 Base URL: `/api/v1/`
 
@@ -140,8 +140,8 @@ Create company:
 {
   "name": "Cardbook Coffee",
   "phone_number": "+18095550100",
-  "email": "hello@cardbook.test",
-  "website": "https://cardbook.test",
+  "email": "hello@incardbook.test",
+  "website": "https://incardbook.test",
   "description": "Digital cards for local businesses."
 }
 ```
@@ -315,8 +315,8 @@ Create card:
   "company": 1,
   "job_title": "Founder",
   "phone_number": "+18095550100",
-  "email": "demo@cardbook.test",
-  "website": "https://cardbook.test/demo"
+  "email": "demo@incardbook.test",
+  "website": "https://incardbook.test/demo"
 }
 ```
 
@@ -344,7 +344,7 @@ Create translation:
   "language": "es",
   "full_name": "Demo User",
   "bio": "Especialista en tarjetas digitales.",
-  "services": "Diseño, QR, perfiles digitales",
+  "services": "Dise�o, QR, perfiles digitales",
   "address": "Santo Domingo",
   "custom_message": "Conecta conmigo."
 }
@@ -452,7 +452,7 @@ GET /api/v1/referrals/my-referrals/
 ```json
 {
   "referral_code": "AGT-8F92KD",
-  "source_url": "https://cardbook.com/register/?ref=AGT-8F92KD"
+  "source_url": "https://incardbook.com/register/?ref=AGT-8F92KD"
 }
 ```
 

@@ -108,6 +108,7 @@ class BusinessCardSerializer(serializers.ModelSerializer):
             "accent_color",
             "background_color",
             "text_color",
+            "show_profile_photo",
             "include_qr",
             "physical_card_front_image",
             "physical_card_back_image",

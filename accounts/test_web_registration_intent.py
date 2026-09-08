@@ -8,7 +8,7 @@ from referrals.models import AgentApplication, AgentProfile, Referral
 class WebRegistrationIntentTests(TestCase):
     password = "StrongPassword123!"
 
-    def register_payload(self, username="newuser", email="newuser@cardbook.test"):
+    def register_payload(self, username="newuser", email="newuser@incardbook.test"):
         return {
             "username": username,
             "email": email,
@@ -42,7 +42,7 @@ class WebRegistrationIntentTests(TestCase):
 
         response = self.client.post(
             reverse("web-register"),
-            self.register_payload(username="jobuser", email="jobuser@cardbook.test"),
+            self.register_payload(username="jobuser", email="jobuser@incardbook.test"),
         )
 
         self.assertRedirects(response, reverse("dashboard-white-card-job"))
@@ -52,7 +52,7 @@ class WebRegistrationIntentTests(TestCase):
     def test_job_user_login_goes_directly_to_white_card_job(self):
         user = get_user_model().objects.create_user(
             username="joblogin",
-            email="joblogin@cardbook.test",
+            email="joblogin@incardbook.test",
             password=self.password,
             registration_intent="job",
         )
@@ -74,7 +74,7 @@ class WebRegistrationIntentTests(TestCase):
             reverse("web-agent-application"),
             {
                 "full_name": "Ana Rivera",
-                "email": "ana.agent@cardbook.test",
+                "email": "ana.agent@incardbook.test",
                 "phone_number": "+18095550101",
                 "city": "Paterson",
                 "experience": "Ventas locales y soporte a pequenos negocios.",
@@ -83,11 +83,11 @@ class WebRegistrationIntentTests(TestCase):
         )
 
         self.assertRedirects(response, reverse("web-register"))
-        self.assertTrue(AgentApplication.objects.filter(email="ana.agent@cardbook.test").exists())
+        self.assertTrue(AgentApplication.objects.filter(email="ana.agent@incardbook.test").exists())
 
         register_response = self.client.post(
             reverse("web-register"),
-            self.register_payload(username="agentapp", email="ana.agent@cardbook.test"),
+            self.register_payload(username="agentapp", email="ana.agent@incardbook.test"),
         )
 
         self.assertRedirects(register_response, reverse("dashboard-referrals"))
@@ -97,7 +97,7 @@ class WebRegistrationIntentTests(TestCase):
     def test_agent_user_login_goes_directly_to_referrals(self):
         user = get_user_model().objects.create_user(
             username="agentlogin",
-            email="agentlogin@cardbook.test",
+            email="agentlogin@incardbook.test",
             password=self.password,
             registration_intent="agent",
         )
@@ -121,7 +121,7 @@ class WebRegistrationIntentTests(TestCase):
     def test_agent_with_valid_referral_code_creates_referral_after_register(self):
         agent_user = get_user_model().objects.create_user(
             username="agentowner",
-            email="agentowner@cardbook.test",
+            email="agentowner@incardbook.test",
             password=self.password,
         )
         AgentProfile.objects.create(user=agent_user, referral_code="AGT-VALID")
@@ -134,7 +134,7 @@ class WebRegistrationIntentTests(TestCase):
 
         register_response = self.client.post(
             reverse("web-register"),
-            self.register_payload(username="referredagent", email="referredagent@cardbook.test"),
+            self.register_payload(username="referredagent", email="referredagent@incardbook.test"),
         )
 
         self.assertRedirects(register_response, reverse("dashboard-referrals"))

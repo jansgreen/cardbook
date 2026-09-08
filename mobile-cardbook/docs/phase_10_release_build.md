@@ -59,7 +59,7 @@ PowerShell:
 Bash:
 
 ```bash
-./tool/build_release.sh https://cardbook-45cf0409dc07.herokuapp.com aab
+./tool/build_release.sh https://incardbook.com aab
 ```
 
 ## Configuracion Android pendiente tras `flutter create .`

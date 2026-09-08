@@ -10,9 +10,9 @@
 - Feature graphic 1024 x 500
 - Phone screenshots
 - Privacy policy URL:
-  - `https://cardbook-45cf0409dc07.herokuapp.com/privacy/`
+  - `https://incardbook.com/privacy/`
 - Terms URL:
-  - `https://cardbook-45cf0409dc07.herokuapp.com/terms/`
+  - `https://incardbook.com/terms/`
 
 ## Build
 

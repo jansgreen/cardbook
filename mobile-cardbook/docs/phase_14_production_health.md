@@ -34,7 +34,7 @@ heroku config:set CARDBOOK_APP_VERSION=0.14.0 --app cardbook
 heroku config:set CARDBOOK_DEPLOY_ENV=production --app cardbook
 heroku config:set DJANGO_DEBUG=False --app cardbook
 heroku config:set DJANGO_SECURE_SSL_REDIRECT=True --app cardbook
-heroku config:set DJANGO_CSRF_TRUSTED_ORIGINS=https://cardbook-45cf0409dc07.herokuapp.com --app cardbook
+heroku config:set DJANGO_CSRF_TRUSTED_ORIGINS=https://incardbook.com --app cardbook
 ```
 
 ## Auditoria
