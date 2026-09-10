@@ -16,7 +16,7 @@
                 <a href="{% url 'dashboard-company-website-preview' company.id %}" target="_blank" rel="noopener">Vista externa</a>
             {% endif %}
             {% if website and website.is_published %}
-                <a class="builder-primary" href="{% url 'websitebuilder-public-home' website.slug %}" target="_blank" rel="noopener">Ver sitio</a>
+                <a class="builder-primary" href="{{ public_url }}" target="_blank" rel="noopener">Ver sitio</a>
             {% endif %}
         </div>
     </div>
@@ -63,6 +63,36 @@
                             <button class="builder-primary-button" type="submit" {% if not publish_status.can_publish %}disabled{% endif %}>Publicar sitio</button>
                         {% endif %}
                     </form>
+                {% endif %}
+            </article>
+
+            <article class="builder-panel">
+                <div class="builder-panel-head">
+                    <div>
+                        <span>Identidad publica</span>
+                        <h2>Nombre y URL del website</h2>
+                    </div>
+                </div>
+                {% if can_manage_website %}
+                    <form method="post" class="builder-theme-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="update_identity">
+                        <label>Titulo del website
+                            <input type="text" name="title" value="{{ website.title }}" maxlength="180" placeholder="{{ company.name }}">
+                        </label>
+                        <label>Subdominio
+                            <input type="text" name="subdomain" value="{{ website.subdomain }}" maxlength="120" placeholder="{{ company.slug }}">
+                            <span class="builder-field-hint">Se vera como https://{{ website.subdomain }}.{{ public_site_base_domain }}</span>
+                        </label>
+                        <label>Dominio personalizado opcional
+                            <input type="text" name="domain" value="{{ website.domain }}" maxlength="255" placeholder="www.tuempresa.com">
+                        </label>
+                        <div class="builder-form-actions">
+                            <button class="builder-primary-button" type="submit">Guardar URL</button>
+                        </div>
+                    </form>
+                {% else %}
+                    <p>No tienes permiso para editar la identidad publica de este sitio.</p>
                 {% endif %}
             </article>
 

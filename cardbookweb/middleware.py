@@ -8,6 +8,60 @@ from django.conf import settings
 request_logger = logging.getLogger("cardbook.requests")
 
 
+class WebsiteSubdomainMiddleware:
+    reserved_path_prefixes = (
+        "/admin/",
+        "/api/",
+        "/android/",
+        "/business/",
+        "/c/",
+        "/dashboard/",
+        "/forms/",
+        "/health/",
+        "/job/",
+        "/media/",
+        "/site/",
+        "/static/",
+    )
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        subdomain = self.website_subdomain(request)
+        if subdomain and self.should_route_to_website(request.path_info):
+            path = request.path_info.strip("/")
+            request.cardbook_website_subdomain = subdomain
+            request.path_info = f"/site/{subdomain}/" if not path else f"/site/{subdomain}/{path}/"
+            request.META["PATH_INFO"] = request.path_info
+        return self.get_response(request)
+
+    def website_subdomain(self, request):
+        base_domain = getattr(settings, "CARDBOOK_PUBLIC_SITE_BASE_DOMAIN", "")
+        if not base_domain:
+            return ""
+
+        host = request.get_host().split(":", 1)[0].lower()
+        base_domain = base_domain.lower().lstrip(".")
+        if host in {base_domain, f"www.{base_domain}"}:
+            return ""
+        if not host.endswith(f".{base_domain}"):
+            return ""
+
+        subdomain = host[: -(len(base_domain) + 1)].strip(".")
+        if not subdomain or "." in subdomain:
+            return ""
+        if subdomain in getattr(settings, "CARDBOOK_RESERVED_SUBDOMAINS", ()):
+            return ""
+        return subdomain
+
+    def should_route_to_website(self, path):
+        normalized_path = path if path.startswith("/") else f"/{path}"
+        if normalized_path == "/":
+            return True
+        return not any(normalized_path.startswith(prefix) for prefix in self.reserved_path_prefixes)
+
+
 class RequestIDMiddleware:
     header_name = "HTTP_X_REQUEST_ID"
     response_header_name = "X-Request-ID"

@@ -183,6 +183,8 @@ class PublicCompaniesView(TemplateView):
         )
         context["white_cards"] = white_cards.distinct().order_by("-updated_at") if show_jobs else WhiteCardJob.objects.none()
         context["websites"] = websites.distinct().order_by("company__name", "title") if show_websites else Website.objects.none()
+        for website in context["websites"]:
+            website.pretty_public_url = website_public_url(self.request, website)
         context["query"] = query
         context["company_total"] = company_total
         context["card_total"] = context["business_cards"].count()

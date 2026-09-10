@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.conf import settings
 from django.urls import reverse
 
 from accesscontrol.services import (
@@ -45,6 +46,20 @@ def public_site_path(website, page=None):
 
 def website_public_url(request, website, page=None):
     path = public_site_path(website, page)
+    base_domain = getattr(settings, "CARDBOOK_PUBLIC_SITE_BASE_DOMAIN", "")
+    subdomain = (website.subdomain or "").strip().lower()
+    if base_domain and subdomain and subdomain not in getattr(settings, "CARDBOOK_RESERVED_SUBDOMAINS", ()):
+        if request:
+            scheme = "https" if request.is_secure() else request.scheme
+            current_host = request.get_host().split(":", 1)[0].lower()
+            if current_host == base_domain or current_host.endswith(f".{base_domain}"):
+                if page and not page.is_homepage:
+                    return f"{scheme}://{subdomain}.{base_domain}/{page.slug}/"
+                return f"{scheme}://{subdomain}.{base_domain}/"
+        elif page and not page.is_homepage:
+            return f"https://{subdomain}.{base_domain}/{page.slug}/"
+        else:
+            return f"https://{subdomain}.{base_domain}/"
     return request.build_absolute_uri(path) if request else path
 
 

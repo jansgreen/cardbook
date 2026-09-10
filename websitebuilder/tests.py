@@ -1,10 +1,18 @@
+from django.test import override_settings
+from django.urls import reverse
 from rest_framework.test import APITestCase
 
 from accesscontrol.models import AccessRole, UserAccessGrant
 from accesscontrol.services import ensure_default_permissions
 from cardbookweb.test_utils import make_company, make_user
 from websitebuilder.models import Page, Website
-from websitebuilder.services import can_manage_website_builder, can_publish_website_builder, create_starter_website, website_publish_status
+from websitebuilder.services import (
+    can_manage_website_builder,
+    can_publish_website_builder,
+    create_starter_website,
+    website_public_url,
+    website_publish_status,
+)
 
 
 class WebsiteBuilderQualityTests(APITestCase):
@@ -46,3 +54,105 @@ class WebsiteBuilderQualityTests(APITestCase):
 
         self.assertTrue(status["can_publish"])
         self.assertEqual(status["issues"], [])
+
+    def test_public_site_accepts_company_slug(self):
+        company = make_company(owner=make_user("companyslugowner"), name="La Costura de Dona Nancy")
+        website = create_starter_website(company, publish=True)
+        website.slug = "nancy-custom-site"
+        website.save(update_fields=["slug", "updated_at"])
+
+        response = self.client.get(reverse("websitebuilder-public-home", kwargs={"website_slug": company.slug}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, website.title)
+
+    def test_public_site_redirects_unpublished_company_to_public_company_profile(self):
+        company = make_company(owner=make_user("draftsiteowner"), name="Draft Public Business")
+        create_starter_website(company, publish=False)
+
+        response = self.client.get(reverse("websitebuilder-public-home", kwargs={"website_slug": company.slug}))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("public-company-detail", kwargs={"slug": company.slug}))
+
+    @override_settings(
+        ALLOWED_HOSTS=["testserver", ".incardbook.test"],
+        CARDBOOK_PUBLIC_SITE_BASE_DOMAIN="incardbook.test",
+    )
+    def test_public_site_renders_from_subdomain_host(self):
+        company = make_company(owner=make_user("subdomainowner"), name="Alta Costura")
+        website = create_starter_website(company, publish=True)
+
+        response = self.client.get("/", HTTP_HOST=f"{website.subdomain}.incardbook.test")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, website.title)
+
+    @override_settings(
+        ALLOWED_HOSTS=["testserver", ".incardbook.test"],
+        CARDBOOK_PUBLIC_SITE_BASE_DOMAIN="incardbook.test",
+    )
+    def test_public_site_subdomain_keeps_static_paths_unmodified(self):
+        company = make_company(owner=make_user("staticpathowner"), name="Static Path Co")
+        website = create_starter_website(company, publish=True)
+
+        response = self.client.get("/static/css/style.css", HTTP_HOST=f"{website.subdomain}.incardbook.test")
+
+        self.assertNotEqual(response.request["PATH_INFO"], f"/site/{website.subdomain}/static/css/style.css/")
+
+    @override_settings(
+        ALLOWED_HOSTS=["testserver", "incardbook.test", ".incardbook.test"],
+        CARDBOOK_PUBLIC_SITE_BASE_DOMAIN="incardbook.test",
+    )
+    def test_website_public_url_prefers_subdomain_on_base_domain(self):
+        company = make_company(owner=make_user("prettyurlowner"), name="Pretty URL Co")
+        website = create_starter_website(company, publish=True)
+        request = self.client.get("/", HTTP_HOST="incardbook.test", secure=True).wsgi_request
+
+        public_url = website_public_url(request, website)
+
+        self.assertEqual(public_url, f"https://{website.subdomain}.incardbook.test/")
+
+    @override_settings(CARDBOOK_RESERVED_SUBDOMAINS=("www", "api", "dashboard"))
+    def test_dashboard_builder_updates_website_subdomain(self):
+        owner = make_user("identityowner")
+        company = make_company(owner=owner, name="Identity Company")
+        website = create_starter_website(company, publish=True)
+        self.client.force_login(owner)
+
+        response = self.client.post(
+            reverse("dashboard-company-website", kwargs={"company_id": company.id}),
+            {
+                "action": "update_identity",
+                "title": "Alta Costura",
+                "subdomain": "Alta Costura",
+                "domain": "",
+            },
+        )
+
+        website.refresh_from_db()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(website.title, "Alta Costura")
+        self.assertEqual(website.subdomain, "alta-costura")
+
+    @override_settings(CARDBOOK_RESERVED_SUBDOMAINS=("www", "api", "dashboard"))
+    def test_dashboard_builder_rejects_reserved_subdomain(self):
+        owner = make_user("reservedowner")
+        company = make_company(owner=owner, name="Reserved Company")
+        website = create_starter_website(company, publish=True)
+        original_subdomain = website.subdomain
+        self.client.force_login(owner)
+
+        response = self.client.post(
+            reverse("dashboard-company-website", kwargs={"company_id": company.id}),
+            {
+                "action": "update_identity",
+                "title": website.title,
+                "subdomain": "www",
+                "domain": "",
+            },
+        )
+
+        website.refresh_from_db()
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(website.subdomain, original_subdomain)

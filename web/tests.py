@@ -1,4 +1,5 @@
 from rest_framework import status
+from django.test import override_settings
 from rest_framework.test import APITestCase
 
 from cardbookweb.test_utils import make_business_card, make_company, make_digital_card, make_published_website, make_user, make_white_card_job
@@ -39,3 +40,13 @@ class PublicMarketplaceTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertContains(response, "Sitios publicados")
         self.assertContains(response, self.website.title)
+
+    @override_settings(
+        ALLOWED_HOSTS=["testserver", "incardbook.test", ".incardbook.test"],
+        CARDBOOK_PUBLIC_SITE_BASE_DOMAIN="incardbook.test",
+    )
+    def test_public_companies_page_links_to_website_subdomain(self):
+        response = self.client.get("/empresas/?type=websites", HTTP_HOST="incardbook.test", secure=True)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertContains(response, f"https://{self.website.subdomain}.incardbook.test/")

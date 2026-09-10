@@ -66,6 +66,7 @@ blockquote { margin: 18px 0; color: var(--dark); font-weight: 700; border-left: 
 .qr-meta { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 18px 0; }
 .qr-meta span { background: #eaf3ff; color: var(--dark); border-radius: 999px; padding: 9px 12px; font-weight: 850; font-size: .9rem; }
 .print-view-link { display: block; width: 100%; margin: 0 0 16px; border-radius: 999px; padding: 12px 14px; background: var(--dark); color: white; text-align: center; font-weight: 850; }
+.print-view-link.secondary { margin-top: -8px; background: var(--gold); color: var(--dark); }
 .book-save-form { margin: 0 0 14px; }
 .book-save-form button { width: 100%; border: 0; border-radius: 999px; padding: 12px 14px; background: var(--dark); color: white; font: inherit; font-weight: 850; cursor: pointer; }
 .social-panel { margin: 18px 0; padding: 16px; border-radius: 18px; background: #f5f8fc; border: 1px solid rgba(0, 56, 117, .09); }

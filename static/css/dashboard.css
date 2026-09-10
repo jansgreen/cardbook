@@ -909,6 +909,11 @@
     background: white;
 }
 .builder-theme-form input[type="color"] { padding: 4px; }
+.builder-field-hint {
+    color: #64748b;
+    font-size: .82rem;
+    font-weight: 700;
+}
 .builder-structure-form {
     grid-template-columns: 1fr;
 }

@@ -60,8 +60,10 @@ heroku run --app cardbook --exit-code --no-tty -- python manage.py ops_snapshot 
 ```powershell
 heroku config:set DJANGO_DEBUG=False --app cardbook
 heroku config:set CARDBOOK_DEPLOY_ENV=production --app cardbook
-heroku config:set DJANGO_ALLOWED_HOSTS=incardbook.com,www.incardbook.com,cardbook-45cf0409dc07.herokuapp.com --app cardbook
-heroku config:set DJANGO_CSRF_TRUSTED_ORIGINS=https://incardbook.com,https://www.incardbook.com,https://cardbook-45cf0409dc07.herokuapp.com --app cardbook
+heroku config:set DJANGO_ALLOWED_HOSTS=incardbook.com,.incardbook.com,cardbook-45cf0409dc07.herokuapp.com --app cardbook
+heroku config:set DJANGO_CSRF_TRUSTED_ORIGINS=https://incardbook.com,https://www.incardbook.com,https://*.incardbook.com,https://cardbook-45cf0409dc07.herokuapp.com --app cardbook
+heroku config:set CARDBOOK_PUBLIC_SITE_BASE_DOMAIN=incardbook.com --app cardbook
+heroku config:set CARDBOOK_RESERVED_SUBDOMAINS=www,api,admin,static,media,app,dashboard --app cardbook
 heroku config:set DJANGO_SECURE_SSL_REDIRECT=True --app cardbook
 heroku config:set CARDBOOK_REQUEST_LOGGING_ENABLED=True --app cardbook
 heroku config:set CARDBOOK_ENABLE_REQUEST_ID_HEADERS=True --app cardbook

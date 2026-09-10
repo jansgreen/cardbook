@@ -25,14 +25,14 @@
 <body class="wb-body">
     {% if website.show_header %}
     <header class="wb-navbar">
-        <a class="wb-brand" href="{% url 'websitebuilder-public-home' website.slug %}">
+        <a class="wb-brand" href="{% if request.cardbook_website_subdomain %}/{% else %}{% url 'websitebuilder-public-home' website.slug %}{% endif %}">
             {% if website.logo %}<img src="{{ website.logo.url }}" alt="{{ website.title }}">{% elif website.company.logo %}<img src="{{ website.company.logo.url }}" alt="{{ website.company.name }}">{% endif %}
             <span>{{ website.title }}</span>
         </a>
         {% if website.show_nav %}
         <nav>
             {% for menu_page in menu_pages %}
-                <a href="{% if menu_page.is_homepage %}{% url 'websitebuilder-public-home' website.slug %}{% else %}{% url 'websitebuilder-public-page' website.slug menu_page.slug %}{% endif %}?lang={{ language }}">{{ menu_page|translated_title:language }}</a>
+                <a href="{% if request.cardbook_website_subdomain %}{% if menu_page.is_homepage %}/{% else %}/{{ menu_page.slug }}/{% endif %}{% else %}{% if menu_page.is_homepage %}{% url 'websitebuilder-public-home' website.slug %}{% else %}{% url 'websitebuilder-public-page' website.slug menu_page.slug %}{% endif %}{% endif %}?lang={{ language }}">{{ menu_page|translated_title:language }}</a>
             {% endfor %}
         </nav>
         {% endif %}

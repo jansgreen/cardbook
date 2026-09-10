@@ -101,6 +101,7 @@
                 </div>
                 {% if can_print and print_business_card %}
                     <a class="print-view-link" href="{% url 'public-business-card-print' print_business_card.slug %}">Vista de impresion</a>
+                    <a class="print-view-link secondary" href="{% url 'public-business-card-print' print_business_card.slug %}?layout=qr_double">QR doble para imprimir</a>
                 {% endif %}
                 <form class="book-save-form" method="post" action="{% url 'public-save-to-book' %}">
                     {% csrf_token %}

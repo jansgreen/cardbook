@@ -1,8 +1,10 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.conf import settings
 from django.db.models import Count, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
+from django.utils.text import slugify
 from django.views.generic import TemplateView, View
 from rest_framework import generics, permissions, status
 from rest_framework.views import APIView
@@ -332,11 +334,41 @@ def public_website_agent(website):
     ).select_related("company", "website").first()
 
 
+def public_website_queryset():
+    return Website.objects.select_related("company", "theme").filter(is_active=True, is_published=True)
+
+
+def find_public_website(website_slug):
+    return public_website_queryset().filter(
+        Q(slug=website_slug) | Q(subdomain=website_slug) | Q(company__slug=website_slug)
+    ).first()
+
+
+def get_public_website_or_404(website_slug):
+    website = find_public_website(website_slug)
+    if not website:
+        raise Http404("Website not found.")
+    return website
+
+
+def clean_website_subdomain(value, website):
+    subdomain = slugify((value or "").strip()) or slugify(website.company.slug or website.company.name)
+    reserved = set(getattr(settings, "CARDBOOK_RESERVED_SUBDOMAINS", ()))
+    if subdomain in reserved:
+        raise ValueError("Ese subdominio esta reservado por Cardbook.")
+    exists = Website.objects.exclude(pk=website.pk).filter(
+        Q(subdomain=subdomain) | Q(slug=subdomain) | Q(company__slug=subdomain)
+    ).exists()
+    if exists:
+        raise ValueError("Ese subdominio ya esta siendo usado por otra empresa.")
+    return subdomain
+
+
 class PublicSiteAPIView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, website_slug, page_slug=None):
-        website = get_object_or_404(Website.objects.select_related("company", "theme"), slug=website_slug, is_active=True, is_published=True)
+        website = get_public_website_or_404(website_slug)
         page = get_public_page(website, page_slug)
         language = request.query_params.get("lang") or website.default_language or "es"
         register_visit(request, website, page, language)
@@ -349,9 +381,18 @@ class PublicSiteAPIView(APIView):
 class PublicSiteView(TemplateView):
     template_name = "website_builder/public/page_render.html"
 
+    def get(self, request, *args, **kwargs):
+        self.public_website = find_public_website(kwargs["website_slug"])
+        if not self.public_website:
+            company = Company.objects.filter(slug=kwargs["website_slug"], is_active=True).first()
+            if company:
+                return redirect("public-company-detail", slug=company.slug)
+            raise Http404("Website not found.")
+        return super().get(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        website = get_object_or_404(Website.objects.select_related("company", "theme"), slug=kwargs["website_slug"], is_active=True, is_published=True)
+        website = self.public_website
         page = get_public_page(website, kwargs.get("page_slug"))
         language = self.request.GET.get("lang") or website.default_language or "es"
         register_visit(self.request, website, page, language)
@@ -448,6 +489,7 @@ class DashboardWebsiteBuilderView(LoginRequiredMixin, TemplateView):
             "can_publish_website": can_publish_website_builder(self.request.user, company),
             "publish_status": website_publish_status(website),
             "public_url": website_public_url(self.request, website) if website else "",
+            "public_site_base_domain": getattr(settings, "CARDBOOK_PUBLIC_SITE_BASE_DOMAIN", "incardbook.com"),
             "themes": Theme.objects.filter(is_active=True),
             "visits": WebsiteVisit.objects.filter(website=website).count() if website else 0,
             "website_ai_agent": public_website_agent(website) if website else None,
@@ -482,6 +524,16 @@ class DashboardWebsiteBuilderView(LoginRequiredMixin, TemplateView):
         if action == "create_website":
             website = create_starter_website(company, publish=False)
             messages.success(request, "Website Builder creado con plantilla inicial.")
+        elif action == "update_identity" and website:
+            try:
+                website.title = (request.POST.get("title") or website.title).strip()[:180]
+                website.subdomain = clean_website_subdomain(request.POST.get("subdomain"), website)
+                website.domain = (request.POST.get("domain") or "").strip()[:255]
+            except ValueError as exc:
+                messages.error(request, str(exc))
+                return redirect("dashboard-company-website", company_id=company.id)
+            website.save(update_fields=["title", "subdomain", "domain", "updated_at"])
+            messages.success(request, "Identidad publica del website actualizada.")
         elif action == "create_page" and website:
             form = PageDashboardForm(request.POST)
             if form.is_valid():

@@ -36,6 +36,12 @@ CARDBOOK_REQUEST_LOG_EXCLUDED_PREFIXES = tuple(
     for prefix in os.environ.get("CARDBOOK_REQUEST_LOG_EXCLUDED_PREFIXES", "/static/,/media/").split(",")
     if prefix.strip()
 )
+CARDBOOK_PUBLIC_SITE_BASE_DOMAIN = os.environ.get("CARDBOOK_PUBLIC_SITE_BASE_DOMAIN", "incardbook.com").strip().lower()
+CARDBOOK_RESERVED_SUBDOMAINS = tuple(
+    subdomain.strip().lower()
+    for subdomain in os.environ.get("CARDBOOK_RESERVED_SUBDOMAINS", "www,api,admin,static,media,app,dashboard").split(",")
+    if subdomain.strip()
+)
 AI_AGENT_PUBLIC_ASK_LIMIT = env_int("AI_AGENT_PUBLIC_ASK_LIMIT", 30)
 AI_AGENT_PUBLIC_ASK_WINDOW_SECONDS = env_int("AI_AGENT_PUBLIC_ASK_WINDOW_SECONDS", 60)
 AI_AGENT_PUBLIC_LEAD_LIMIT = env_int("AI_AGENT_PUBLIC_LEAD_LIMIT", 5)
@@ -95,6 +101,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "cardbookweb.middleware.RequestIDMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    "cardbookweb.middleware.WebsiteSubdomainMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",

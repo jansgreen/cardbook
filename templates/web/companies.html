@@ -192,7 +192,7 @@
             <div class="marketplace-website-grid">
                 {% for website in websites %}
                     <article class="marketplace-website-card">
-                        <a class="marketplace-website-link" href="{% url 'websitebuilder-public-home' website.slug %}" aria-label="Ver website de {{ website.company.name }}"></a>
+                        <a class="marketplace-website-link" href="{{ website.pretty_public_url }}" aria-label="Ver website de {{ website.company.name }}"></a>
                         <div class="marketplace-website-top" style="--site-primary: {{ website.primary_color }}; --site-accent: {{ website.accent_color }};">
                             {% if website.logo %}
                                 <img src="{{ website.logo.url }}" alt="{{ website.title }}">

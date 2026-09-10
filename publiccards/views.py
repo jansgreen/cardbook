@@ -219,10 +219,15 @@ class BusinessCardPrintView(LoginRequiredMixin, DetailView):
         paper = self.request.GET.get("paper", "letter")
         if paper not in {"letter", "a4"}:
             paper = "letter"
+        layout = self.request.GET.get("layout", "cards")
+        if layout not in {"cards", "qr_double"}:
+            layout = "cards"
         context.update({
             "paper": paper,
-            "paper_css": "A4" if paper == "a4" else "letter",
+            "layout": layout,
+            "paper_css": ("A4 landscape" if paper == "a4" else "letter landscape") if layout == "qr_double" else ("A4" if paper == "a4" else "letter"),
             "copies": range(10),
+            "qr_copies": range(2),
             "profile_url": self.request.build_absolute_uri(
                 reverse("public-card-web", kwargs={"slug": self.object.profile.slug})
             ),
