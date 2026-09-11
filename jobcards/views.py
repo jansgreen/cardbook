@@ -7,7 +7,7 @@ from django.views.generic import TemplateView, View
 from rest_framework import permissions, status
 from rest_framework.views import APIView
 
-from cardbookweb.qr import QRStyle, qr_svg_response
+from cardbookweb.qr import QRStyle, qr_svg_response, static_image_data_uri
 from cardbookweb.responses import StandardPagination, error_response, success_response
 from companies.models import Company
 from companies.permissions import can_manage_company
@@ -34,7 +34,8 @@ WHITE_CARD_QR_STYLE = QRStyle(
 def white_card_job_qr_svg(request, username):
     card = get_object_or_404(WhiteCardJob.objects.select_related("user", "specialty"), user__username=username, is_active=True)
     card_url = request.build_absolute_uri(reverse("public-white-card-job", kwargs={"username": card.username}))
-    return qr_svg_response(card_url, WHITE_CARD_QR_STYLE)
+    logo_url = static_image_data_uri("img/logo.png")
+    return qr_svg_response(card_url, WHITE_CARD_QR_STYLE, logo_url=logo_url)
 
 
 class WhiteCardJobListCreateAPIView(APIView):

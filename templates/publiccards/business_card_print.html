@@ -44,7 +44,7 @@
         .qr-ticket { min-height: 7.05in; border: .08in solid {{ business_card.background_color }}; border-radius: .12in; padding: .24in .22in; display: flex; flex-direction: column; gap: .12in; color: #061b3a; background: #ffffff; page-break-inside: avoid; overflow: hidden; }
         .qr-ticket-head { display: grid; grid-template-columns: .48in 1fr; align-items: center; gap: .12in; }
         .qr-ticket-logo { width: .48in; height: .48in; object-fit: contain; border-radius: .08in; border: 1px solid #dbe6f4; background: #fff; padding: .04in; }
-        .qr-ticket-head p { margin: 0; color: #0057b8; font-size: .11in; line-height: 1.05; font-weight: 900; text-transform: uppercase; }
+        .qr-ticket-head p { margin: 0; color: #0057b8; font-size: .1in; line-height: 1.05; font-weight: 900; text-transform: uppercase; overflow-wrap: anywhere; }
         .qr-ticket-head h2 { margin: .02in 0 0; color: #003875; font-family: Georgia, "Times New Roman", serif; font-size: .22in; line-height: .92; }
         .qr-ticket-frame { margin-top: .04in; padding: .13in; border: .02in solid #d9e2ef; border-radius: .18in; background: #f8fbff; }
         .qr-ticket-qr-wrap { padding: .07in; border: .02in solid #9fb0c8; border-radius: .12in; background: {{ business_card.accent_color }}; }
@@ -94,7 +94,7 @@
                             <img class="qr-ticket-logo" src="{% static 'img/logo.png' %}" alt="Cardbook">
                         {% endif %}
                         <div>
-                            <p>QR inteligente</p>
+                            <p>{{ business_card.company_name }}</p>
                             <h2>Escanea mi tarjeta</h2>
                         </div>
                     </div>
@@ -104,13 +104,15 @@
                         </div>
                     </div>
                     <p class="qr-ticket-note">Este codigo abre directamente la tarjeta digital publica.</p>
-                    <p class="qr-ticket-list-title">{{ business_card.company_name }}</p>
+                    <p class="qr-ticket-list-title">{{ business_service_heading }}</p>
                     <ul class="qr-ticket-list">
-                        <li><strong>{{ business_card.display_name }}</strong>{% if business_card.job_title %} - {{ business_card.job_title }}{% endif %}</li>
-                        {% if business_card.phone_number %}<li>Llamar o guardar contacto desde el perfil.</li>{% endif %}
-                        {% if business_card.website %}<li>Visitar sitio web y canales oficiales.</li>{% endif %}
-                        <li>Compartir el perfil digital sin imprimir nuevas tarjetas.</li>
-                        <li>Escanea, guarda en Book y consulta la informacion actualizada.</li>
+                        {% if business_service_items %}
+                            {% for service in business_service_items %}
+                                <li>{{ service }}</li>
+                            {% endfor %}
+                        {% else %}
+                            <li>Consulta los servicios disponibles desde la tarjeta digital publica.</li>
+                        {% endif %}
                     </ul>
                     <div class="qr-ticket-footer">
                         <span class="qr-ticket-pill">{{ business_card.profile.get_qr_shape_display }}</span>
@@ -131,7 +133,7 @@
                         <div class="copy-contact">
                             {% if business_card.phone_number %}<span>{{ business_card.phone_number }}</span>{% endif %}
                             {% if business_card.email %}<span>{{ business_card.email }}</span>{% endif %}
-                            {% if business_card.website %}<span>{{ business_card.website }}</span>{% endif %}
+                            {% if business_website_url %}<span>{{ business_website_url }}</span>{% endif %}
                             {% if business_card.address %}<span>{{ business_card.address }}</span>{% endif %}
                         </div>
                     </div>

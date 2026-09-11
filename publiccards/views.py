@@ -1,18 +1,21 @@
+import re
+
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.views.generic import DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 
 from analytics.models import CardView
 from alliances.models import CompanyAlliance
 from book.models import SavedBusiness
-from cardbookweb.qr import qr_svg_response, style_from_object
+from cardbookweb.qr import qr_svg_response, static_image_data_uri, style_from_object
 from cards.models import BusinessCard, DigitalCard
 from companies.models import Company
 from cards.permissions import can_manage_card
+from websitebuilder.services import website_public_url
 
 
 LANGUAGE_OPTIONS = [
@@ -72,7 +75,8 @@ BUSINESS_LABELS = {
 def card_qr_svg(request, slug):
     card = get_object_or_404(DigitalCard.objects.filter(is_active=True), slug=slug)
     card_url = request.build_absolute_uri(reverse("public-card-web", kwargs={"slug": card.slug}))
-    return qr_svg_response(card_url, style_from_object(card))
+    logo_url = static_image_data_uri("img/logo.png")
+    return qr_svg_response(card_url, style_from_object(card), logo_url=logo_url)
 
 
 def save_to_book(request):
@@ -118,6 +122,25 @@ def get_allied_companies(company):
     for alliance in alliances:
         ally_ids.append(alliance.receiver_id if alliance.requester_id == company.id else alliance.requester_id)
     return Company.objects.filter(id__in=ally_ids, is_active=True).annotate(efficient_total=Count("ratings", distinct=True))
+
+
+def get_business_card_website_url(request, business_card):
+    try:
+        website = business_card.profile.company.builder_website
+    except ObjectDoesNotExist:
+        website = None
+
+    if website and website.is_active and website.is_published:
+        return website_public_url(request, website)
+    return business_card.website or business_card.profile.website or business_card.company.website
+
+
+def get_business_card_service_items(business_card):
+    services_text = business_card.services or business_card.company.services or ""
+    raw_items = [item.strip(" -\t\r") for item in re.split(r"[\n;]+", services_text) if item.strip(" -\t\r")]
+    if len(raw_items) <= 1 and "," in services_text:
+        raw_items = [item.strip(" -\t\r") for item in services_text.split(",") if item.strip(" -\t\r")]
+    return raw_items[:6]
 
 
 class PublicCardDetailView(DetailView):
@@ -170,6 +193,7 @@ class PublicBusinessCardDetailView(DetailView):
     def get_queryset(self):
         return BusinessCard.objects.filter(is_active=True, profile__is_active=True).select_related(
             "profile__company",
+            "profile__company__builder_website",
             "profile__user",
         )
 
@@ -189,6 +213,7 @@ class PublicBusinessCardDetailView(DetailView):
         context["language_options"] = LANGUAGE_OPTIONS
         context["can_print"] = self.request.user.is_authenticated and can_manage_card(self.request.user, self.object.profile)
         context["allied_companies"] = get_allied_companies(self.object.company)
+        context["business_website_url"] = get_business_card_website_url(self.request, self.object)
         return context
 
 
@@ -203,6 +228,7 @@ class BusinessCardPrintView(LoginRequiredMixin, DetailView):
     def get_queryset(self):
         return BusinessCard.objects.filter(is_active=True, profile__is_active=True).select_related(
             "profile__company",
+            "profile__company__builder_website",
             "profile__user",
         )
 
@@ -231,6 +257,9 @@ class BusinessCardPrintView(LoginRequiredMixin, DetailView):
             "profile_url": self.request.build_absolute_uri(
                 reverse("public-card-web", kwargs={"slug": self.object.profile.slug})
             ),
+            "business_website_url": get_business_card_website_url(self.request, self.object),
+            "business_service_heading": self.object.company.category or "Servicios de la empresa",
+            "business_service_items": get_business_card_service_items(self.object),
         })
         return context
 

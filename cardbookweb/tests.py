@@ -8,7 +8,7 @@ from django.test import override_settings
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from cardbookweb.qr import QRStyle, render_styled_qr_svg, style_from_object
+from cardbookweb.qr import QRStyle, render_styled_qr_svg, static_image_data_uri, style_from_object
 from cardbookweb.test_utils import make_digital_card, make_user, make_white_card_job
 
 
@@ -19,6 +19,17 @@ class QRRendererTests(TestCase):
         self.assertTrue(svg.startswith("<svg"))
         self.assertIn("viewBox", svg)
         self.assertIn("rotate(45", svg)
+
+    def test_renderer_can_place_brand_logo_in_center(self):
+        logo_data = static_image_data_uri("img/logo.png")
+        svg = render_styled_qr_svg(
+            "https://incardbook.test/demo",
+            QRStyle(shape="diamond"),
+            logo_url=logo_data,
+        )
+
+        self.assertIn('href="data:image/png;base64,', svg)
+        self.assertIn('preserveAspectRatio="xMidYMid meet"', svg)
 
     def test_style_from_object_uses_safe_fallbacks(self):
         class UnsafeStyle:
@@ -45,6 +56,7 @@ class QREndpointTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response["Content-Type"], "image/svg+xml")
         self.assertIn(b"<svg", response.content)
+        self.assertIn(b"data:image/png;base64,", response.content)
 
 
 class ObservabilityTests(APITestCase):
@@ -103,6 +115,7 @@ class ObservabilityTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response["Content-Type"], "image/svg+xml")
         self.assertIn(b"<svg", response.content)
+        self.assertIn(b"data:image/png;base64,", response.content)
 
 
 class ProductionAuditCommandTests(TestCase):

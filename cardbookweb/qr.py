@@ -1,7 +1,12 @@
+import base64
+from functools import lru_cache
 import re
 from dataclasses import dataclass
+from html import escape
+from mimetypes import guess_type
 
 import qrcode
+from django.contrib.staticfiles import finders
 from django.http import HttpResponse
 
 
@@ -36,6 +41,17 @@ def style_from_object(obj, fallback=None):
     )
 
 
+@lru_cache(maxsize=16)
+def static_image_data_uri(static_path):
+    resolved_path = finders.find(static_path)
+    if not resolved_path:
+        return ""
+    mime_type = guess_type(resolved_path)[0] or "image/png"
+    with open(resolved_path, "rb") as image_file:
+        encoded = base64.b64encode(image_file.read()).decode("ascii")
+    return f"data:{mime_type};base64,{encoded}"
+
+
 def is_finder_zone(row, col, size):
     return (
         (row < 9 and col < 9)
@@ -44,7 +60,7 @@ def is_finder_zone(row, col, size):
     )
 
 
-def render_styled_qr_svg(data, style=None):
+def render_styled_qr_svg(data, style=None, logo_url=""):
     style = style or QRStyle()
     qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_H, box_size=10, border=4)
     qr.add_data(data)
@@ -85,9 +101,25 @@ def render_styled_qr_svg(data, style=None):
                     f'fill="{style.dot_color}" transform="rotate(45 {cx} {cy})"/>'
                 )
 
+    if logo_url:
+        logo_box_size = canvas_size * 0.23
+        logo_size = canvas_size * 0.16
+        logo_box_x = (canvas_size - logo_box_size) / 2
+        logo_x = (canvas_size - logo_size) / 2
+        elements.extend([
+            (
+                f'<rect x="{logo_box_x:.2f}" y="{logo_box_x:.2f}" width="{logo_box_size:.2f}" '
+                f'height="{logo_box_size:.2f}" rx="{logo_box_size * 0.22:.2f}" fill="#ffffff"/>'
+            ),
+            (
+                f'<image href="{escape(logo_url, quote=True)}" x="{logo_x:.2f}" y="{logo_x:.2f}" '
+                f'width="{logo_size:.2f}" height="{logo_size:.2f}" preserveAspectRatio="xMidYMid meet"/>'
+            ),
+        ])
+
     elements.append("</svg>")
     return "".join(elements)
 
 
-def qr_svg_response(data, style=None):
-    return HttpResponse(render_styled_qr_svg(data, style), content_type="image/svg+xml")
+def qr_svg_response(data, style=None, logo_url=""):
+    return HttpResponse(render_styled_qr_svg(data, style, logo_url=logo_url), content_type="image/svg+xml")
