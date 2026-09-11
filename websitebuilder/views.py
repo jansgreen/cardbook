@@ -13,6 +13,7 @@ from accesscontrol.services import PERM_MANAGE_WEBSITE_BUILDER
 from ai_agents.models import AIAgent
 from ai_agents.services import public_agent_suggested_questions
 from cardbookweb.responses import error_response, success_response
+from cards.models import BusinessCard
 from companies.models import Company
 from companies.permissions import can_access_company
 from forms_builder.models import FormDefinition
@@ -382,11 +383,19 @@ class PublicSiteView(TemplateView):
     template_name = "website_builder/public/page_render.html"
 
     def get(self, request, *args, **kwargs):
-        self.public_website = find_public_website(kwargs["website_slug"])
+        website_slug = kwargs["website_slug"]
+        self.public_website = find_public_website(website_slug)
         if not self.public_website:
-            company = Company.objects.filter(slug=kwargs["website_slug"], is_active=True).first()
+            company = Company.objects.filter(slug=website_slug, is_active=True).first()
             if company:
                 return redirect("public-company-detail", slug=company.slug)
+            business_card = BusinessCard.objects.filter(
+                is_active=True,
+                profile__is_active=True,
+                website__icontains=f"/site/{website_slug}/",
+            ).order_by("-updated_at").first()
+            if business_card:
+                return redirect("public-business-card", slug=business_card.slug)
             raise Http404("Website not found.")
         return super().get(request, *args, **kwargs)
 

@@ -19,7 +19,7 @@
         .sheet-wrap { padding: 28px; display: grid; place-items: start center; }
         .sheet { width: {% if paper == "a4" %}7.27in{% else %}7.5in{% endif %}; min-height: {% if paper == "a4" %}10.69in{% else %}10in{% endif %}; background: #fff; padding: 0; display: grid; grid-template-columns: repeat(2, 3.5in); grid-auto-rows: 2in; gap: 0 .5in; box-shadow: 0 18px 50px rgba(0, 35, 80, .16); position: relative; outline: 1px solid #b9c2cf; }
         .sheet::before { content: ""; position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(to right, transparent calc(50% - .25in), #d9dee8 calc(50% - .25in), #d9dee8 calc(50% - .24in), transparent calc(50% - .24in)), repeating-linear-gradient(to bottom, transparent 0, transparent calc(2in - 1px), #d9dee8 calc(2in - 1px), #d9dee8 2in); background-size: 100% 100%; background-repeat: no-repeat; }
-        .print-copy { width: 3.5in; height: 2in; padding: .16in; background: {{ business_card.background_color }}; color: {{ business_card.text_color }}; overflow: hidden; position: relative; page-break-inside: avoid; border: 1px solid rgba(0,0,0,.14); display: grid; grid-template-columns: 1fr .86in; gap: .12in; }
+        .print-copy { width: 3.5in; height: 2in; padding: .16in; background: {{ business_card.background_color }}; color: {{ business_card.text_color }}; overflow: hidden; position: relative; page-break-inside: avoid; border: 1px solid rgba(0,0,0,.14); display: grid; grid-template-columns: 1fr {% if business_card.hide_direct_contact_on_print %}1.08in{% else %}.86in{% endif %}; gap: .12in; }
         .print-copy::before { content: ""; position: absolute; top: -.58in; right: -.42in; width: 1.45in; height: 1.45in; border-radius: 50%; background: {{ business_card.accent_color }}; opacity: .28; }
         .copy-main, .copy-side { position: relative; z-index: 1; min-width: 0; }
         .copy-company { display: block; color: {{ business_card.accent_color }}; font-size: .08in; line-height: 1.1; font-weight: 900; text-transform: uppercase; letter-spacing: .01in; }
@@ -31,14 +31,15 @@
         .name-size-medium { font-size: .22in; }
         .name-size-large { font-size: .25in; }
         .copy-title { margin: 0; font-size: .09in; font-weight: 800; opacity: .86; }
-        .copy-services { margin-top: .08in; padding-left: .06in; border-left: .02in solid {{ business_card.accent_color }}; font-size: .075in; line-height: 1.25; font-weight: 700; opacity: .9; max-height: .28in; overflow: hidden; }
+        .copy-services { margin-top: .08in; padding-left: .06in; border-left: .02in solid {{ business_card.accent_color }}; font-size: .075in; line-height: 1.25; font-weight: 700; opacity: .9; max-height: {% if business_card.hide_direct_contact_on_print %}.54in{% else %}.28in{% endif %}; overflow: hidden; }
         .copy-contact { margin-top: .1in; display: grid; gap: .025in; font-size: .075in; line-height: 1.15; font-weight: 800; overflow-wrap: anywhere; }
+        .copy-contact-cta { margin-top: auto; display: inline-flex; justify-content: center; align-items: center; width: fit-content; min-width: .96in; max-width: 1.42in; border-radius: 999px; padding: .065in .12in; background: {{ business_card.contact_cta_color }}; color: {{ business_card.contact_cta_text_color }}; font-size: .085in; line-height: 1; font-weight: 950; text-align: center; }
         .copy-side { display: flex; flex-direction: column; align-items: flex-end; justify-content: space-between; gap: .05in; }
         .copy-media { display: flex; gap: .04in; align-items: flex-start; }
         .copy-photo { width: .38in; height: .38in; object-fit: cover; border-radius: .08in; border: .015in solid {{ business_card.accent_color }}; }
         .copy-logo { width: .34in; height: .34in; object-fit: contain; border-radius: .06in; background: white; padding: .035in; }
-        .copy-qr-box { width: .72in; padding: .04in; border-radius: .06in; background: white; }
-        .copy-qr { display: block; width: .64in; height: .64in; }
+        .copy-qr-box { width: {% if business_card.hide_direct_contact_on_print %}.96in{% else %}.72in{% endif %}; padding: .04in; border-radius: .06in; background: white; }
+        .copy-qr { display: block; width: {% if business_card.hide_direct_contact_on_print %}.88in{% else %}.64in{% endif %}; height: {% if business_card.hide_direct_contact_on_print %}.88in{% else %}.64in{% endif %}; }
         .qr-double-sheet { width: {% if paper == "a4" %}11.19in{% else %}10in{% endif %}; min-height: {% if paper == "a4" %}7.69in{% else %}7.5in{% endif %}; padding: .22in; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: auto; gap: .55in; align-items: stretch; }
         .qr-double-sheet::before { background-image: linear-gradient(to right, transparent calc(50% - 1px), #bfd0e5 calc(50% - 1px), #bfd0e5 50%, transparent 50%); }
         .qr-ticket { min-height: 7.05in; border: .08in solid {{ business_card.background_color }}; border-radius: .12in; padding: .24in .22in; display: flex; flex-direction: column; gap: .12in; color: #061b3a; background: #ffffff; page-break-inside: avoid; overflow: hidden; }
@@ -130,12 +131,16 @@
                         <h2 class="copy-name name-font-{{ business_card.name_font }} name-size-{{ business_card.name_size }}">{{ business_card.display_name }}</h2>
                         <p class="copy-title">{{ business_card.job_title|default:"Profesional" }}</p>
                         {% if business_card.services %}<div class="copy-services">{{ business_card.services }}</div>{% endif %}
-                        <div class="copy-contact">
-                            {% if business_card.phone_number %}<span>{{ business_card.phone_number }}</span>{% endif %}
-                            {% if business_card.email %}<span>{{ business_card.email }}</span>{% endif %}
-                            {% if business_website_url %}<span>{{ business_website_url }}</span>{% endif %}
-                            {% if business_card.address %}<span>{{ business_card.address }}</span>{% endif %}
-                        </div>
+                        {% if business_card.hide_direct_contact_on_print %}
+                            <span class="copy-contact-cta">{{ business_card.contact_cta_label }}</span>
+                        {% else %}
+                            <div class="copy-contact">
+                                {% if business_card.phone_number %}<span>{{ business_card.phone_number }}</span>{% endif %}
+                                {% if business_card.email %}<span>{{ business_card.email }}</span>{% endif %}
+                                {% if business_website_url %}<span>{{ business_website_url }}</span>{% endif %}
+                                {% if business_card.address %}<span>{{ business_card.address }}</span>{% endif %}
+                            </div>
+                        {% endif %}
                     </div>
                     <div class="copy-side">
                         <div class="copy-media">

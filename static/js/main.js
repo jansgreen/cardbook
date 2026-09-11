@@ -77,7 +77,12 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll("[data-contact-reveal]").forEach((button) => {
         button.addEventListener("click", () => {
             const panel = button.closest(".contact-reveal-panel");
-            const content = panel?.querySelector(".contact-reveal-content");
+            const targetId = button.dataset.contactTarget || "";
+            const escapedTargetId = window.CSS && CSS.escape ? CSS.escape(targetId) : targetId.replace(/"/g, "");
+            const targetSelector = targetId ? `#${escapedTargetId}` : "";
+            const content = (targetSelector ? document.querySelector(targetSelector) : null)
+                || panel?.querySelector(".contact-reveal-content")
+                || button.nextElementSibling;
             if (!content) return;
 
             const isHidden = content.hasAttribute("hidden");

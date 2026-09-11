@@ -420,6 +420,7 @@ class DashboardAnalyticsView(DashboardContextMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         cards = self.get_cards()
         click_labels = {
+            "contact_cta_click": "Boton de contacto",
             "contact_reveal": "Informacion revelada",
             "phone_click": "Llamadas",
             "whatsapp_click": "WhatsApp",

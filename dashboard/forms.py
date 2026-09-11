@@ -299,6 +299,10 @@ class BusinessCardForm(forms.ModelForm):
             "text_color",
             "show_profile_photo",
             "include_qr",
+            "hide_direct_contact_on_print",
+            "contact_cta_label",
+            "contact_cta_color",
+            "contact_cta_text_color",
         ]
         labels = {
             "profile": "Perfil del negocio",
@@ -319,6 +323,10 @@ class BusinessCardForm(forms.ModelForm):
             "text_color": "Color de texto",
             "show_profile_photo": "Mostrar foto de perfil",
             "include_qr": "Incluir QR al perfil",
+            "hide_direct_contact_on_print": "Ocultar contacto directo en impresion",
+            "contact_cta_label": "Texto del boton de contacto",
+            "contact_cta_color": "Color del boton de contacto",
+            "contact_cta_text_color": "Color del texto del boton",
         }
         widgets = {
             "profile": forms.Select(attrs={"class": "form-control"}),
@@ -339,6 +347,10 @@ class BusinessCardForm(forms.ModelForm):
             "text_color": forms.TextInput(attrs={"class": "form-control color-input", "type": "color"}),
             "show_profile_photo": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "include_qr": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "hide_direct_contact_on_print": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "contact_cta_label": forms.TextInput(attrs={"class": "form-control", "placeholder": "Contactanos"}),
+            "contact_cta_color": forms.TextInput(attrs={"class": "form-control color-input", "type": "color"}),
+            "contact_cta_text_color": forms.TextInput(attrs={"class": "form-control color-input", "type": "color"}),
         }
 
     def __init__(self, *args, **kwargs):

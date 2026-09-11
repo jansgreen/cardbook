@@ -4,7 +4,7 @@ from rest_framework.test import APITestCase
 
 from accesscontrol.models import AccessRole, UserAccessGrant
 from accesscontrol.services import ensure_default_permissions
-from cardbookweb.test_utils import make_company, make_user
+from cardbookweb.test_utils import make_business_card, make_company, make_digital_card, make_user
 from websitebuilder.models import Page, Website
 from websitebuilder.services import (
     can_manage_website_builder,
@@ -74,6 +74,21 @@ class WebsiteBuilderQualityTests(APITestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, reverse("public-company-detail", kwargs={"slug": company.slug}))
+
+    def test_public_site_redirects_stale_card_website_to_business_card(self):
+        owner = make_user("stalesiteowner")
+        company = make_company(owner=owner, name="Nancy Alterations")
+        profile = make_digital_card(user=owner, company=company)
+        business_card = make_business_card(
+            profile=profile,
+            display_name="Neyda Mendez",
+            website="https://incardbook.com/site/la-costura-de-dona-nancy/",
+        )
+
+        response = self.client.get(reverse("websitebuilder-public-home", kwargs={"website_slug": "la-costura-de-dona-nancy"}))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("public-business-card", kwargs={"slug": business_card.slug}))
 
     @override_settings(
         ALLOWED_HOSTS=["testserver", ".incardbook.test"],

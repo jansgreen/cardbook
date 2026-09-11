@@ -1,4 +1,5 @@
 import re
+from urllib.parse import urlparse
 
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
@@ -15,6 +16,7 @@ from cardbookweb.qr import qr_svg_response, static_image_data_uri, style_from_ob
 from cards.models import BusinessCard, DigitalCard
 from companies.models import Company
 from cards.permissions import can_manage_card
+from websitebuilder.models import Website
 from websitebuilder.services import website_public_url
 
 
@@ -132,7 +134,23 @@ def get_business_card_website_url(request, business_card):
 
     if website and website.is_active and website.is_published:
         return website_public_url(request, website)
-    return business_card.website or business_card.profile.website or business_card.company.website
+
+    for candidate_url in (business_card.website, business_card.profile.website, business_card.company.website):
+        if not candidate_url:
+            continue
+        parsed = urlparse(candidate_url)
+        path = parsed.path.strip("/")
+        if path.startswith("site/"):
+            website_slug = path.split("/", 2)[1] if len(path.split("/", 2)) > 1 else ""
+            website_exists = Website.objects.filter(
+                Q(slug=website_slug) | Q(subdomain=website_slug) | Q(company__slug=website_slug),
+                is_active=True,
+                is_published=True,
+            ).exists()
+            if website_slug and not website_exists:
+                return request.build_absolute_uri(reverse("public-company-detail", kwargs={"slug": business_card.company.slug}))
+        return candidate_url
+    return ""
 
 
 def get_business_card_service_items(business_card):

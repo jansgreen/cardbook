@@ -114,7 +114,7 @@ blockquote { margin: 18px 0; color: var(--dark); font-weight: 700; border-left: 
 .print-business-card.vertical .print-side-column { align-items: flex-start; flex-direction: row; }
 .print-business-card.vertical .print-qr-box { margin-left: auto; }
 .print-card-content { position: relative; z-index: 1; height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 178px; gap: 24px; }
-.print-main-column { min-width: 0; display: flex; flex-direction: column; }
+.print-main-column { min-width: 0; display: flex; flex-direction: column; position: relative; }
 .print-side-column { display: flex; flex-direction: column; align-items: flex-end; justify-content: space-between; gap: 16px; }
 .print-company { color: var(--bc-accent); font-weight: 950; text-transform: uppercase; letter-spacing: .08em; font-size: .82rem; }
 .print-main-column h3 { margin: 12px 0 7px; color: var(--bc-text); font-family: var(--font-display); font-size: clamp(1.72rem, 4.2cqw, 2.62rem); line-height: .9; font-weight: 800; max-width: 360px; overflow-wrap: anywhere; text-wrap: balance; }
@@ -132,7 +132,11 @@ blockquote { margin: 18px 0; color: var(--dark); font-weight: 700; border-left: 
 .print-services span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; opacity: .9; font-weight: 700; line-height: 1.35; }
 .print-contact { margin-top: auto; display: grid; gap: 7px; font-weight: 800; overflow-wrap: anywhere; max-width: 390px; }
 .print-contact span { display: flex; align-items: center; gap: 8px; min-width: 0; opacity: .9; }
+.print-contact a { color: inherit; text-decoration: none; }
 .print-contact svg { width: 16px; height: 16px; fill: var(--bc-accent); flex: 0 0 auto; }
+.print-contact-cta { align-self: flex-start; margin-top: auto; border: 0; border-radius: 999px; padding: 12px 20px; min-width: 160px; background: var(--cta-bg, var(--bc-accent)); color: var(--cta-text, var(--bc-text)); font: inherit; font-weight: 950; cursor: pointer; box-shadow: 0 14px 28px rgba(0,0,0,.16); }
+.print-contact-cta + .print-contact { margin-top: 12px; padding: 12px; border-radius: 14px; background: rgba(255,255,255,.12); }
+.print-contact-popover { position: absolute; left: 0; bottom: 58px; width: min(360px, 100%); z-index: 4; margin-top: 0; padding: 12px; border: 1px solid color-mix(in srgb, var(--bc-accent) 42%, transparent); border-radius: 14px; background: color-mix(in srgb, var(--bc-bg) 82%, #ffffff 18%); box-shadow: 0 18px 34px rgba(0,0,0,.22); backdrop-filter: blur(10px); }
 .print-qr-box { width: 150px; padding: 10px; border-radius: 18px; background: rgba(255,255,255,.96); box-shadow: 0 14px 28px rgba(0,0,0,.16); text-align: center; }
 .print-qr-box span { display: block; margin-bottom: 7px; color: #003875; font-weight: 900; font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; }
 .print-qr { width: 130px; height: 130px; border-radius: 12px; background: white; display: block; }

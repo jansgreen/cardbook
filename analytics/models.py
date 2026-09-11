@@ -17,6 +17,7 @@ class CardView(models.Model):
 
 class CardClick(models.Model):
     CLICK_CHOICES = [
+        ("contact_cta_click", "Contact CTA click"),
         ("contact_reveal", "Contact reveal"),
         ("phone_click", "Phone click"),
         ("whatsapp_click", "WhatsApp click"),
