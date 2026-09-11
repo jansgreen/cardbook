@@ -53,11 +53,24 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-insecure-cardbook-local
 DEBUG = env_bool("DJANGO_DEBUG", True)
 CARDBOOK_REQUEST_LOGGING_ENABLED = env_bool("CARDBOOK_REQUEST_LOGGING_ENABLED", not DEBUG)
 ALLOWED_HOSTS = [host.strip() for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if host.strip()]
+for host in (
+    CARDBOOK_PUBLIC_SITE_BASE_DOMAIN,
+    f"www.{CARDBOOK_PUBLIC_SITE_BASE_DOMAIN}",
+    f".{CARDBOOK_PUBLIC_SITE_BASE_DOMAIN}",
+):
+    if host and host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(host)
 CSRF_TRUSTED_ORIGINS = [
     origin.strip()
     for origin in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
     if origin.strip()
 ]
+for origin in (
+    f"https://{CARDBOOK_PUBLIC_SITE_BASE_DOMAIN}",
+    f"https://www.{CARDBOOK_PUBLIC_SITE_BASE_DOMAIN}",
+):
+    if origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(origin)
 
 INSTALLED_APPS = [
     "django.contrib.admin",
