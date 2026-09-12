@@ -5,6 +5,18 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% if translation %}{{ translation.full_name }}{% else %}{{ card.user.get_full_name|default:card.user.username }}{% endif %} - Cardbook</title>
+    <meta name="description" content="{{ social_description|truncatechars:160 }}">
+    <meta property="og:type" content="profile">
+    <meta property="og:site_name" content="incardbook">
+    <meta property="og:title" content="{{ social_title }}">
+    <meta property="og:description" content="{{ social_description|truncatechars:220 }}">
+    <meta property="og:image" content="{{ social_image_url }}">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ social_title }}">
+    <meta name="twitter:description" content="{{ social_description|truncatechars:220 }}">
+    <meta name="twitter:image" content="{{ social_image_url }}">
+    <link rel="canonical" href="{{ request.build_absolute_uri }}">
     <link rel="stylesheet" href="{% static 'css/cards.css' %}">
 </head>
 <body>

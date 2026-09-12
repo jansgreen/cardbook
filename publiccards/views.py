@@ -13,6 +13,7 @@ from analytics.models import CardView
 from alliances.models import CompanyAlliance
 from book.models import SavedBusiness
 from cardbookweb.qr import qr_svg_response, static_image_data_uri, style_from_object
+from cardbookweb.social import first_image_url
 from cards.models import BusinessCard, DigitalCard
 from companies.models import Company
 from cards.permissions import can_manage_card
@@ -179,6 +180,13 @@ class PublicCardDetailView(DetailView):
         lang = self.request.GET.get("lang", "es")
         card = self.object
         translation = card.translations.filter(language=lang).first() or card.translations.filter(language="es").first()
+        card_name = translation.full_name if translation else card.user.get_full_name() or card.user.username
+        card_description = (
+            card.company.description
+            or (translation.bio if translation and translation.bio else "")
+            or card.job_title
+            or "Perfil digital en incardbook."
+        )
         context.update({
             "lang": lang,
             "translation": translation,
@@ -187,6 +195,9 @@ class PublicCardDetailView(DetailView):
             "can_print": self.request.user.is_authenticated and can_manage_card(self.request.user, card),
             "print_business_card": card.business_cards.filter(is_active=True).first(),
             "allied_companies": get_allied_companies(card.company),
+            "social_title": f"{card_name} - {card.company.name}",
+            "social_description": card_description,
+            "social_image_url": first_image_url(self.request, card.company.logo, card.photo, card.user.avatar),
         })
         return context
 
@@ -232,6 +243,14 @@ class PublicBusinessCardDetailView(DetailView):
         context["can_print"] = self.request.user.is_authenticated and can_manage_card(self.request.user, self.object.profile)
         context["allied_companies"] = get_allied_companies(self.object.company)
         context["business_website_url"] = get_business_card_website_url(self.request, self.object)
+        context["social_title"] = f"{self.object.company_name} - {self.object.display_name}"
+        context["social_description"] = self.object.tagline or self.object.services or self.object.company.description or "Tarjeta de presentacion comercial en incardbook."
+        context["social_image_url"] = first_image_url(
+            self.request,
+            self.object.company.logo,
+            self.object.profile.photo,
+            self.object.profile.user.avatar,
+        )
         return context
 
 
@@ -297,4 +316,7 @@ class PublicCompanyDetailView(DetailView):
         context["allied_companies"] = get_allied_companies(self.object)
         context["posts"] = self.object.business_posts.filter(is_active=True)[:6]
         context["digital_cards"] = self.object.cards.filter(is_active=True)[:4]
+        context["social_title"] = f"{self.object.name} - incardbook"
+        context["social_description"] = self.object.description or self.object.services or "Perfil empresarial en incardbook."
+        context["social_image_url"] = first_image_url(self.request, self.object.logo)
         return context

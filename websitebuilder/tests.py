@@ -66,6 +66,23 @@ class WebsiteBuilderQualityTests(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, website.title)
 
+    def test_public_site_has_share_preview_metadata(self):
+        company = make_company(
+            owner=make_user("sitemetaowner"),
+            name="BlueNova Technologies",
+            description="Soluciones digitales para empresas.",
+        )
+        website = create_starter_website(company, publish=True)
+        website.meta_title = "BlueNova Website"
+        website.save(update_fields=["meta_title", "updated_at"])
+
+        response = self.client.get(reverse("websitebuilder-public-home", kwargs={"website_slug": website.slug}), secure=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '<meta property="og:title" content="BlueNova Technologies">')
+        self.assertContains(response, '<meta property="og:image" content="https://testserver/static/img/logo.png">')
+        self.assertContains(response, '<meta property="og:description" content="Soluciones digitales para empresas.">')
+
     def test_public_site_redirects_unpublished_company_to_public_company_profile(self):
         company = make_company(owner=make_user("draftsiteowner"), name="Draft Public Business")
         create_starter_website(company, publish=False)

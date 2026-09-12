@@ -13,6 +13,7 @@ from accesscontrol.services import PERM_MANAGE_WEBSITE_BUILDER
 from ai_agents.models import AIAgent
 from ai_agents.services import public_agent_suggested_questions
 from cardbookweb.responses import error_response, success_response
+from cardbookweb.social import first_image_url
 from cards.models import BusinessCard
 from companies.models import Company
 from companies.permissions import can_access_company
@@ -419,6 +420,9 @@ class PublicSiteView(TemplateView):
             "menu_pages": website.pages.filter(is_active=True, is_published=True, show_in_menu=True).order_by("order", "title"),
             "sections": attach_embedded_forms(sections, website.company),
             "public_ai_agent": public_website_agent(website),
+            "social_title": page.og_title or page.seo_title or website.meta_title or website.title,
+            "social_description": page.seo_description or website.meta_description or website.company.description or "Website empresarial en incardbook.",
+            "social_image_url": first_image_url(self.request, page.og_image, website.logo, website.company.logo),
         })
         context["public_ai_suggestions"] = public_agent_suggested_questions(context["public_ai_agent"])
         return context
@@ -464,6 +468,9 @@ class DashboardWebsitePreviewView(LoginRequiredMixin, TemplateView):
             "menu_pages": website.pages.filter(is_active=True, show_in_menu=True).order_by("order", "title"),
             "sections": attach_embedded_forms(sections, website.company),
             "public_ai_agent": public_website_agent(website),
+            "social_title": page.og_title or page.seo_title or website.meta_title or website.title,
+            "social_description": page.seo_description or website.meta_description or website.company.description or "Website empresarial en incardbook.",
+            "social_image_url": first_image_url(self.request, page.og_image, website.logo, website.company.logo),
         })
         context["public_ai_suggestions"] = public_agent_suggested_questions(context["public_ai_agent"])
         return context

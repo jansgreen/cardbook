@@ -99,6 +99,19 @@ class BusinessCardDetailTests(APITestCase):
         self.assertContains(response, "Escribenos")
         self.assertNotContains(response, 'data-track-click="website_click">Escribenos')
 
+    def test_business_card_detail_has_share_preview_metadata(self):
+        owner = make_user("sharemetaowner")
+        company = make_company(owner=owner, name="Share Meta Co")
+        profile = make_digital_card(user=owner, company=company)
+        business_card = make_business_card(profile=profile, display_name="Laura Meta", tagline="Costura profesional")
+
+        response = self.client.get(reverse("public-business-card", kwargs={"slug": business_card.slug}), secure=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '<meta property="og:title" content="Share Meta Co - Laura Meta">')
+        self.assertContains(response, '<meta property="og:image" content="https://testserver/static/img/logo.png">')
+        self.assertContains(response, '<meta name="twitter:card" content="summary_large_image">')
+
     def test_detail_replaces_stale_internal_site_url_with_company_profile(self):
         owner = make_user("staleurlowner")
         company = make_company(owner=owner, name="La Costura de Dona Nancy")
@@ -114,3 +127,19 @@ class BusinessCardDetailTests(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, reverse("public-company-detail", kwargs={"slug": company.slug}))
         self.assertNotContains(response, "https://incardbook.com/site/la-costura-de-dona-nancy/")
+
+
+class CompanyDetailTests(APITestCase):
+    def test_company_detail_has_share_preview_metadata(self):
+        company = make_company(
+            owner=make_user("companymetaowner"),
+            name="La Costura de Dona Nancy",
+            description="Arreglos y alta costura.",
+        )
+
+        response = self.client.get(reverse("public-company-detail", kwargs={"slug": company.slug}), secure=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '<meta property="og:title" content="La Costura de Dona Nancy - incardbook">')
+        self.assertContains(response, '<meta property="og:image" content="https://testserver/static/img/logo.png">')
+        self.assertContains(response, '<meta property="og:description" content="Arreglos y alta costura.">')
