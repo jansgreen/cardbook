@@ -1,7 +1,15 @@
 {% load websitebuilder_tags %}
-<article class="wb-card">
-    <span class="wb-card-icon">{{ component.settings.icon|default:"*" }}</span>
-    <h3>{{ component|translated_title:language }}</h3>
-    <p>{% block_text component "description" language %}</p>
+<article class="wb-service-flip-card" tabindex="0">
+    <div class="wb-service-flip-inner">
+        <div class="wb-service-face wb-service-front">
+            <span class="wb-card-icon">{% service_icon_svg component.settings.icon %}</span>
+            <h3>{{ component|translated_title:language }}</h3>
+            {% if component|translated_subtitle:language %}<p>{{ component|translated_subtitle:language|truncatechars:96 }}</p>{% endif %}
+        </div>
+        <div class="wb-service-face wb-service-back">
+            <span class="wb-service-kicker">Servicio</span>
+            <h3>{{ component|translated_title:language }}</h3>
+            <p>{% block_text component "description" language %}</p>
+        </div>
+    </div>
 </article>
-

@@ -5,7 +5,7 @@ from rest_framework.test import APITestCase
 from accesscontrol.models import AccessRole, UserAccessGrant
 from accesscontrol.services import ensure_default_permissions
 from cardbookweb.test_utils import make_business_card, make_company, make_digital_card, make_user
-from websitebuilder.models import Page, Website
+from websitebuilder.models import Component, Page, Website
 from websitebuilder.services import (
     can_manage_website_builder,
     can_publish_website_builder,
@@ -233,11 +233,12 @@ class WebsiteBuilderQualityTests(APITestCase):
         self.assertEqual(response.status_code, 302)
         self.assertFalse(Page.objects.filter(pk=page.pk).exists())
 
-    def test_dashboard_builder_cannot_delete_home_page(self):
+    def test_dashboard_builder_can_delete_home_page_and_assign_replacement(self):
         owner = make_user("deletehomeowner")
         company = make_company(owner=owner, name="Delete Home Company")
         website = create_starter_website(company, publish=True)
         home_page = website.pages.get(is_homepage=True)
+        replacement = Page.objects.create(website=website, title="Servicios", slug="servicios", order=2, is_published=True)
         self.client.force_login(owner)
 
         response = self.client.post(
@@ -245,5 +246,64 @@ class WebsiteBuilderQualityTests(APITestCase):
             {"action": "delete_page", "page_id": home_page.id},
         )
 
+        replacement.refresh_from_db()
         self.assertEqual(response.status_code, 302)
-        self.assertTrue(Page.objects.filter(pk=home_page.pk).exists())
+        self.assertFalse(Page.objects.filter(pk=home_page.pk).exists())
+        self.assertTrue(replacement.is_homepage)
+        self.assertTrue(replacement.is_published)
+        self.assertTrue(replacement.show_in_menu)
+
+    def test_dashboard_builder_cannot_delete_only_active_page(self):
+        owner = make_user("deleteonlypageowner")
+        company = make_company(owner=owner, name="Delete Only Page Company")
+        website = create_starter_website(company, publish=True)
+        only_page = website.pages.get(is_homepage=True)
+        self.client.force_login(owner)
+
+        response = self.client.post(
+            reverse("dashboard-company-website", kwargs={"company_id": company.id}),
+            {"action": "delete_page", "page_id": only_page.id},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Page.objects.filter(pk=only_page.pk).exists())
+
+    def test_dashboard_builder_saves_service_component_icon(self):
+        owner = make_user("serviceiconowner")
+        company = make_company(owner=owner, name="Service Icon Company")
+        website = create_starter_website(company, publish=True)
+        section = website.pages.get(is_homepage=True).layout.sections.get(section_type="services")
+        self.client.force_login(owner)
+
+        response = self.client.post(
+            reverse("dashboard-company-website", kwargs={"company_id": company.id}),
+            {
+                "action": "create_component",
+                "section_id": section.id,
+                "component_type": "service_card",
+                "name": "Mecanica general",
+                "title": "Mecanica general",
+                "subtitle": "Servicio automotriz",
+                "service_icon": "car",
+                "order": 8,
+                "is_active": "on",
+            },
+        )
+
+        component = Component.objects.get(section=section, title="Mecanica general")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(component.settings["icon"], "car")
+
+    def test_public_services_render_flip_cards_with_svg_icons(self):
+        company = make_company(owner=make_user("serviceflipowner"), name="Service Flip Company")
+        website = create_starter_website(company, publish=True)
+        section = website.pages.get(is_homepage=True).layout.sections.get(section_type="services")
+        component = section.components.filter(component_type="service_card").first()
+        component.settings = {"icon": "wrench"}
+        component.save(update_fields=["settings", "updated_at"])
+
+        response = self.client.get(reverse("websitebuilder-public-home", kwargs={"website_slug": website.slug}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "wb-service-flip-card")
+        self.assertContains(response, "<svg viewBox=")

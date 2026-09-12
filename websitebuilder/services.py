@@ -161,6 +161,7 @@ def create_starter_website(company, *, title=None, publish=False):
     service_items = [item.strip() for item in (company.services or "").replace("\n", ",").split(",") if item.strip()]
     if not service_items:
         service_items = ["Perfil profesional", "Contacto directo", "Soluciones digitales"]
+    service_icons = ["briefcase", "phone", "laptop", "wrench", "star", "package"]
     for index, service in enumerate(service_items[:6], start=1):
         component = Component.objects.create(
             section=services,
@@ -168,6 +169,7 @@ def create_starter_website(company, *, title=None, publish=False):
             name=service,
             title=service,
             order=index,
+            settings={"icon": service_icons[(index - 1) % len(service_icons)]},
         )
         Block.objects.create(component=component, block_type="text", key="description", text="Servicio disponible para clientes y aliados.", order=1)
 

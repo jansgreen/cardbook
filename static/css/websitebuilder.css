@@ -415,6 +415,86 @@
     color: #637189;
     line-height: 1.6;
 }
+.wb-service-flip-card {
+    min-height: 260px;
+    border: 0;
+    border-radius: 16px;
+    background: transparent;
+    perspective: 1200px;
+    outline: none;
+}
+.wb-service-flip-inner {
+    position: relative;
+    width: 100%;
+    min-height: 260px;
+    transition: transform .65s ease;
+    transform-style: preserve-3d;
+}
+.wb-service-flip-card:hover .wb-service-flip-inner,
+.wb-service-flip-card:focus-within .wb-service-flip-inner,
+.wb-service-flip-card:focus .wb-service-flip-inner {
+    transform: rotateY(180deg);
+}
+.wb-service-face {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: 12px;
+    padding: 28px;
+    border-radius: 16px;
+    text-align: center;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    box-shadow: 0 18px 42px rgba(7,21,45,.08);
+}
+.wb-service-front {
+    background: white;
+    border: 1px solid rgba(7,21,45,.08);
+}
+.wb-service-back {
+    color: white;
+    background: linear-gradient(135deg, var(--wb-secondary), var(--wb-primary));
+    border: 1px solid color-mix(in srgb, var(--wb-primary) 70%, white);
+    transform: rotateY(180deg);
+}
+.wb-service-face .wb-card-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+}
+.wb-service-face .wb-card-icon svg {
+    width: 31px;
+    height: 31px;
+}
+.wb-service-face h3 {
+    margin: 0;
+    color: var(--wb-secondary);
+    font-size: 1.28rem;
+    line-height: 1.15;
+}
+.wb-service-face p {
+    margin: 0;
+    max-width: 30ch;
+    color: #637189;
+    line-height: 1.6;
+}
+.wb-service-back .wb-card-icon,
+.wb-service-back h3,
+.wb-service-back p {
+    color: white;
+}
+.wb-service-kicker {
+    color: var(--wb-accent);
+    font-size: .78rem;
+    font-weight: 950;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+.wb-service-back p {
+    color: rgba(255,255,255,.82);
+}
 .wb-cta {
     text-align: center;
     color: white;

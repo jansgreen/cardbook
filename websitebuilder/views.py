@@ -595,12 +595,17 @@ class DashboardWebsiteBuilderView(LoginRequiredMixin, TemplateView):
                 messages.success(request, "Pagina archivada.")
         elif action == "delete_page" and website:
             page = get_object_or_404(Page, pk=request.POST.get("page_id"), website=website, is_active=True)
-            if page.is_homepage:
-                messages.error(request, "No puedes eliminar la pagina principal. Define otra homepage primero.")
-            elif website.pages.filter(is_active=True).count() <= 1:
+            active_pages = website.pages.filter(is_active=True)
+            if active_pages.count() <= 1:
                 messages.error(request, "No puedes eliminar la unica pagina activa del website.")
             else:
                 page_title = page.title
+                if page.is_homepage:
+                    replacement = active_pages.exclude(pk=page.pk).order_by("order", "id").first()
+                    replacement.is_homepage = True
+                    replacement.is_published = True
+                    replacement.show_in_menu = True
+                    replacement.save(update_fields=["is_homepage", "is_published", "show_in_menu", "updated_at"])
                 page.delete()
                 messages.success(request, f"Pagina {page_title} eliminada.")
         elif action == "create_section" and website:

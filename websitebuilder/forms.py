@@ -3,6 +3,22 @@ from django import forms
 from .models import Block, Component, Page, Section
 
 
+SERVICE_ICON_CHOICES = [
+    ("briefcase", "Negocio"),
+    ("wrench", "Herramienta"),
+    ("scissors", "Costura / corte"),
+    ("car", "Automotriz"),
+    ("laptop", "Tecnologia"),
+    ("brush", "Pintura / diseno"),
+    ("home", "Hogar"),
+    ("heart", "Salud / cuidado"),
+    ("shield", "Seguridad"),
+    ("package", "Producto"),
+    ("phone", "Contacto"),
+    ("star", "Destacado"),
+]
+
+
 class PageDashboardForm(forms.ModelForm):
     class Meta:
         model = Page
@@ -56,6 +72,12 @@ class SectionDashboardForm(forms.ModelForm):
 
 
 class ComponentDashboardForm(forms.ModelForm):
+    service_icon = forms.ChoiceField(
+        choices=SERVICE_ICON_CHOICES,
+        required=False,
+        label="Icono",
+    )
+
     class Meta:
         model = Component
         fields = [
@@ -73,6 +95,21 @@ class ComponentDashboardForm(forms.ModelForm):
             "subtitle": forms.Textarea(attrs={"rows": 2, "placeholder": "Texto secundario"}),
             "order": forms.NumberInput(attrs={"min": "0"}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            self.fields["service_icon"].initial = (self.instance.settings or {}).get("icon", "briefcase")
+
+    def save(self, commit=True):
+        component = super().save(commit=False)
+        settings = dict(component.settings or {})
+        settings["icon"] = self.cleaned_data.get("service_icon") or "briefcase"
+        component.settings = settings
+        if commit:
+            component.save()
+            self.save_m2m()
+        return component
 
 
 class BlockDashboardForm(forms.ModelForm):

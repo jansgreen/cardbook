@@ -251,6 +251,15 @@
                         </div>
                         <small>{{ page.active_sections|length }} secciones</small>
                         {% if can_manage_website %}
+                            <div class="builder-page-top-actions">
+                                <a href="{% url 'dashboard-company-website-page-preview' company.id page.id %}" target="_blank" rel="noopener">Ver</a>
+                                <form method="post" onsubmit="return confirm('Eliminar esta pagina y todas sus secciones? Esta accion no se puede deshacer.');">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="delete_page">
+                                    <input type="hidden" name="page_id" value="{{ page.id }}">
+                                    <button class="danger" type="submit">Eliminar</button>
+                                </form>
+                            </div>
                             <details class="builder-page-edit" {% if editing_page and editing_page.id == page.id %}open{% endif %}>
                                 <summary>Editar</summary>
                                 <form method="post" class="builder-page-form compact">
@@ -286,12 +295,10 @@
                                 </form>
                                 <div class="builder-page-actions">
                                     <form method="post">{% csrf_token %}<input type="hidden" name="action" value="duplicate_page"><input type="hidden" name="page_id" value="{{ page.id }}"><button type="submit">Duplicar</button></form>
-                                    <a href="{% url 'dashboard-company-website-page-preview' company.id page.id %}" target="_blank" rel="noopener">Vista externa</a>
                                     <form method="post">{% csrf_token %}<input type="hidden" name="action" value="toggle_page_publish"><input type="hidden" name="page_id" value="{{ page.id }}"><button type="submit">{% if page.is_published %}Despublicar{% else %}Publicar{% endif %}</button></form>
                                     {% if not page.is_homepage %}
                                         <form method="post">{% csrf_token %}<input type="hidden" name="action" value="set_homepage"><input type="hidden" name="page_id" value="{{ page.id }}"><button type="submit">Hacer home</button></form>
                                         <form method="post" onsubmit="return confirm('Archivar esta pagina?');">{% csrf_token %}<input type="hidden" name="action" value="archive_page"><input type="hidden" name="page_id" value="{{ page.id }}"><button class="danger" type="submit">Archivar</button></form>
-                                        <form method="post" onsubmit="return confirm('Eliminar esta pagina y todas sus secciones? Esta accion no se puede deshacer.');">{% csrf_token %}<input type="hidden" name="action" value="delete_page"><input type="hidden" name="page_id" value="{{ page.id }}"><button class="danger" type="submit">Eliminar</button></form>
                                     {% endif %}
                                 </div>
                                 <section class="builder-section-manager">
@@ -401,6 +408,7 @@
                                                             <label>Tipo{{ component_form.component_type }}</label>
                                                             <label>Nombre{{ component_form.name }}</label>
                                                             <label>Orden{{ component_form.order }}</label>
+                                                            <label>Icono{{ component_form.service_icon }}</label>
                                                             <label class="wide">Titulo{{ component_form.title }}</label>
                                                             <label class="wide">Subtitulo{{ component_form.subtitle }}</label>
                                                             <div class="builder-check-row"><label>{{ component_form.is_active }} Activo</label></div>
@@ -429,6 +437,13 @@
                                                                             </label>
                                                                             <label>Nombre<input type="text" name="name" value="{{ component.name }}"></label>
                                                                             <label>Orden<input type="number" name="order" min="0" value="{{ component.order }}"></label>
+                                                                            <label>Icono
+                                                                                <select name="service_icon">
+                                                                                    {% for value,label in component_form.fields.service_icon.choices %}
+                                                                                        <option value="{{ value }}" {% if component.settings.icon == value %}selected{% endif %}>{{ label }}</option>
+                                                                                    {% endfor %}
+                                                                                </select>
+                                                                            </label>
                                                                             <label class="wide">Titulo<input type="text" name="title" value="{{ component.title }}"></label>
                                                                             <label class="wide">Subtitulo<textarea name="subtitle" rows="2">{{ component.subtitle }}</textarea></label>
                                                                             <div class="builder-check-row"><label><input type="checkbox" name="is_active" {% if component.is_active %}checked{% endif %}> Activo</label></div>
