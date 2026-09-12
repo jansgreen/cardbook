@@ -291,6 +291,7 @@
                                     {% if not page.is_homepage %}
                                         <form method="post">{% csrf_token %}<input type="hidden" name="action" value="set_homepage"><input type="hidden" name="page_id" value="{{ page.id }}"><button type="submit">Hacer home</button></form>
                                         <form method="post" onsubmit="return confirm('Archivar esta pagina?');">{% csrf_token %}<input type="hidden" name="action" value="archive_page"><input type="hidden" name="page_id" value="{{ page.id }}"><button class="danger" type="submit">Archivar</button></form>
+                                        <form method="post" onsubmit="return confirm('Eliminar esta pagina y todas sus secciones? Esta accion no se puede deshacer.');">{% csrf_token %}<input type="hidden" name="action" value="delete_page"><input type="hidden" name="page_id" value="{{ page.id }}"><button class="danger" type="submit">Eliminar</button></form>
                                     {% endif %}
                                 </div>
                                 <section class="builder-section-manager">

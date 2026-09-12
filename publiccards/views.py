@@ -13,7 +13,7 @@ from analytics.models import CardView
 from alliances.models import CompanyAlliance
 from book.models import SavedBusiness
 from cardbookweb.qr import qr_svg_response, static_image_data_uri, style_from_object
-from cardbookweb.social import first_image_url
+from cardbookweb.social import social_image_context
 from cards.models import BusinessCard, DigitalCard
 from companies.models import Company
 from cards.permissions import can_manage_card
@@ -197,7 +197,7 @@ class PublicCardDetailView(DetailView):
             "allied_companies": get_allied_companies(card.company),
             "social_title": f"{card_name} - {card.company.name}",
             "social_description": card_description,
-            "social_image_url": first_image_url(self.request, card.company.logo, card.photo, card.user.avatar),
+            **social_image_context(self.request, card.company.logo, card.photo, card.user.avatar),
         })
         return context
 
@@ -245,12 +245,12 @@ class PublicBusinessCardDetailView(DetailView):
         context["business_website_url"] = get_business_card_website_url(self.request, self.object)
         context["social_title"] = f"{self.object.company_name} - {self.object.display_name}"
         context["social_description"] = self.object.tagline or self.object.services or self.object.company.description or "Tarjeta de presentacion comercial en incardbook."
-        context["social_image_url"] = first_image_url(
+        context.update(social_image_context(
             self.request,
             self.object.company.logo,
             self.object.profile.photo,
             self.object.profile.user.avatar,
-        )
+        ))
         return context
 
 
@@ -318,5 +318,5 @@ class PublicCompanyDetailView(DetailView):
         context["digital_cards"] = self.object.cards.filter(is_active=True)[:4]
         context["social_title"] = f"{self.object.name} - incardbook"
         context["social_description"] = self.object.description or self.object.services or "Perfil empresarial en incardbook."
-        context["social_image_url"] = first_image_url(self.request, self.object.logo)
+        context.update(social_image_context(self.request, self.object.logo))
         return context

@@ -13,7 +13,7 @@ from accesscontrol.services import PERM_MANAGE_WEBSITE_BUILDER
 from ai_agents.models import AIAgent
 from ai_agents.services import public_agent_suggested_questions
 from cardbookweb.responses import error_response, success_response
-from cardbookweb.social import first_image_url
+from cardbookweb.social import social_image_context
 from cards.models import BusinessCard
 from companies.models import Company
 from companies.permissions import can_access_company
@@ -422,7 +422,7 @@ class PublicSiteView(TemplateView):
             "public_ai_agent": public_website_agent(website),
             "social_title": page.og_title or page.seo_title or website.meta_title or website.title,
             "social_description": page.seo_description or website.meta_description or website.company.description or "Website empresarial en incardbook.",
-            "social_image_url": first_image_url(self.request, page.og_image, website.logo, website.company.logo),
+            **social_image_context(self.request, page.og_image, website.logo, website.company.logo),
         })
         context["public_ai_suggestions"] = public_agent_suggested_questions(context["public_ai_agent"])
         return context
@@ -470,7 +470,7 @@ class DashboardWebsitePreviewView(LoginRequiredMixin, TemplateView):
             "public_ai_agent": public_website_agent(website),
             "social_title": page.og_title or page.seo_title or website.meta_title or website.title,
             "social_description": page.seo_description or website.meta_description or website.company.description or "Website empresarial en incardbook.",
-            "social_image_url": first_image_url(self.request, page.og_image, website.logo, website.company.logo),
+            **social_image_context(self.request, page.og_image, website.logo, website.company.logo),
         })
         context["public_ai_suggestions"] = public_agent_suggested_questions(context["public_ai_agent"])
         return context
@@ -593,6 +593,16 @@ class DashboardWebsiteBuilderView(LoginRequiredMixin, TemplateView):
                 page.is_published = False
                 page.save(update_fields=["is_active", "is_published", "updated_at"])
                 messages.success(request, "Pagina archivada.")
+        elif action == "delete_page" and website:
+            page = get_object_or_404(Page, pk=request.POST.get("page_id"), website=website, is_active=True)
+            if page.is_homepage:
+                messages.error(request, "No puedes eliminar la pagina principal. Define otra homepage primero.")
+            elif website.pages.filter(is_active=True).count() <= 1:
+                messages.error(request, "No puedes eliminar la unica pagina activa del website.")
+            else:
+                page_title = page.title
+                page.delete()
+                messages.success(request, f"Pagina {page_title} eliminada.")
         elif action == "create_section" and website:
             page = get_object_or_404(Page, pk=request.POST.get("page_id"), website=website, is_active=True)
             layout, _ = Layout.objects.get_or_create(page=page, defaults={"layout_type": Layout.FULL_WIDTH, "name": "Layout principal"})

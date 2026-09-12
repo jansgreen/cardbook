@@ -13,15 +13,23 @@ class WebsiteSubdomainMiddleware:
         "/admin/",
         "/api/",
         "/android/",
+        "/about/",
         "/business/",
         "/c/",
+        "/contact/",
         "/dashboard/",
+        "/empresas/",
         "/forms/",
         "/health/",
         "/job/",
+        "/login/",
         "/media/",
+        "/pricing/",
+        "/privacy/",
+        "/register/",
         "/site/",
         "/static/",
+        "/terms/",
     )
 
     def __init__(self, get_response):

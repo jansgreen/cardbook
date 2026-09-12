@@ -124,6 +124,35 @@ class WebsiteBuilderQualityTests(APITestCase):
         ALLOWED_HOSTS=["testserver", ".incardbook.test"],
         CARDBOOK_PUBLIC_SITE_BASE_DOMAIN="incardbook.test",
     )
+    def test_public_site_renders_updated_subdomain_without_hyphens(self):
+        company = make_company(owner=make_user("plaintokensubdomainowner"), name="Candido Mecanica Automotriz")
+        website = create_starter_website(company, publish=True)
+        website.subdomain = "candidomecanicaautomotriz"
+        website.save(update_fields=["subdomain", "updated_at"])
+
+        response = self.client.get("/", HTTP_HOST="candidomecanicaautomotriz.incardbook.test")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, website.title)
+
+    @override_settings(
+        ALLOWED_HOSTS=["testserver", ".incardbook.test"],
+        CARDBOOK_PUBLIC_SITE_BASE_DOMAIN="incardbook.test",
+    )
+    def test_subdomain_does_not_capture_global_companies_path(self):
+        company = make_company(owner=make_user("reservedpathowner"), name="Candido Mecanica Automotriz")
+        website = create_starter_website(company, publish=True)
+        website.subdomain = "candidomecanicaautomotriz"
+        website.save(update_fields=["subdomain", "updated_at"])
+
+        response = self.client.get("/empresas/", HTTP_HOST="candidomecanicaautomotriz.incardbook.test")
+
+        self.assertNotEqual(response.request["PATH_INFO"], "/site/candidomecanicaautomotriz/empresas/")
+
+    @override_settings(
+        ALLOWED_HOSTS=["testserver", ".incardbook.test"],
+        CARDBOOK_PUBLIC_SITE_BASE_DOMAIN="incardbook.test",
+    )
     def test_public_site_subdomain_keeps_static_paths_unmodified(self):
         company = make_company(owner=make_user("staticpathowner"), name="Static Path Co")
         website = create_starter_website(company, publish=True)
@@ -188,3 +217,33 @@ class WebsiteBuilderQualityTests(APITestCase):
         website.refresh_from_db()
         self.assertEqual(response.status_code, 302)
         self.assertEqual(website.subdomain, original_subdomain)
+
+    def test_dashboard_builder_can_delete_non_home_page(self):
+        owner = make_user("deletepageowner")
+        company = make_company(owner=owner, name="Delete Page Company")
+        website = create_starter_website(company, publish=True)
+        page = Page.objects.create(website=website, title="No deseada", slug="no-deseada", is_published=True)
+        self.client.force_login(owner)
+
+        response = self.client.post(
+            reverse("dashboard-company-website", kwargs={"company_id": company.id}),
+            {"action": "delete_page", "page_id": page.id},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Page.objects.filter(pk=page.pk).exists())
+
+    def test_dashboard_builder_cannot_delete_home_page(self):
+        owner = make_user("deletehomeowner")
+        company = make_company(owner=owner, name="Delete Home Company")
+        website = create_starter_website(company, publish=True)
+        home_page = website.pages.get(is_homepage=True)
+        self.client.force_login(owner)
+
+        response = self.client.post(
+            reverse("dashboard-company-website", kwargs={"company_id": company.id}),
+            {"action": "delete_page", "page_id": home_page.id},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Page.objects.filter(pk=home_page.pk).exists())
