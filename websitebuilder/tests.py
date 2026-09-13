@@ -5,7 +5,8 @@ from rest_framework.test import APITestCase
 from accesscontrol.models import AccessRole, UserAccessGrant
 from accesscontrol.services import ensure_default_permissions
 from cardbookweb.test_utils import make_business_card, make_company, make_digital_card, make_user
-from websitebuilder.models import Block, Component, Page, Website
+from forms_builder.models import FormDefinition
+from websitebuilder.models import Block, Component, Page, Section, Website
 from websitebuilder.services import (
     can_manage_website_builder,
     can_publish_website_builder,
@@ -355,3 +356,56 @@ class WebsiteBuilderQualityTests(APITestCase):
         self.assertNotContains(response, "+18095550100")
         self.assertNotContains(response, "123 Hidden Street")
         self.assertContains(response, "visible@example.com")
+
+    def test_public_site_renders_company_contact_bar_after_hero(self):
+        company = make_company(
+            owner=make_user("opencontactowner"),
+            name="Open Contact Company",
+            phone_number="+18095550100",
+            email="open@example.com",
+            website="https://open.example.com",
+        )
+        website = create_starter_website(company, publish=True)
+
+        response = self.client.get(reverse("websitebuilder-public-home", kwargs={"website_slug": website.slug}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "wb-contact-bar")
+        self.assertContains(response, "+18095550100")
+        self.assertContains(response, "open@example.com")
+        self.assertContains(response, "https://open.example.com")
+        self.assertNotContains(response, 'class="wb-btn primary" href="tel:')
+        self.assertNotContains(response, 'class="wb-btn" href="mailto:')
+        self.assertLess(
+            response.content.decode().find("wb-hero"),
+            response.content.decode().find("wb-contact-bar"),
+        )
+
+    def test_public_site_only_shows_contact_button_when_form_is_available(self):
+        company = make_company(owner=make_user("contactbuttonowner"), name="Contact Button Company")
+        website = create_starter_website(company, publish=True)
+        url = reverse("websitebuilder-public-home", kwargs={"website_slug": website.slug})
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'href="#contacto"')
+
+        form = FormDefinition.objects.create(
+            company=company,
+            name="Contacto principal",
+            recipient_email="contact@example.com",
+        )
+        layout = website.pages.get(is_homepage=True).layout
+        Section.objects.create(
+            layout=layout,
+            section_type="contact_form",
+            html_tag=Section.TAG_SECTION,
+            name="Formulario de contacto",
+            title="Contactanos",
+            order=10,
+            settings={"form_id": form.id},
+        )
+
+        response = self.client.get(url)
+        self.assertContains(response, 'href="#contacto"')
+        self.assertContains(response, 'id="contacto"')

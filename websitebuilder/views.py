@@ -1,3 +1,5 @@
+import re
+
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.conf import settings
@@ -312,6 +314,30 @@ def attach_embedded_forms(sections, company):
     return sections
 
 
+def public_page_has_contact_form(sections):
+    return any(
+        section.section_type in {"contact_form", "form_builder"} and getattr(section, "embedded_form", None)
+        for section in sections
+    )
+
+
+def public_company_contact_items(company):
+    items = []
+    if getattr(company, "show_phone", True) and company.phone_number:
+        items.append({"label": "Telefono", "value": company.phone_number, "href": f"tel:{company.phone_number}"})
+    if getattr(company, "show_whatsapp", True) and getattr(company, "show_phone", True) and company.phone_number:
+        whatsapp_number = re.sub(r"\D", "", company.phone_number)
+        if whatsapp_number:
+            items.append({"label": "WhatsApp", "value": company.phone_number, "href": f"https://wa.me/{whatsapp_number}"})
+    if getattr(company, "show_email", True) and company.email:
+        items.append({"label": "Email", "value": company.email, "href": f"mailto:{company.email}"})
+    if getattr(company, "show_website", True) and company.website:
+        items.append({"label": "Sitio web", "value": company.website, "href": company.website})
+    if getattr(company, "show_address", True) and company.address:
+        items.append({"label": "Direccion", "value": company.address, "href": ""})
+    return items
+
+
 def register_visit(request, website, page, language):
     agent = request.META.get("HTTP_USER_AGENT", "")
     device = "mobile" if "Mobile" in agent else "desktop"
@@ -413,12 +439,15 @@ class PublicSiteView(TemplateView):
             "components__translations",
             "components__blocks__translations",
         ) if layout and layout.is_active else []
+        sections = attach_embedded_forms(sections, website.company)
         context.update({
             "website": website,
             "page": page,
             "language": language,
             "menu_pages": website.pages.filter(is_active=True, is_published=True, show_in_menu=True).order_by("order", "title"),
-            "sections": attach_embedded_forms(sections, website.company),
+            "sections": sections,
+            "page_has_contact_form": public_page_has_contact_form(sections),
+            "public_contact_items": public_company_contact_items(website.company),
             "public_ai_agent": public_website_agent(website),
             "social_title": page.og_title or page.seo_title or website.meta_title or website.title,
             "social_description": page.seo_description or website.meta_description or website.company.description or "Website empresarial en incardbook.",
@@ -461,12 +490,15 @@ class DashboardWebsitePreviewView(LoginRequiredMixin, TemplateView):
             "components__translations",
             "components__blocks__translations",
         ) if layout and layout.is_active else []
+        sections = attach_embedded_forms(sections, website.company)
         context.update({
             "website": website,
             "page": page,
             "language": language,
             "menu_pages": website.pages.filter(is_active=True, show_in_menu=True).order_by("order", "title"),
-            "sections": attach_embedded_forms(sections, website.company),
+            "sections": sections,
+            "page_has_contact_form": public_page_has_contact_form(sections),
+            "public_contact_items": public_company_contact_items(website.company),
             "public_ai_agent": public_website_agent(website),
             "social_title": page.og_title or page.seo_title or website.meta_title or website.title,
             "social_description": page.seo_description or website.meta_description or website.company.description or "Website empresarial en incardbook.",

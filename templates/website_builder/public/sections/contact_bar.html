@@ -1,0 +1,19 @@
+{% if public_contact_items %}
+<section class="wb-contact-bar" aria-label="Informacion de contacto">
+    <div class="wb-container wb-contact-bar-grid">
+        {% for item in public_contact_items %}
+            {% if item.href %}
+                <a class="wb-contact-bar-item" href="{{ item.href }}" {% if item.href|slice:":4" == "http" %}target="_blank" rel="noopener"{% endif %}>
+                    <span>{{ item.label }}</span>
+                    <strong>{{ item.value }}</strong>
+                </a>
+            {% else %}
+                <div class="wb-contact-bar-item">
+                    <span>{{ item.label }}</span>
+                    <strong>{{ item.value }}</strong>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+</section>
+{% endif %}

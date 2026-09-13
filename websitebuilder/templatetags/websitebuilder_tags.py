@@ -51,24 +51,50 @@ def translated_block_text(block, language):
     return block.button_text or block.text or block.value
 
 
+def _block_contact_kind(block):
+    block_type = (getattr(block, "block_type", "") or "").lower()
+    key = (getattr(block, "key", "") or "").lower()
+    url = (getattr(block, "url", "") or "").lower()
+
+    if block_type in {"phone", "email", "address", "whatsapp"}:
+        return block_type
+    if key in {"phone", "email", "address", "whatsapp"}:
+        return key
+    if "wa.me" in url or "whatsapp" in url:
+        return "whatsapp"
+    if block_type in {"link", "button"} and key in {"website", "web", "site", "url"}:
+        return "website"
+    return ""
+
+
+@register.filter
+def block_contact_kind(block):
+    return _block_contact_kind(block)
+
+
+@register.filter
+def block_is_contact_action(block):
+    key = (getattr(block, "key", "") or "").lower()
+    url = (getattr(block, "url", "") or "").lower()
+    button_text = (getattr(block, "button_text", "") or "").lower()
+    text = (getattr(block, "text", "") or "").lower()
+    return key in {"contact", "contacto"} or url == "#contacto" or "contactar" in button_text or "contactar" in text
+
+
 @register.filter
 def block_visible_for_company(block, company):
     if not getattr(block, "is_active", False):
         return False
-    block_type = (getattr(block, "block_type", "") or "").lower()
-    key = (getattr(block, "key", "") or "").lower()
-    url = (getattr(block, "url", "") or "").lower()
+    kind = _block_contact_kind(block)
     visibility_checks = {
         "phone": getattr(company, "show_phone", True),
         "email": getattr(company, "show_email", True),
         "address": getattr(company, "show_address", True),
         "whatsapp": getattr(company, "show_whatsapp", True),
+        "website": getattr(company, "show_website", True),
     }
-    for value, is_visible in visibility_checks.items():
-        if block_type == value or key == value or value in url:
-            return is_visible
-    if block_type in {"link", "button"} and key in {"website", "web", "site", "url"}:
-        return getattr(company, "show_website", True)
+    if kind in visibility_checks:
+        return visibility_checks[kind]
     return True
 
 

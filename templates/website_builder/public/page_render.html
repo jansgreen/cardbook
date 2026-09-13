@@ -4,6 +4,7 @@
     {% for section in sections %}
         {% if section.section_type == "hero" %}
             {% include "website_builder/public/sections/hero.html" %}
+            {% include "website_builder/public/sections/contact_bar.html" %}
         {% elif section.section_type == "services" %}
             {% include "website_builder/public/sections/services.html" %}
         {% elif section.section_type == "gallery" %}
