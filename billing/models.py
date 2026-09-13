@@ -4,6 +4,61 @@ from companies.models import Company
 from subscriptions.models import Subscription
 
 
+class StripeConfiguration(models.Model):
+    MODE_TEST = "test"
+    MODE_LIVE = "live"
+    MODE_CHOICES = [
+        (MODE_TEST, "Prueba"),
+        (MODE_LIVE, "Produccion"),
+    ]
+
+    mode = models.CharField(max_length=10, choices=MODE_CHOICES, unique=True, default=MODE_TEST)
+    is_active = models.BooleanField(default=True)
+    publishable_key = models.CharField(max_length=255, blank=True)
+    secret_key = models.CharField(max_length=255, blank=True)
+    webhook_secret = models.CharField(max_length=255, blank=True)
+    starter_price_id = models.CharField(max_length=255, blank=True)
+    business_price_id = models.CharField(max_length=255, blank=True)
+    team_price_id = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["mode"]
+
+    def __str__(self):
+        return f"Stripe {self.get_mode_display()}"
+
+    @property
+    def dashboard_url(self):
+        if self.mode == self.MODE_TEST:
+            return "https://dashboard.stripe.com/test/dashboard"
+        return "https://dashboard.stripe.com/dashboard"
+
+    @property
+    def masked_secret_key(self):
+        if not self.secret_key:
+            return ""
+        return f"{self.secret_key[:7]}...{self.secret_key[-4:]}"
+
+    @property
+    def masked_webhook_secret(self):
+        if not self.webhook_secret:
+            return ""
+        return f"{self.webhook_secret[:8]}...{self.webhook_secret[-4:]}"
+
+    def price_id_for_plan(self, plan):
+        return {
+            "starter": self.starter_price_id,
+            "business": self.business_price_id,
+            "team": self.team_price_id,
+        }.get(plan, "")
+
+    @classmethod
+    def active(cls):
+        return cls.objects.filter(is_active=True).order_by("mode").first()
+
+
 class Invoice(models.Model):
     STATUS_DRAFT = "draft"
     STATUS_OPEN = "open"
@@ -120,4 +175,3 @@ class StripeEvent(models.Model):
 
     class Meta:
         ordering = ["-processed_at"]
-

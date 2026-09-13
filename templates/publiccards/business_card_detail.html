@@ -23,6 +23,215 @@
     <link rel="canonical" href="{{ request.build_absolute_uri }}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="{% static 'css/cards.css' %}">
+    <style>
+        /* Mejoras visuales exclusivas de la tarjeta empresarial publica. */
+        .business-card-share-panel .print-business-card {
+            width: min(100%, 720px);
+            min-height: 400px;
+            border: 1px solid color-mix(in srgb, var(--bc-accent) 72%, #ffffff);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 24px 60px rgba(0, 35, 80, .24);
+        }
+
+        .business-card-share-panel .print-card-content {
+            min-height: 400px;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 185px;
+            gap: 20px;
+            padding: 30px;
+        }
+
+        .business-card-share-panel .print-main-column {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .business-card-share-panel .print-company {
+            max-width: 100%;
+            color: var(--bc-accent);
+            font-size: .76rem;
+            font-weight: 900;
+            letter-spacing: .09em;
+            line-height: 1.2;
+            text-transform: uppercase;
+            overflow-wrap: anywhere;
+        }
+
+        .business-card-share-panel .print-main-column h3 {
+            margin: 2px 0 4px;
+            line-height: 1.05;
+        }
+
+        .business-card-share-panel .print-main-column > p:first-of-type {
+            margin: 0 0 8px;
+            color: var(--bc-text);
+            font-size: .92rem;
+            font-weight: 800;
+            opacity: .88;
+        }
+
+        .business-card-share-panel .print-services {
+            max-width: 355px;
+            padding: 12px 15px;
+            border-left: 4px solid var(--bc-accent);
+            border-radius: 0 14px 14px 0;
+            background: rgba(255, 255, 255, .09);
+        }
+
+        .business-card-share-panel .print-contact-cta {
+            margin-top: 14px;
+        }
+
+        .business-card-share-panel .print-tagline {
+            max-width: 360px;
+            margin: 0 0 18px;
+            color: var(--bc-accent);
+            font-size: .9rem;
+            font-weight: 900;
+            line-height: 1.2;
+            overflow-wrap: anywhere;
+        }
+
+        /* Columna visual: retrato circular + logo con proporcion natural. */
+        .business-card-share-panel .print-side-column {
+            position: relative;
+            z-index: 2;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 8px;
+        }
+
+        .business-card-share-panel .print-media {
+            position: relative;
+            width: 150px;
+            height: 120px;
+            flex: 0 0 120px;
+            display: block;
+            margin-top: -18px;
+        }
+
+        .business-card-share-panel .print-profile-photo {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 112px;
+            height: 112px;
+            display: grid;
+            place-items: center;
+            object-fit: cover;
+            object-position: center;
+            border: 0;
+            border-radius: 50%;
+            background: color-mix(in srgb, var(--bc-bg) 82%, #ffffff);
+            color: var(--bc-text);
+            box-shadow: 0 12px 30px rgba(0, 20, 55, .26);
+        }
+
+        /*
+         * El logo no se fuerza a ser circular ni cuadrado.
+         * width/height auto conservan su proporcion original; los maximos
+         * evitan que un logo demasiado ancho o alto invada la tarjeta.
+         */
+        .business-card-share-panel .print-logo {
+            position: absolute;
+            left: 18px;
+            bottom: 6px;
+            z-index: 3;
+            width: auto;
+            height: auto;
+            max-width: 70px;
+            max-height: 58px;
+            padding: 7px;
+            object-fit: contain;
+            border: 2px solid rgba(255, 255, 255, .9);
+            border-radius: 12px;
+            background: #ffffff;
+            box-shadow: 0 9px 22px rgba(0, 20, 55, .28);
+        }
+
+        /* QR mas grande, limpio y facil de escanear. */
+        .business-card-share-panel .print-qr-box {
+            width: 210px;
+            max-width: 100%;
+            margin: 4px 0 0;
+            padding: 8px;
+            border: 1px solid rgba(0, 56, 117, .12);
+            border-radius: 17px;
+            background: #ffffff;
+            color: #003875;
+            text-align: center;
+            box-shadow: 0 10px 24px rgba(0, 25, 65, .18);
+        }
+
+        .business-card-share-panel .print-qr-box > span {
+            display: block;
+            margin-bottom: 5px;
+            font-size: .66rem;
+            font-weight: 900;
+            letter-spacing: .055em;
+            line-height: 1.15;
+            text-transform: uppercase;
+        }
+
+        .business-card-share-panel .print-qr {
+            display: block;
+            width: auto;
+            height: auto;
+            max-width: 100%;
+            margin: 0 1;
+            object-fit: contain;
+        }
+
+        .business-card-share-panel .image-fallback {
+            font-size: 1.7rem;
+            font-weight: 900;
+        }
+
+        /* Orientacion vertical y pantallas pequenas. */
+        .business-card-share-panel .print-business-card.vertical .print-card-content {
+            grid-template-columns: 1fr;
+        }
+
+        .business-card-share-panel .print-business-card.vertical .print-side-column {
+            width: 100%;
+        }
+
+        @media (max-width: 680px) {
+            .business-card-share-panel .print-business-card {
+                min-height: auto;
+                border-radius: 20px;
+            }
+
+            .business-card-share-panel .print-card-content {
+                min-height: auto;
+                grid-template-columns: 1fr;
+                padding: 24px;
+            }
+
+            .business-card-share-panel .print-side-column {
+                width: 100%;
+            }
+
+            .business-card-share-panel .print-media {
+                margin: 4px auto;
+            }
+
+            .business-card-share-panel .print-qr-box {
+                max-width: 235px;
+            }
+        }
+
+        @media print {
+            .business-card-share-panel .print-business-card {
+                box-shadow: none;
+            }
+        }
+    </style>
 </head>
 <body>
     <header class="site-header business-public-header">
@@ -55,6 +264,7 @@
                         <span class="print-company">{{ business_card.company_name }}</span>
                         <h3 class="name-font-{{ business_card.name_font }} name-size-{{ business_card.name_size }}">{{ business_card.display_name }}</h3>
                         <p>{{ business_card.job_title|default:"Profesional" }}</p>
+                        {% if business_card.tagline %}<p class="print-tagline">{{ business_card.tagline }}</p>{% endif %}
                         {% if business_card.services %}
                             <div class="print-services">
                                 <strong>{{ labels.services }}</strong>
@@ -76,7 +286,6 @@
                                 {% if business_card.address %}<span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5Z"/></svg>{{ business_card.address }}</span>{% endif %}
                             </div>
                         {% endif %}
-                        {% if business_card.tagline %}<p class="print-tagline">{{ business_card.tagline }}</p>{% endif %}
                     </div>
                     <div class="print-side-column">
                         <div class="print-media">

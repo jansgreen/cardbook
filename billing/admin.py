@@ -1,6 +1,12 @@
 from django.contrib import admin
 
-from .models import Invoice, Payment, Refund, StripeEvent
+from .models import Invoice, Payment, Refund, StripeConfiguration, StripeEvent
+
+
+@admin.register(StripeConfiguration)
+class StripeConfigurationAdmin(admin.ModelAdmin):
+    list_display = ("mode", "is_active", "publishable_key", "updated_at")
+    list_filter = ("mode", "is_active")
 
 
 @admin.register(Invoice)
@@ -28,4 +34,3 @@ class RefundAdmin(admin.ModelAdmin):
 class StripeEventAdmin(admin.ModelAdmin):
     list_display = ("event_id", "event_type", "processed_at")
     search_fields = ("event_id", "event_type")
-

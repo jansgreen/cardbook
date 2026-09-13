@@ -1,5 +1,6 @@
 from django.urls import NoReverseMatch, reverse
 
+from accesscontrol.services import PERM_MANAGE_PLATFORM_USERS, PERM_MANAGE_STRIPE_CONFIGURATION, user_has_access_permission
 from companies.models import Company
 
 
@@ -18,6 +19,8 @@ SECTION_REFERRALS = "referrals"
 SECTION_ACCESS = "access"
 SECTION_FINANCE = "finance"
 SECTION_PUBLIC_SITE = "public_site"
+SECTION_USERS = "users"
+SECTION_STRIPE_CONFIGURATION = "stripe_configuration"
 
 
 ALL_DASHBOARD_SECTIONS = {
@@ -36,6 +39,8 @@ ALL_DASHBOARD_SECTIONS = {
     SECTION_ACCESS,
     SECTION_FINANCE,
     SECTION_PUBLIC_SITE,
+    SECTION_USERS,
+    SECTION_STRIPE_CONFIGURATION,
 }
 
 
@@ -67,6 +72,9 @@ AGENT_SECTIONS = ALL_DASHBOARD_SECTIONS - {SECTION_ACCESS, SECTION_FINANCE}
 
 URL_SECTION_RULES = [
     ("finance-", SECTION_FINANCE),
+    ("dashboard-stripe-configuration", SECTION_STRIPE_CONFIGURATION),
+    ("dashboard-users", SECTION_USERS),
+    ("dashboard-user-", SECTION_USERS),
     ("dashboard-access-control", SECTION_ACCESS),
     ("dashboard-referrals", SECTION_REFERRALS),
     ("dashboard-notifications", SECTION_NOTIFICATIONS),
@@ -191,6 +199,20 @@ MENU_DEFINITIONS = [
         "icon": '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm0 4h16V6H4v2Zm3 4v2h5v-2H7Zm0 4v2h9v-2H7Z"/></svg>',
     },
     {
+        "key": SECTION_USERS,
+        "label": "Usuarios",
+        "url_name": "dashboard-users",
+        "active_sections": [SECTION_USERS],
+        "icon": '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 11a4 4 0 1 0-3.7-5.5A5.98 5.98 0 0 0 2 10a6 6 0 0 0 10.3 4.2A4 4 0 1 0 16 11Zm-8 3a4 4 0 1 1 3.3-6.3A4 4 0 0 0 12 11c0 .6.1 1.1.4 1.6A4 4 0 0 1 8 14Zm8 5a3 3 0 0 1 6 0v1H10v-1a6 6 0 0 1 6-6c1.1 0 2.1.3 3 .8A4.95 4.95 0 0 0 16 19Z"/></svg>',
+    },
+    {
+        "key": SECTION_STRIPE_CONFIGURATION,
+        "label": "Stripe",
+        "url_name": "dashboard-stripe-configuration",
+        "active_sections": [SECTION_STRIPE_CONFIGURATION],
+        "icon": '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V6Zm2 3h12V6a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1v3Zm0 2v7a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-7H6Zm2 4h5v2H8v-2Z"/></svg>',
+    },
+    {
         "key": SECTION_PUBLIC_SITE,
         "label": "Sitio publico",
         "url_name": "web-home",
@@ -237,6 +259,10 @@ def section_for_url_name(url_name):
 def can_access_dashboard_section(user, section):
     if not section:
         return True
+    if section == SECTION_USERS:
+        return bool(user and user.is_authenticated and (user.is_superuser or user_has_access_permission(user, PERM_MANAGE_PLATFORM_USERS)))
+    if section == SECTION_STRIPE_CONFIGURATION:
+        return bool(user and user.is_authenticated and (user.is_superuser or user_has_access_permission(user, PERM_MANAGE_STRIPE_CONFIGURATION)))
     return section in allowed_dashboard_sections(user)
 
 
@@ -279,6 +305,22 @@ def dashboard_menu_for_user(user, current_section=None, active_company=None):
         active_company = first_active_company_for_user(user)
     menu = []
     for item in MENU_DEFINITIONS:
+        if item["key"] == SECTION_USERS:
+            if user and user.is_authenticated and (user.is_superuser or user_has_access_permission(user, PERM_MANAGE_PLATFORM_USERS)):
+                menu.append({
+                    **item,
+                    "url": build_menu_url(item, active_company=active_company),
+                    "is_active": current_section in item.get("active_sections", []),
+                })
+            continue
+        if item["key"] == SECTION_STRIPE_CONFIGURATION:
+            if user and user.is_authenticated and (user.is_superuser or user_has_access_permission(user, PERM_MANAGE_STRIPE_CONFIGURATION)):
+                menu.append({
+                    **item,
+                    "url": build_menu_url(item, active_company=active_company),
+                    "is_active": current_section in item.get("active_sections", []),
+                })
+            continue
         if item["key"] not in allowed_sections:
             continue
         menu.append({

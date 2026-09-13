@@ -1,0 +1,30 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}{% if object %}Editar usuario{% else %}Nuevo usuario{% endif %} - Cardbook{% endblock %}
+{% block topbar_title %}{% if object %}Editar usuario{% else %}Nuevo usuario{% endif %}{% endblock %}
+{% block topbar_subtitle %}Gestiona los datos de acceso y perfil de la cuenta{% endblock %}
+
+{% block dashboard_content %}
+<section class="dashboard-heading">
+    <p>Usuarios</p>
+    <h1>{% if object %}{{ object.username }}{% else %}Crear usuario{% endif %}</h1>
+</section>
+
+<div class="form-layout">
+    <form class="panel dashboard-form" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% for field in form %}
+            <label class="{% if field.field.widget.input_type == 'checkbox' %}checkbox-field{% endif %}">
+                {{ field.label }}
+                {{ field }}
+                {% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}
+                {{ field.errors }}
+            </label>
+        {% endfor %}
+        <div class="form-actions">
+            <a class="btn btn-outline" href="{% url 'dashboard-users' %}">Cancelar</a>
+            <button class="btn btn-primary" type="submit">Guardar usuario</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

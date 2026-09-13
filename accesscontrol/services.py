@@ -12,6 +12,8 @@ PERM_CREATE_CARDBOOK_BUSINESS_CARDS = "cards.create_business_card.cardbook"
 PERM_MANAGE_WEBSITE_BUILDER = "websitebuilder.manage"
 PERM_PUBLISH_WEBSITE_BUILDER = "websitebuilder.publish"
 PERM_MANAGE_AI_AGENTS = "ai_agents.manage"
+PERM_MANAGE_PLATFORM_USERS = "users.manage"
+PERM_MANAGE_STRIPE_CONFIGURATION = "stripe.configure"
 
 DEFAULT_PERMISSIONS = [
     (PERM_MANAGE_ACCESS_CONTROL, "Administrar accesos", "Permite entrar al CRUD de roles, grupos y asignaciones."),
@@ -21,6 +23,8 @@ DEFAULT_PERMISSIONS = [
     (PERM_MANAGE_WEBSITE_BUILDER, "Administrar Website Builder", "Permite crear y editar sitios web empresariales."),
     (PERM_PUBLISH_WEBSITE_BUILDER, "Publicar Website Builder", "Permite publicar o despublicar sitios web empresariales."),
     (PERM_MANAGE_AI_AGENTS, "Administrar agentes IA", "Permite configurar agentes, leads, entrenamiento y conocimiento IA en empresas asignadas."),
+    (PERM_MANAGE_PLATFORM_USERS, "Administrar usuarios", "Permite ver, crear, editar y desactivar usuarios registrados en la plataforma."),
+    (PERM_MANAGE_STRIPE_CONFIGURATION, "Configurar Stripe", "Permite configurar claves, modo y prices de Stripe para cobros de membresias."),
     ("sales.earn_commission", "Recibir comision", "Marca al usuario como agente con porcentaje de comision."),
 ]
 

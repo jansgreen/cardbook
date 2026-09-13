@@ -3,6 +3,10 @@
 import re
 from urllib.parse import parse_qs, urlparse
 
+from django.contrib.auth import password_validation
+
+from accounts.models import Profile
+from billing.models import StripeConfiguration
 from business_feed.models import BusinessPost
 from cards.models import BusinessCard, DigitalCard
 from cards.services import (
@@ -17,6 +21,301 @@ from accesscontrol.services import PERM_CREATE_CARDBOOK_BUSINESS_CARDS, user_has
 
 
 WHATSAPP_ALLOWED_HOSTS = {"wa.me", "www.wa.me", "api.whatsapp.com", "web.whatsapp.com"}
+
+
+class AccountSettingsForm(forms.ModelForm):
+    current_password = forms.CharField(
+        required=False,
+        label="Contrasena actual",
+        widget=forms.PasswordInput(attrs={"class": "form-control", "autocomplete": "current-password"}),
+    )
+    new_password1 = forms.CharField(
+        required=False,
+        label="Nueva contrasena",
+        widget=forms.PasswordInput(attrs={"class": "form-control", "autocomplete": "new-password"}),
+    )
+    new_password2 = forms.CharField(
+        required=False,
+        label="Confirmar nueva contrasena",
+        widget=forms.PasswordInput(attrs={"class": "form-control", "autocomplete": "new-password"}),
+    )
+
+    class Meta:
+        model = Profile
+        fields = [
+            "first_name",
+            "last_name",
+            "email",
+            "phone_number",
+            "preferred_language",
+            "avatar",
+            "current_password",
+            "new_password1",
+            "new_password2",
+        ]
+        labels = {
+            "first_name": "Nombre",
+            "last_name": "Apellido",
+            "email": "Email",
+            "phone_number": "Telefono",
+            "preferred_language": "Idioma preferido",
+            "avatar": "Foto de perfil",
+        }
+        widgets = {
+            "first_name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Nombre"}),
+            "last_name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Apellido"}),
+            "email": forms.EmailInput(attrs={"class": "form-control", "placeholder": "correo@empresa.com"}),
+            "phone_number": forms.TextInput(attrs={"class": "form-control", "placeholder": "+1 809 555 0100"}),
+            "preferred_language": forms.Select(attrs={"class": "form-control"}),
+            "avatar": forms.ClearableFileInput(attrs={"class": "form-control"}),
+        }
+
+    def clean_email(self):
+        email = (self.cleaned_data.get("email") or "").strip()
+        if not email:
+            raise forms.ValidationError("El email es obligatorio.")
+        return email
+
+    def clean(self):
+        cleaned_data = super().clean()
+        current_password = cleaned_data.get("current_password")
+        new_password1 = cleaned_data.get("new_password1")
+        new_password2 = cleaned_data.get("new_password2")
+
+        if not any([current_password, new_password1, new_password2]):
+            return cleaned_data
+
+        if not current_password:
+            self.add_error("current_password", "Ingresa tu contrasena actual.")
+        elif not self.instance.check_password(current_password):
+            self.add_error("current_password", "La contrasena actual no es correcta.")
+
+        if not new_password1:
+            self.add_error("new_password1", "Ingresa la nueva contrasena.")
+        if not new_password2:
+            self.add_error("new_password2", "Confirma la nueva contrasena.")
+        if new_password1 and new_password2 and new_password1 != new_password2:
+            self.add_error("new_password2", "Las contrasenas no coinciden.")
+        if new_password1:
+            try:
+                password_validation.validate_password(new_password1, self.instance)
+            except forms.ValidationError as error:
+                self.add_error("new_password1", error)
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        new_password = self.cleaned_data.get("new_password1")
+        if new_password:
+            user.set_password(new_password)
+        if commit:
+            user.save()
+            self.save_m2m()
+        return user
+
+
+class AccountPlanForm(forms.Form):
+    PLAN_STARTER = "starter"
+    PLAN_BUSINESS = "business"
+    PLAN_TEAM = "team"
+    PLAN_CHOICES = [
+        (PLAN_STARTER, "Inicial"),
+        (PLAN_BUSINESS, "Negocio"),
+        (PLAN_TEAM, "Equipo"),
+    ]
+    PLAN_PRICES = {
+        PLAN_STARTER: 0,
+        PLAN_BUSINESS: 12,
+        PLAN_TEAM: 29,
+    }
+
+    company = forms.ModelChoiceField(
+        queryset=Company.objects.none(),
+        label="Empresa",
+        widget=forms.Select(attrs={"class": "form-control"}),
+    )
+    plan = forms.ChoiceField(
+        choices=PLAN_CHOICES,
+        label="Membresia",
+        widget=forms.RadioSelect(attrs={"class": "plan-radio-list"}),
+    )
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user")
+        super().__init__(*args, **kwargs)
+        self.fields["company"].queryset = (
+            Company.objects.filter(is_active=True, owner=user)
+            | Company.objects.filter(is_active=True, members__user=user, members__is_active=True)
+        ).distinct()
+
+
+class PlatformUserForm(forms.ModelForm):
+    password1 = forms.CharField(
+        required=False,
+        label="Nueva contrasena",
+        widget=forms.PasswordInput(attrs={"class": "form-control", "autocomplete": "new-password"}),
+    )
+    password2 = forms.CharField(
+        required=False,
+        label="Confirmar contrasena",
+        widget=forms.PasswordInput(attrs={"class": "form-control", "autocomplete": "new-password"}),
+    )
+
+    class Meta:
+        model = Profile
+        fields = [
+            "username",
+            "first_name",
+            "last_name",
+            "email",
+            "phone_number",
+            "preferred_language",
+            "registration_intent",
+            "avatar",
+            "is_active",
+            "password1",
+            "password2",
+        ]
+        labels = {
+            "username": "Usuario",
+            "first_name": "Nombre",
+            "last_name": "Apellido",
+            "email": "Email",
+            "phone_number": "Telefono",
+            "preferred_language": "Idioma",
+            "registration_intent": "Tipo de cuenta",
+            "avatar": "Foto de perfil",
+            "is_active": "Usuario activo",
+        }
+        widgets = {
+            "username": forms.TextInput(attrs={"class": "form-control"}),
+            "first_name": forms.TextInput(attrs={"class": "form-control"}),
+            "last_name": forms.TextInput(attrs={"class": "form-control"}),
+            "email": forms.EmailInput(attrs={"class": "form-control"}),
+            "phone_number": forms.TextInput(attrs={"class": "form-control"}),
+            "preferred_language": forms.Select(attrs={"class": "form-control"}),
+            "registration_intent": forms.Select(attrs={"class": "form-control"}),
+            "avatar": forms.ClearableFileInput(attrs={"class": "form-control"}),
+            "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.creating = kwargs.pop("creating", False)
+        super().__init__(*args, **kwargs)
+        if self.creating:
+            self.fields["password1"].required = True
+            self.fields["password2"].required = True
+
+    def clean_email(self):
+        email = (self.cleaned_data.get("email") or "").strip()
+        if not email:
+            raise forms.ValidationError("El email es obligatorio.")
+        return email
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password1 = cleaned_data.get("password1")
+        password2 = cleaned_data.get("password2")
+
+        if self.creating or password1 or password2:
+            if not password1:
+                self.add_error("password1", "Ingresa una contrasena.")
+            if not password2:
+                self.add_error("password2", "Confirma la contrasena.")
+            if password1 and password2 and password1 != password2:
+                self.add_error("password2", "Las contrasenas no coinciden.")
+            if password1:
+                try:
+                    password_validation.validate_password(password1, self.instance)
+                except forms.ValidationError as error:
+                    self.add_error("password1", error)
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        password = self.cleaned_data.get("password1")
+        if password:
+            user.set_password(password)
+        if commit:
+            user.save()
+            self.save_m2m()
+        return user
+
+
+class StripeConfigurationForm(forms.ModelForm):
+    secret_key = forms.CharField(
+        required=False,
+        label="Secret key",
+        widget=forms.PasswordInput(attrs={"class": "form-control", "autocomplete": "off", "placeholder": "sk_test_... o sk_live_..."}),
+        help_text="Requerida para crear Checkout y cobrar. Si la dejas vacia al editar, se conserva la clave actual.",
+    )
+    webhook_secret = forms.CharField(
+        required=False,
+        label="Webhook secret",
+        widget=forms.PasswordInput(attrs={"class": "form-control", "autocomplete": "off", "placeholder": "whsec_..."}),
+        help_text="Requerida para validar webhooks de Stripe. Si la dejas vacia al editar, se conserva la clave actual.",
+    )
+
+    class Meta:
+        model = StripeConfiguration
+        fields = [
+            "mode",
+            "is_active",
+            "publishable_key",
+            "secret_key",
+            "webhook_secret",
+            "starter_price_id",
+            "business_price_id",
+            "team_price_id",
+        ]
+        labels = {
+            "mode": "Modo",
+            "is_active": "Configuracion activa",
+            "publishable_key": "Publishable key",
+            "starter_price_id": "Price ID Inicial",
+            "business_price_id": "Price ID Negocio",
+            "team_price_id": "Price ID Equipo",
+        }
+        widgets = {
+            "mode": forms.Select(attrs={"class": "form-control"}),
+            "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "publishable_key": forms.TextInput(attrs={"class": "form-control", "placeholder": "pk_test_... o pk_live_..."}),
+            "starter_price_id": forms.TextInput(attrs={"class": "form-control", "placeholder": "price_..."}),
+            "business_price_id": forms.TextInput(attrs={"class": "form-control", "placeholder": "price_..."}),
+            "team_price_id": forms.TextInput(attrs={"class": "form-control", "placeholder": "price_..."}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            if self.instance.secret_key:
+                self.fields["secret_key"].widget.attrs["placeholder"] = self.instance.masked_secret_key
+            if self.instance.webhook_secret:
+                self.fields["webhook_secret"].widget.attrs["placeholder"] = self.instance.masked_webhook_secret
+
+    def clean_publishable_key(self):
+        key = (self.cleaned_data.get("publishable_key") or "").strip()
+        if key and not key.startswith(("pk_test_", "pk_live_")):
+            raise forms.ValidationError("La publishable key debe comenzar con pk_test_ o pk_live_.")
+        return key
+
+    def clean_secret_key(self):
+        key = (self.cleaned_data.get("secret_key") or "").strip()
+        if key and not key.startswith(("sk_test_", "sk_live_")):
+            raise forms.ValidationError("La secret key debe comenzar con sk_test_ o sk_live_.")
+        if not key and self.instance and self.instance.pk:
+            return self.instance.secret_key
+        return key
+
+    def clean_webhook_secret(self):
+        key = (self.cleaned_data.get("webhook_secret") or "").strip()
+        if key and not key.startswith("whsec_"):
+            raise forms.ValidationError("El webhook secret debe comenzar con whsec_.")
+        if not key and self.instance and self.instance.pk:
+            return self.instance.webhook_secret
+        return key
 
 
 def normalize_whatsapp_url(value):

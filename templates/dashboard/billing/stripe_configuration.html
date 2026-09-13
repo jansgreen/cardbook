@@ -1,0 +1,71 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}Stripe - Cardbook{% endblock %}
+{% block topbar_title %}Configuracion Stripe{% endblock %}
+{% block topbar_subtitle %}Conecta cobros de membresias en modo prueba o produccion{% endblock %}
+
+{% block dashboard_content %}
+<section class="dashboard-heading action-heading">
+    <div>
+        <p>Billing</p>
+        <h1>Stripe</h1>
+    </div>
+    {% if configuration.dashboard_url %}
+        <a class="btn btn-outline" href="{{ configuration.dashboard_url }}" target="_blank" rel="noopener">Abrir Stripe</a>
+    {% endif %}
+</section>
+
+<section class="panel stripe-config-summary">
+    <article>
+        <span>Modo activo</span>
+        <strong>{% if configuration.pk and configuration.is_active %}{{ configuration.get_mode_display }}{% else %}Sin activar{% endif %}</strong>
+    </article>
+    <article>
+        <span>Publishable key</span>
+        <strong>{% if configuration.publishable_key %}Configurada{% else %}Pendiente{% endif %}</strong>
+    </article>
+    <article>
+        <span>Secret key</span>
+        <strong>{% if configuration.secret_key %}{{ configuration.masked_secret_key }}{% else %}Pendiente{% endif %}</strong>
+    </article>
+    <article>
+        <span>Webhook secret</span>
+        <strong>{% if configuration.webhook_secret %}{{ configuration.masked_webhook_secret }}{% else %}Pendiente{% endif %}</strong>
+    </article>
+</section>
+
+<div class="form-layout stripe-config-layout">
+    <aside class="form-helper">
+        <strong>Webhook URL</strong>
+        <span>{{ webhook_url }}</span>
+        <small>En Stripe configura eventos de subscription, invoice, payment_intent y refund hacia esta URL.</small>
+    </aside>
+
+    <form class="panel dashboard-form" method="post">
+        {% csrf_token %}
+        {% for field in form %}
+            <label class="{% if field.field.widget.input_type == 'checkbox' %}checkbox-field{% endif %}">
+                {{ field.label }}
+                {{ field }}
+                {% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}
+                {{ field.errors }}
+            </label>
+        {% endfor %}
+        <div class="form-actions">
+            <button class="btn btn-primary" type="submit">Guardar configuracion</button>
+        </div>
+    </form>
+</div>
+
+{% if configurations %}
+    <section class="panel stripe-config-list">
+        <h2>Configuraciones guardadas</h2>
+        {% for item in configurations %}
+            <a href="{% url 'dashboard-stripe-configuration' %}?mode={{ item.mode }}" class="{% if item.mode == configuration.mode %}active{% endif %}">
+                <span>{{ item.get_mode_display }}</span>
+                <strong>{% if item.is_active %}Activa{% else %}Inactiva{% endif %}</strong>
+            </a>
+        {% endfor %}
+    </section>
+{% endif %}
+{% endblock %}

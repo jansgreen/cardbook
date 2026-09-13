@@ -10,7 +10,7 @@ from django.db.models import Count, Sum
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
-from billing.models import Invoice, Payment, Refund, StripeEvent
+from billing.models import Invoice, Payment, Refund, StripeConfiguration, StripeEvent
 from companies.models import Company
 from financial_analytics.models import AuditLog, CommissionPayment, ReferralClick, RevenueSnapshot
 from referrals.models import AgentProfile, Commission
@@ -28,14 +28,33 @@ class FinanceValidationError(Exception):
     pass
 
 
+def get_active_stripe_configuration():
+    return StripeConfiguration.active()
+
+
+def get_stripe_secret_key():
+    configuration = get_active_stripe_configuration()
+    if configuration and configuration.secret_key:
+        return configuration.secret_key
+    return settings.STRIPE_SECRET_KEY
+
+
+def get_stripe_webhook_secret():
+    configuration = get_active_stripe_configuration()
+    if configuration and configuration.webhook_secret:
+        return configuration.webhook_secret
+    return settings.STRIPE_WEBHOOK_SECRET
+
+
 def get_stripe_client():
-    if not settings.STRIPE_SECRET_KEY:
+    secret_key = get_stripe_secret_key()
+    if not secret_key:
         raise FinanceConfigurationError("Stripe is not configured.")
     try:
         import stripe
     except ImportError as exc:
         raise FinanceConfigurationError("The stripe package is not installed.") from exc
-    stripe.api_key = settings.STRIPE_SECRET_KEY
+    stripe.api_key = secret_key
     return stripe
 
 
@@ -248,6 +267,54 @@ def create_customer_portal_session(*, company, request, return_url=""):
             "company_id": company.id,
             "stripe_customer_id": subscription.stripe_customer_id,
             "portal_session_id": getattr(session, "id", ""),
+        },
+        request=request,
+    )
+    return session
+
+
+def create_subscription_checkout_session(*, company, plan, request, return_url=""):
+    configuration = get_active_stripe_configuration()
+    if not configuration or not configuration.secret_key:
+        raise FinanceConfigurationError("Stripe is not configured.")
+    price_id = configuration.price_id_for_plan(plan)
+    if not price_id:
+        raise FinanceConfigurationError("Stripe price is not configured for this plan.")
+
+    stripe = get_stripe_client()
+    success_url = return_url or request.build_absolute_uri("/dashboard/plan/?checkout=success")
+    cancel_url = request.build_absolute_uri("/dashboard/plan/?checkout=cancelled")
+    session = stripe.checkout.Session.create(
+        mode="subscription",
+        customer_email=company.email or getattr(company.owner, "email", ""),
+        line_items=[{"price": price_id, "quantity": 1}],
+        success_url=success_url,
+        cancel_url=cancel_url,
+        metadata={
+            "company_id": str(company.id),
+            "cardbook_company_id": str(company.id),
+            "plan": plan,
+            "stripe_mode": configuration.mode,
+        },
+        subscription_data={
+            "metadata": {
+                "company_id": str(company.id),
+                "cardbook_company_id": str(company.id),
+                "plan": plan,
+                "stripe_mode": configuration.mode,
+            }
+        },
+    )
+    create_audit_log(
+        action=AuditLog.ACTION_CUSTOMER_PORTAL_CREATED,
+        title="Checkout de membresia Stripe creado",
+        actor=request.user,
+        target=company,
+        metadata={
+            "company_id": company.id,
+            "plan": plan,
+            "checkout_session_id": getattr(session, "id", ""),
+            "stripe_mode": configuration.mode,
         },
         request=request,
     )

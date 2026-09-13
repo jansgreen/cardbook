@@ -1,7 +1,12 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
+from types import SimpleNamespace
+from unittest.mock import Mock, patch
 
+from accesscontrol.models import AccessPermission, AccessRole, UserAccessGrant
+from accesscontrol.services import PERM_MANAGE_PLATFORM_USERS, PERM_MANAGE_STRIPE_CONFIGURATION, ensure_default_permissions
+from billing.models import StripeConfiguration
 from companies.models import Company
 from dashboard.access_policy import dashboard_menu_for_user, default_dashboard_url_name
 from referrals.models import AgentApplication, AgentProfile
@@ -79,8 +84,25 @@ class DashboardAccessPolicyTests(TestCase):
 
         self.assertIn("finance", keys)
         self.assertIn("access", keys)
+        self.assertIn("users", keys)
         self.assertIn("white_card_job", keys)
         self.assertIn("referrals", keys)
+
+    def test_company_user_menu_hides_platform_users_without_permission(self):
+        user = self.create_user("companynousers", "company")
+
+        self.assertNotIn("users", self.menu_keys(user))
+
+    def test_user_with_platform_user_permission_sees_users_menu(self):
+        ensure_default_permissions()
+        owner = self.create_user("ownerusers", "company")
+        user = self.create_user("assignedusers", "company")
+        company = Company.objects.create(owner=owner, name="Access Co", is_active=True)
+        role = AccessRole.objects.create(name="User Manager")
+        role.permissions.add(AccessPermission.objects.get(code=PERM_MANAGE_PLATFORM_USERS))
+        UserAccessGrant.objects.create(user=user, company=company, role=role, is_active=True)
+
+        self.assertIn("users", self.menu_keys(user))
 
     def test_company_sidebar_hides_disallowed_items(self):
         user = self.create_user("companynav", "company")
@@ -294,3 +316,99 @@ class DashboardAccessPolicyTests(TestCase):
 
         self.assertNotEqual(finance_response.status_code, 302)
         self.assertNotEqual(access_response.status_code, 302)
+
+    def test_superuser_can_open_users_dashboard(self):
+        user = self.create_user("superuserspage", is_staff=True, is_superuser=True)
+        listed = self.create_user("listeduser", "company", first_name="Listed")
+        Company.objects.create(owner=listed, name="Listed Company", is_active=True)
+        self.login(user)
+
+        response = self.client.get(reverse("dashboard-users"), {"q": "Listed"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "listeduser")
+        self.assertContains(response, "Listed Company")
+
+    def test_company_user_cannot_open_users_dashboard_without_permission(self):
+        user = self.create_user("blockeduserspage", "company")
+        self.login(user)
+
+        response = self.client.get(reverse("dashboard-users"))
+
+        self.assertRedirects(response, reverse("dashboard-home"))
+
+    def test_assigned_user_can_open_users_dashboard(self):
+        ensure_default_permissions()
+        owner = self.create_user("owneruserspage", "company")
+        user = self.create_user("assigneduserspage", "company")
+        company = Company.objects.create(owner=owner, name="Assigned Access Co", is_active=True)
+        role = AccessRole.objects.create(name="Assigned User Manager")
+        role.permissions.add(AccessPermission.objects.get(code=PERM_MANAGE_PLATFORM_USERS))
+        UserAccessGrant.objects.create(user=user, company=company, role=role, is_active=True)
+        self.login(user)
+
+        response = self.client.get(reverse("dashboard-users"))
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_superuser_can_configure_stripe(self):
+        user = self.create_user("stripeadmin", is_staff=True, is_superuser=True)
+        self.login(user)
+
+        response = self.client.post(
+            reverse("dashboard-stripe-configuration"),
+            {
+                "mode": "test",
+                "is_active": "on",
+                "publishable_key": "pk_test_123",
+                "secret_key": "sk_test_123",
+                "webhook_secret": "whsec_123",
+                "starter_price_id": "",
+                "business_price_id": "price_business",
+                "team_price_id": "price_team",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        config = StripeConfiguration.objects.get(mode="test")
+        self.assertTrue(config.is_active)
+        self.assertEqual(config.business_price_id, "price_business")
+
+    def test_user_with_stripe_permission_can_open_stripe_config(self):
+        ensure_default_permissions()
+        owner = self.create_user("ownerstripe", "company")
+        user = self.create_user("assignedstripe", "company")
+        company = Company.objects.create(owner=owner, name="Stripe Access Co", is_active=True)
+        role = AccessRole.objects.create(name="Stripe Manager")
+        role.permissions.add(AccessPermission.objects.get(code=PERM_MANAGE_STRIPE_CONFIGURATION))
+        UserAccessGrant.objects.create(user=user, company=company, role=role, is_active=True)
+        self.login(user)
+
+        response = self.client.get(reverse("dashboard-stripe-configuration"))
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_plan_upgrade_creates_stripe_checkout_for_paid_plan(self):
+        user = self.create_user("checkoutuser", "company")
+        company = Company.objects.create(owner=user, name="Checkout Co", email="billing@example.com", is_active=True)
+        StripeConfiguration.objects.create(
+            mode="test",
+            is_active=True,
+            publishable_key="pk_test_123",
+            secret_key="sk_test_123",
+            webhook_secret="whsec_123",
+            business_price_id="price_business",
+        )
+        self.login(user)
+
+        with patch("financial_analytics.services.get_stripe_client") as get_stripe_client:
+            stripe = SimpleNamespace()
+            stripe.checkout = SimpleNamespace()
+            stripe.checkout.Session = SimpleNamespace(create=Mock(return_value=SimpleNamespace(id="cs_test_123", url="https://checkout.stripe.com/test")))
+            get_stripe_client.return_value = stripe
+
+            response = self.client.post(reverse("dashboard-plan"), {"company": company.id, "plan": "business"})
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "https://checkout.stripe.com/test")
+        stripe.checkout.Session.create.assert_called_once()

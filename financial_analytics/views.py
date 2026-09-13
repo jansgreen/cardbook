@@ -46,6 +46,7 @@ from .services import (
     create_agent_payout,
     create_customer_portal_session,
     create_refund_for_payment,
+    get_stripe_webhook_secret,
     payment_refundable_amount,
     FinanceConfigurationError,
     FinanceValidationError,
@@ -942,9 +943,10 @@ class StripeWebhookAPIView(APIView):
 
     def post(self, request):
         raw_payload = request.body
-        if settings.STRIPE_WEBHOOK_SECRET:
+        webhook_secret = get_stripe_webhook_secret()
+        if webhook_secret:
             signature = request.META.get("HTTP_STRIPE_SIGNATURE", "")
-            if not verify_stripe_signature(raw_payload, signature, settings.STRIPE_WEBHOOK_SECRET):
+            if not verify_stripe_signature(raw_payload, signature, webhook_secret):
                 return error_response("Invalid Stripe signature.", status_code=status.HTTP_400_BAD_REQUEST)
         payload = parse_stripe_payload(raw_payload)
         if payload is None:

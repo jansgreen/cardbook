@@ -33,8 +33,22 @@
         </nav>
 
         <div class="sidebar-foot">
-            <span>{{ request.user.get_full_name|default:request.user.username }}</span>
-            <a href="{% url 'web-logout' %}">Cerrar sesion</a>
+            <div class="sidebar-account-row">
+                <a class="sidebar-account-name {% if request.resolver_match.url_name == 'dashboard-settings' %}active{% endif %}" href="{% url 'dashboard-settings' %}">
+                    {{ request.user.get_full_name|default:request.user.username }}
+                </a>
+                <a class="sidebar-settings-link {% if request.resolver_match.url_name == 'dashboard-settings' %}active{% endif %}" href="{% url 'dashboard-settings' %}" aria-label="Configuracion">
+                    <svg width="21" height="21" viewBox="0 0 24 24" aria-hidden="true"><path d="M19.4 13.5c.1-.5.1-1 .1-1.5s0-1-.1-1.5l2-1.5-2-3.5-2.4 1a7.8 7.8 0 0 0-2.6-1.5L14 2h-4l-.4 3a7.8 7.8 0 0 0-2.6 1.5l-2.4-1-2 3.5 2 1.5c-.1.5-.1 1-.1 1.5s0 1 .1 1.5l-2 1.5 2 3.5 2.4-1a7.8 7.8 0 0 0 2.6 1.5l.4 3h4l.4-3a7.8 7.8 0 0 0 2.6-1.5l2.4 1 2-3.5-2-1.5ZM12 15.5A3.5 3.5 0 1 1 12 8a3.5 3.5 0 0 1 0 7.5Z"/></svg>
+                </a>
+            </div>
+            <a class="sidebar-plan-link {% if request.resolver_match.url_name == 'dashboard-plan' %}active{% endif %}" href="{% url 'dashboard-plan' %}">
+                <svg width="21" height="21" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5Zm2 0v4h12V5H6Zm0 6v8h12v-8H6Zm2 2h5v2H8v-2Z"/></svg>
+                <span>Plan / Upgrade</span>
+            </a>
+            <a class="sidebar-logout-link" href="{% url 'web-logout' %}">
+                <svg width="21" height="21" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5v-2H5V5h5V3Zm4.6 4.4L13.2 8.8 15.4 11H8v2h7.4l-2.2 2.2 1.4 1.4L19.2 12l-4.6-4.6Z"/></svg>
+                <span>Cerrar sesion</span>
+            </a>
         </div>
     </aside>
 

@@ -1,0 +1,503 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}Configuración - Cardbook{% endblock %}
+{% block topbar_title %}Configuración{% endblock %}
+{% block topbar_subtitle %}
+    Actualiza tus datos personales y foto de perfil
+{% endblock %}
+
+{% block dashboard_content %}
+
+<style>
+    .account-settings-page {
+        --settings-blue: #003875;
+        --settings-blue-light: #0b66c3;
+        --settings-gold: #dfa62f;
+        --settings-gold-dark: #c68d19;
+        --settings-text: #172b4d;
+        --settings-muted: #66758c;
+        --settings-border: #d9e4f0;
+        --settings-background: #f3f7fb;
+        --settings-success: #16834b;
+
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 10px 4px 40px;
+    }
+
+    .account-settings-page *,
+    .account-settings-page *::before,
+    .account-settings-page *::after {
+        box-sizing: border-box;
+    }
+
+    /* Encabezado */
+
+    .settings-heading {
+        margin-bottom: 26px;
+    }
+
+    .settings-heading__eyebrow {
+        margin: 0 0 8px;
+        color: var(--settings-gold-dark);
+        font-size: 0.76rem;
+        font-weight: 800;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+    }
+
+    .settings-heading h1 {
+        margin: 0;
+        color: var(--settings-blue);
+        font-size: clamp(1.9rem, 4vw, 2.65rem);
+        line-height: 1.05;
+        letter-spacing: -0.035em;
+    }
+
+    .settings-heading__description {
+        margin: 9px 0 0;
+        color: var(--settings-muted);
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+
+    /* Distribución principal */
+
+    .settings-layout {
+        display: grid;
+        grid-template-columns: minmax(230px, 280px) minmax(0, 1fr);
+        gap: 24px;
+        align-items: start;
+    }
+
+    .settings-card {
+        background: #fff;
+        border: 1px solid var(--settings-border);
+        border-radius: 18px;
+        box-shadow: 0 12px 35px rgba(0, 56, 117, 0.08);
+    }
+
+    /* Tarjeta del perfil */
+
+    .account-preview-panel {
+        position: sticky;
+        top: 95px;
+        overflow: hidden;
+        padding: 32px 24px 26px;
+        text-align: center;
+    }
+
+    .account-preview-panel::before {
+        content: "";
+        position: absolute;
+        inset: 0 0 auto;
+        height: 88px;
+        background:
+            radial-gradient(
+                circle at 85% 10%,
+                rgba(223, 166, 47, 0.9),
+                transparent 42%
+            ),
+            linear-gradient(135deg, #003875, #0866bc);
+    }
+
+    .account-avatar {
+        position: relative;
+        z-index: 1;
+        width: 112px;
+        height: 112px;
+        margin: 10px auto 18px;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        border: 5px solid #fff;
+        border-radius: 50%;
+        background: #eaf3fc;
+        color: var(--settings-blue);
+        box-shadow: 0 8px 24px rgba(0, 37, 82, 0.2);
+        font-size: 2rem;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .account-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .account-preview-panel strong {
+        display: block;
+        color: var(--settings-blue);
+        font-size: 1.05rem;
+        line-height: 1.35;
+    }
+
+    .account-preview-panel > span {
+        display: block;
+        margin-top: 7px;
+        color: var(--settings-muted);
+        font-size: 0.9rem;
+        overflow-wrap: anywhere;
+    }
+
+    .account-preview-divider {
+        width: 44px;
+        height: 4px;
+        margin: 20px auto;
+        border: 0;
+        border-radius: 999px;
+        background: var(--settings-gold);
+    }
+
+    .account-preview-note {
+        margin: 0;
+        color: var(--settings-muted);
+        font-size: 0.82rem;
+        line-height: 1.55;
+    }
+
+    /* Formulario */
+
+    .account-settings-form {
+        overflow: hidden;
+    }
+
+    .settings-form-header {
+        padding: 25px 28px 20px;
+        border-bottom: 1px solid var(--settings-border);
+    }
+
+    .settings-form-header h2 {
+        margin: 0;
+        color: var(--settings-blue);
+        font-size: 1.3rem;
+    }
+
+    .settings-form-header p {
+        margin: 6px 0 0;
+        color: var(--settings-muted);
+        font-size: 0.9rem;
+    }
+
+    .settings-form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 20px;
+        padding: 26px 28px 30px;
+    }
+
+    .settings-field {
+        display: flex;
+        min-width: 0;
+        flex-direction: column;
+        gap: 8px;
+        margin: 0;
+    }
+
+    .settings-field--wide {
+        grid-column: 1 / -1;
+    }
+
+    .settings-section-title {
+        grid-column: 1 / -1;
+        margin-top: 8px;
+        padding-top: 22px;
+        border-top: 1px solid var(--settings-border);
+    }
+
+    .settings-section-title h3 {
+        margin: 0;
+        color: var(--settings-blue);
+        font-size: 1.05rem;
+    }
+
+    .settings-section-title p {
+        margin: 5px 0 0;
+        color: var(--settings-muted);
+        font-size: 0.86rem;
+        line-height: 1.45;
+    }
+
+    .settings-field__label {
+        color: var(--settings-blue);
+        font-size: 0.88rem;
+        font-weight: 750;
+    }
+
+    .settings-field input:not([type="checkbox"]):not([type="file"]),
+    .settings-field select,
+    .settings-field textarea {
+        width: 100%;
+        min-height: 48px;
+        padding: 11px 14px;
+        border: 1px solid #bdd0e5;
+        border-radius: 10px;
+        outline: none;
+        background: #fbfdff;
+        color: var(--settings-text);
+        font: inherit;
+        transition:
+            border-color 160ms ease,
+            box-shadow 160ms ease,
+            background 160ms ease;
+    }
+
+    .settings-field textarea {
+        min-height: 110px;
+        resize: vertical;
+    }
+
+    .settings-field input:focus,
+    .settings-field select:focus,
+    .settings-field textarea:focus {
+        border-color: var(--settings-blue-light);
+        background: #fff;
+        box-shadow: 0 0 0 4px rgba(11, 102, 195, 0.12);
+    }
+
+    /* Selector de archivo */
+
+    .settings-field input[type="file"] {
+        width: 100%;
+        padding: 12px;
+        border: 1px dashed #9cbce0;
+        border-radius: 12px;
+        background: #f7fbff;
+        color: var(--settings-muted);
+        font: inherit;
+        cursor: pointer;
+    }
+
+    .settings-field input[type="file"]::file-selector-button {
+        margin-right: 12px;
+        padding: 10px 16px;
+        border: 1px solid #9bbce1;
+        border-radius: 8px;
+        background: #fff;
+        color: var(--settings-blue);
+        font-weight: 750;
+        cursor: pointer;
+        transition:
+            color 160ms ease,
+            border-color 160ms ease,
+            background 160ms ease;
+    }
+
+    .settings-field input[type="file"]::file-selector-button:hover {
+        border-color: var(--settings-blue-light);
+        background: #eaf4ff;
+        color: var(--settings-blue-light);
+    }
+
+    .settings-field .helptext {
+        color: var(--settings-muted);
+        font-size: 0.78rem;
+        line-height: 1.4;
+    }
+
+    .settings-field .errorlist {
+        margin: 0;
+        padding: 0;
+        color: #b42318;
+        font-size: 0.8rem;
+        font-weight: 650;
+        list-style: none;
+    }
+
+    /* Acciones */
+
+    .settings-form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        padding: 18px 28px;
+        border-top: 1px solid var(--settings-border);
+        background: #fbfdff;
+    }
+
+    .settings-form-actions .btn {
+        min-height: 44px;
+        padding: 11px 20px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        font-size: 0.88rem;
+        font-weight: 800;
+        text-decoration: none;
+        cursor: pointer;
+        transition:
+            transform 160ms ease,
+            box-shadow 160ms ease,
+            background 160ms ease;
+    }
+
+    .settings-form-actions .btn:hover {
+        transform: translateY(-1px);
+    }
+
+    .settings-form-actions .btn-outline {
+        border-color: #b8cee5;
+        background: #fff;
+        color: var(--settings-blue);
+    }
+
+    .settings-form-actions .btn-outline:hover {
+        background: #edf5fd;
+    }
+
+    .settings-form-actions .btn-primary {
+        background: linear-gradient(
+            135deg,
+            var(--settings-gold),
+            var(--settings-gold-dark)
+        );
+        color: #082b54;
+        box-shadow: 0 7px 18px rgba(198, 141, 25, 0.25);
+    }
+
+    .settings-form-actions .btn-primary:hover {
+        box-shadow: 0 9px 22px rgba(198, 141, 25, 0.35);
+    }
+
+    /* Responsive */
+
+    @media (max-width: 850px) {
+        .settings-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .account-preview-panel {
+            position: relative;
+            top: auto;
+        }
+    }
+
+    @media (max-width: 620px) {
+        .account-settings-page {
+            padding-bottom: 24px;
+        }
+
+        .settings-form-grid {
+            grid-template-columns: 1fr;
+            padding: 22px 18px;
+        }
+
+        .settings-field--wide {
+            grid-column: auto;
+        }
+
+        .settings-form-header {
+            padding: 22px 18px 18px;
+        }
+
+        .settings-form-actions {
+            padding: 16px 18px;
+        }
+
+        .settings-form-actions .btn {
+            flex: 1;
+        }
+    }
+</style>
+
+<section class="account-settings-page">
+    <header class="settings-heading">
+        <p class="settings-heading__eyebrow">Cuenta</p>
+        <h1>Información personal</h1>
+        <p class="settings-heading__description">
+            Administra tus datos, preferencias y foto de perfil.
+        </p>
+    </header>
+
+    <div class="settings-layout">
+        <aside class="settings-card account-preview-panel">
+            <div class="account-avatar">
+                {% if request.user.avatar %}
+                    <img
+                        src="{{ request.user.avatar.url }}"
+                        alt="{{ request.user.get_full_name|default:request.user.username }}"
+                    >
+                {% else %}
+                    <span>
+                        {{ request.user.get_full_name|default:request.user.username|slice:":2" }}
+                    </span>
+                {% endif %}
+            </div>
+
+            <strong>
+                {{ request.user.get_full_name|default:request.user.username }}
+            </strong>
+
+            <span>{{ request.user.email|default:"Sin email" }}</span>
+
+            <hr class="account-preview-divider">
+
+            <p class="account-preview-note">
+                Tu foto y nombre serán visibles en tu perfil de Cardbook.
+            </p>
+        </aside>
+
+        <form
+            class="settings-card account-settings-form"
+            method="post"
+            enctype="multipart/form-data"
+        >
+            {% csrf_token %}
+
+            <header class="settings-form-header">
+                <h2>Datos de la cuenta</h2>
+                <p>Mantén tu información actualizada.</p>
+            </header>
+
+            <div class="settings-form-grid">
+                {% for field in form %}
+                    {% if field.name == "current_password" %}
+                        <div class="settings-section-title">
+                            <h3>Cambiar contrasena</h3>
+                            <p>Completa estos campos solo si quieres actualizar tu contrasena.</p>
+                        </div>
+                    {% endif %}
+                    <label
+                        class="settings-field
+                        {% if field.name == 'avatar' or field.name == 'photo' or field.name == 'current_password' %}
+                            settings-field--wide
+                        {% endif %}"
+                        for="{{ field.id_for_label }}"
+                    >
+                        <span class="settings-field__label">
+                            {{ field.label }}
+                        </span>
+
+                        {{ field }}
+
+                        {% if field.help_text %}
+                            <span class="helptext">
+                                {{ field.help_text|safe }}
+                            </span>
+                        {% endif %}
+
+                        {{ field.errors }}
+                    </label>
+                {% endfor %}
+            </div>
+
+            <footer class="settings-form-actions">
+                <a
+                    class="btn btn-outline"
+                    href="{% url 'dashboard-home' %}"
+                >
+                    Cancelar
+                </a>
+
+                <button class="btn btn-primary" type="submit">
+                    Guardar cambios
+                </button>
+            </footer>
+        </form>
+    </div>
+</section>
+
+{% endblock %}

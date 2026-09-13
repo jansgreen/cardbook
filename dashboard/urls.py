@@ -17,6 +17,13 @@ from .views import (
     DashboardCardsView,
     DashboardCompaniesView,
     DashboardHomeView,
+    DashboardPlanView,
+    DashboardSettingsView,
+    DashboardStripeConfigurationView,
+    DashboardUserCreateView,
+    DashboardUserDeactivateView,
+    DashboardUserUpdateView,
+    DashboardUsersView,
 )
 from websitebuilder.views import DashboardWebsiteBuilderView, DashboardWebsitePreviewView
 from referrals.views import NotificationInboxView, ReferralDashboardView
@@ -26,6 +33,13 @@ from accesscontrol.views import DashboardAccessControlView
 
 urlpatterns = [
     path("", DashboardHomeView.as_view(), name="dashboard-home"),
+    path("settings/", DashboardSettingsView.as_view(), name="dashboard-settings"),
+    path("plan/", DashboardPlanView.as_view(), name="dashboard-plan"),
+    path("billing/stripe/", DashboardStripeConfigurationView.as_view(), name="dashboard-stripe-configuration"),
+    path("users/", DashboardUsersView.as_view(), name="dashboard-users"),
+    path("users/new/", DashboardUserCreateView.as_view(), name="dashboard-user-create"),
+    path("users/<int:pk>/edit/", DashboardUserUpdateView.as_view(), name="dashboard-user-update"),
+    path("users/<int:pk>/deactivate/", DashboardUserDeactivateView.as_view(), name="dashboard-user-deactivate"),
     path("", include("forms_builder.dashboard_urls")),
     path("ai-agents/", include("ai_agents.urls")),
     path("companies/", DashboardCompaniesView.as_view(), name="dashboard-companies"),

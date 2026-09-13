@@ -1,0 +1,679 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}Membresía - Cardbook{% endblock %}
+{% block topbar_title %}Planes y membresía{% endblock %}
+{% block topbar_subtitle %}
+    Selecciona la membresía adecuada para tu empresa
+{% endblock %}
+
+{% block dashboard_content %}
+
+<style>
+    .membership-page {
+        --plan-blue: #003875;
+        --plan-blue-light: #0b66c3;
+        --plan-gold: #dfa62f;
+        --plan-gold-dark: #bd8211;
+        --plan-text: #172b4d;
+        --plan-muted: #66758c;
+        --plan-border: #d9e4f0;
+        --plan-background: #f3f7fb;
+        --plan-success: #16834b;
+
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 10px 4px 42px;
+    }
+
+    .membership-page *,
+    .membership-page *::before,
+    .membership-page *::after {
+        box-sizing: border-box;
+    }
+
+    /* Encabezado */
+
+    .membership-heading {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 26px;
+    }
+
+    .membership-heading__eyebrow {
+        margin: 0 0 8px;
+        color: var(--plan-gold-dark);
+        font-size: 0.76rem;
+        font-weight: 850;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+    }
+
+    .membership-heading h1 {
+        margin: 0;
+        color: var(--plan-blue);
+        font-size: clamp(2rem, 4vw, 2.7rem);
+        line-height: 1.05;
+        letter-spacing: -0.035em;
+    }
+
+    .membership-heading__description {
+        max-width: 650px;
+        margin: 10px 0 0;
+        color: var(--plan-muted);
+        font-size: 1rem;
+        line-height: 1.55;
+    }
+
+    /* Plan actual */
+
+    .current-plan-panel {
+        position: relative;
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 18px;
+        margin-bottom: 26px;
+        padding: 19px 22px;
+        overflow: hidden;
+        border: 1px solid #bad5ef;
+        border-radius: 16px;
+        background:
+            linear-gradient(
+                105deg,
+                rgba(0, 56, 117, 0.06),
+                rgba(11, 102, 195, 0.02)
+            ),
+            #fff;
+        box-shadow: 0 10px 28px rgba(0, 56, 117, 0.07);
+    }
+
+    .current-plan-panel::before {
+        content: "";
+        align-self: stretch;
+        width: 5px;
+        border-radius: 999px;
+        background: var(--plan-gold);
+    }
+
+    .current-plan-panel__label {
+        margin: 0 0 4px;
+        color: var(--plan-muted);
+        font-size: 0.72rem;
+        font-weight: 850;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .current-plan-panel__name {
+        display: block;
+        color: var(--plan-blue);
+        font-size: 1.25rem;
+        line-height: 1.2;
+    }
+
+    .current-plan-panel__company {
+        display: block;
+        margin-top: 5px;
+        color: var(--plan-muted);
+        font-size: 0.86rem;
+    }
+
+    .current-plan-panel__status {
+        padding: 7px 12px;
+        border-radius: 999px;
+        background: #e9f8ef;
+        color: var(--plan-success);
+        font-size: 0.75rem;
+        font-weight: 850;
+        text-transform: capitalize;
+    }
+
+    /* Contenedor del formulario */
+
+    .membership-form {
+        overflow: hidden;
+        border: 1px solid var(--plan-border);
+        border-radius: 18px;
+        background: #fff;
+        box-shadow: 0 14px 38px rgba(0, 56, 117, 0.08);
+    }
+
+    .membership-company {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(260px, 390px);
+        align-items: center;
+        gap: 24px;
+        padding: 24px 28px;
+        border-bottom: 1px solid var(--plan-border);
+        background: #fbfdff;
+    }
+
+    .membership-company h2 {
+        margin: 0;
+        color: var(--plan-blue);
+        font-size: 1.22rem;
+    }
+
+    .membership-company p {
+        margin: 6px 0 0;
+        color: var(--plan-muted);
+        font-size: 0.88rem;
+    }
+
+    .membership-company label {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        color: var(--plan-blue);
+        font-size: 0.84rem;
+        font-weight: 800;
+    }
+
+    .membership-company select {
+        width: 100%;
+        min-height: 48px;
+        padding: 10px 42px 10px 14px;
+        border: 1px solid #bcd0e5;
+        border-radius: 10px;
+        outline: none;
+        background: #fff;
+        color: var(--plan-text);
+        font: inherit;
+    }
+
+    .membership-company select:focus {
+        border-color: var(--plan-blue-light);
+        box-shadow: 0 0 0 4px rgba(11, 102, 195, 0.12);
+    }
+
+    /* Planes */
+
+    .plan-selection {
+        padding: 28px;
+    }
+
+    .plan-selection__heading {
+        margin-bottom: 22px;
+        text-align: center;
+    }
+
+    .plan-selection__heading h2 {
+        margin: 0;
+        color: var(--plan-blue);
+        font-size: 1.45rem;
+    }
+
+    .plan-selection__heading p {
+        margin: 7px 0 0;
+        color: var(--plan-muted);
+        font-size: 0.9rem;
+    }
+
+    .membership-plan-grid {
+        display: grid;
+        grid-template-columns: repeat(
+            auto-fit,
+            minmax(min(100%, 245px), 1fr)
+        );
+        gap: 20px;
+    }
+
+    .membership-plan-option {
+        position: relative;
+        display: block;
+        min-width: 0;
+        cursor: pointer;
+    }
+
+    .membership-plan-option input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .membership-plan-card {
+        position: relative;
+        height: 100%;
+        min-height: 390px;
+        display: flex;
+        flex-direction: column;
+        padding: 25px 23px 22px;
+        overflow: hidden;
+        border: 2px solid var(--plan-border);
+        border-radius: 18px;
+        background: #fff;
+        transition:
+            transform 180ms ease,
+            border-color 180ms ease,
+            box-shadow 180ms ease;
+    }
+
+    .membership-plan-option:hover .membership-plan-card {
+        transform: translateY(-4px);
+        border-color: #9dbfe2;
+        box-shadow: 0 15px 34px rgba(0, 56, 117, 0.11);
+    }
+
+    .membership-plan-option input:focus-visible +
+    .membership-plan-card {
+        outline: 3px solid rgba(11, 102, 195, 0.22);
+        outline-offset: 3px;
+    }
+
+    .membership-plan-option input:checked +
+    .membership-plan-card {
+        border-color: var(--plan-blue-light);
+        box-shadow:
+            0 16px 38px rgba(0, 56, 117, 0.14),
+            inset 0 5px 0 var(--plan-gold);
+    }
+
+    .membership-plan-option input:checked +
+    .membership-plan-card::after {
+        content: "Seleccionado";
+        position: absolute;
+        top: 17px;
+        right: 17px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #eaf4ff;
+        color: var(--plan-blue-light);
+        font-size: 0.68rem;
+        font-weight: 850;
+        text-transform: uppercase;
+    }
+
+    .membership-plan-card.current {
+        background:
+            linear-gradient(
+                180deg,
+                rgba(11, 102, 195, 0.045),
+                #fff 32%
+            );
+    }
+
+    .plan-current-label {
+        width: fit-content;
+        margin-bottom: 13px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #e9f8ef;
+        color: var(--plan-success);
+        font-size: 0.68rem;
+        font-weight: 850;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+    }
+
+    .membership-plan-name {
+        display: block;
+        padding-right: 82px;
+        color: var(--plan-blue);
+        font-size: 1.12rem;
+        font-weight: 900;
+    }
+
+    .membership-plan-price {
+        display: block;
+        margin: 15px 0 10px;
+        color: var(--plan-text);
+        font-size: 2rem;
+        line-height: 1;
+        letter-spacing: -0.04em;
+    }
+
+    .membership-plan-description {
+        min-height: 44px;
+        margin: 0 0 20px;
+        color: var(--plan-muted);
+        font-size: 0.88rem;
+        line-height: 1.5;
+    }
+
+    .membership-plan-features {
+        display: grid;
+        gap: 12px;
+        margin: 0;
+        padding: 18px 0 0;
+        border-top: 1px solid #e5edf6;
+        list-style: none;
+    }
+
+    .membership-plan-features li {
+        position: relative;
+        padding-left: 25px;
+        color: #354a67;
+        font-size: 0.86rem;
+        line-height: 1.4;
+    }
+
+    .membership-plan-features li::before {
+        content: "✓";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 18px;
+        height: 18px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: #e8f7ee;
+        color: var(--plan-success);
+        font-size: 0.7rem;
+        font-weight: 950;
+    }
+
+    .membership-plan-select {
+        margin-top: auto;
+        padding-top: 22px;
+        color: var(--plan-blue-light);
+        font-size: 0.83rem;
+        font-weight: 850;
+    }
+
+    /* Errores */
+
+    .membership-form .errorlist {
+        margin: 8px 0 0;
+        padding: 0;
+        color: #b42318;
+        font-size: 0.8rem;
+        list-style: none;
+    }
+
+    .plan-errors {
+        margin-bottom: 18px;
+        text-align: center;
+    }
+
+    /* Acciones */
+
+    .membership-actions {
+        position: sticky;
+        bottom: 0;
+        z-index: 3;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 18px 28px;
+        border-top: 1px solid var(--plan-border);
+        background: rgba(255, 255, 255, 0.96);
+        backdrop-filter: blur(10px);
+    }
+
+    .membership-actions p {
+        margin: 0;
+        color: var(--plan-muted);
+        font-size: 0.82rem;
+    }
+
+    .membership-actions .btn {
+        min-height: 46px;
+        padding: 11px 22px;
+        border: 0;
+        border-radius: 999px;
+        background: linear-gradient(
+            135deg,
+            var(--plan-gold),
+            var(--plan-gold-dark)
+        );
+        color: #082b54;
+        font: inherit;
+        font-size: 0.88rem;
+        font-weight: 850;
+        cursor: pointer;
+        box-shadow: 0 8px 20px rgba(189, 130, 17, 0.25);
+        transition:
+            transform 160ms ease,
+            box-shadow 160ms ease;
+    }
+
+    .membership-actions .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 24px rgba(189, 130, 17, 0.34);
+    }
+
+    /* Estado sin empresa */
+
+    .membership-empty-state {
+        padding: 55px 28px;
+        text-align: center;
+    }
+
+    .membership-empty-icon {
+        width: 62px;
+        height: 62px;
+        margin: 0 auto 17px;
+        display: grid;
+        place-items: center;
+        border-radius: 18px;
+        background: #eaf4ff;
+        color: var(--plan-blue);
+        font-size: 1.65rem;
+        font-weight: 900;
+    }
+
+    .membership-empty-state h2 {
+        margin: 0;
+        color: var(--plan-blue);
+    }
+
+    .membership-empty-state p {
+        margin: 9px 0 22px;
+        color: var(--plan-muted);
+    }
+
+    .membership-empty-state .btn {
+        display: inline-flex;
+        padding: 12px 21px;
+        border-radius: 999px;
+        background: var(--plan-gold);
+        color: #082b54;
+        font-weight: 850;
+        text-decoration: none;
+    }
+
+    @media (max-width: 760px) {
+        .membership-company {
+            grid-template-columns: 1fr;
+        }
+
+        .membership-actions {
+            position: static;
+            align-items: stretch;
+            flex-direction: column;
+        }
+
+        .membership-actions .btn {
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 520px) {
+        .membership-company,
+        .plan-selection,
+        .membership-actions {
+            padding-right: 18px;
+            padding-left: 18px;
+        }
+
+        .current-plan-panel {
+            grid-template-columns: auto 1fr;
+        }
+
+        .current-plan-panel__status {
+            grid-column: 2;
+            width: fit-content;
+        }
+
+        .membership-plan-card {
+            min-height: auto;
+        }
+    }
+</style>
+
+<section class="membership-page">
+    <header class="membership-heading">
+        <div>
+            <p class="membership-heading__eyebrow">Membresía</p>
+
+            <h1>Elige tu plan</h1>
+
+            <p class="membership-heading__description">
+                Selecciona las herramientas que tu empresa necesita
+                para crecer y conectar con más clientes.
+            </p>
+        </div>
+    </header>
+
+    {% if current_subscription %}
+        <section class="current-plan-panel">
+            <span aria-hidden="true"></span>
+
+            <div>
+                <p class="current-plan-panel__label">Plan actual</p>
+
+                <strong class="current-plan-panel__name">
+                    {{ current_subscription.plan|title }}
+                </strong>
+
+                <small class="current-plan-panel__company">
+                    {{ current_subscription.company.name }}
+                </small>
+            </div>
+
+            <span class="current-plan-panel__status">
+                {{ current_subscription.status }}
+            </span>
+        </section>
+    {% endif %}
+
+    {% if form.fields.company.queryset.exists %}
+        <form class="membership-form" method="post">
+            {% csrf_token %}
+
+            <section class="membership-company">
+                <div>
+                    <h2>Selecciona la empresa</h2>
+                    <p>
+                        La membresía se aplicará únicamente a la empresa
+                        seleccionada.
+                    </p>
+                </div>
+
+                <label for="{{ form.company.id_for_label }}">
+                    {{ form.company.label }}
+                    {{ form.company }}
+                    {{ form.company.errors }}
+                </label>
+            </section>
+
+            <section class="plan-selection">
+                <header class="plan-selection__heading">
+                    <h2>Planes disponibles</h2>
+                    <p>
+                        Haz clic sobre un plan para seleccionarlo.
+                    </p>
+                </header>
+
+                {% if form.plan.errors %}
+                    <div class="plan-errors">
+                        {{ form.plan.errors }}
+                    </div>
+                {% endif %}
+
+                <div class="membership-plan-grid">
+                    {% with selected_plan=form.plan.value %}
+                        {% for plan_card in plan_cards %}
+                            <label class="membership-plan-option">
+                                <input
+                                    type="radio"
+                                    name="{{ form.plan.html_name }}"
+                                    value="{{ plan_card.key }}"
+                                    {% if selected_plan == plan_card.key %}
+                                        checked
+                                    {% elif not selected_plan and current_subscription.plan == plan_card.key %}
+                                        checked
+                                    {% endif %}
+                                    required
+                                >
+
+                                <article class="membership-plan-card
+                                    {% if current_subscription.plan == plan_card.key %}
+                                        current
+                                    {% endif %}"
+                                >
+                                    {% if current_subscription.plan == plan_card.key %}
+                                        <span class="plan-current-label">
+                                            Plan actual
+                                        </span>
+                                    {% endif %}
+
+                                    <span class="membership-plan-name">
+                                        {{ plan_card.name }}
+                                    </span>
+
+                                    <strong class="membership-plan-price">
+                                        {{ plan_card.price }}
+                                    </strong>
+
+                                    <p class="membership-plan-description">
+                                        {{ plan_card.description }}
+                                    </p>
+
+                                    <ul class="membership-plan-features">
+                                        {% for feature in plan_card.features %}
+                                            <li>{{ feature }}</li>
+                                        {% endfor %}
+                                    </ul>
+
+                                    <span class="membership-plan-select">
+                                        Seleccionar este plan
+                                    </span>
+                                </article>
+                            </label>
+                        {% endfor %}
+                    {% endwith %}
+                </div>
+
+                {% for hidden in form.hidden_fields %}
+                    {{ hidden }}
+                {% endfor %}
+            </section>
+
+            <footer class="membership-actions">
+                <p>
+                    Podrás revisar la selección antes de completar el pago.
+                </p>
+
+                <button class="btn btn-primary" type="submit">
+                    Actualizar membresía
+                </button>
+            </footer>
+        </form>
+    {% else %}
+        <section class="membership-form membership-empty-state">
+            <div class="membership-empty-icon" aria-hidden="true">+</div>
+
+            <h2>No tienes una empresa activa</h2>
+
+            <p>
+                Primero debes crear una empresa para seleccionar una membresía.
+            </p>
+
+            <a
+                class="btn btn-primary"
+                href="{% url 'dashboard-company-create' %}"
+            >
+                Crear empresa
+            </a>
+        </section>
+    {% endif %}
+</section>
+
+{% endblock %}
