@@ -122,14 +122,23 @@
 
                         <div class="company-business-card-bottom">
                             <div class="company-business-card-contact">
-                                {% if card.phone_number or card.profile.phone_number %}
-                                    <p><span>Tel</span>{{ card.phone_number|default:card.profile.phone_number }}</p>
-                                {% endif %}
-                                {% if card.email or card.profile.email %}
-                                    <p><span>Email</span>{{ card.email|default:card.profile.email|truncatechars:34 }}</p>
-                                {% endif %}
-                                {% if card.website or card.profile.website %}
-                                    <p><span>Web</span>{{ card.website|default:card.profile.website|truncatechars:36 }}</p>
+                                {% if card.hide_direct_contact_on_print %}
+                                    <span class="company-business-card-contact-cta" style="--cta-bg: {{ card.contact_cta_color }}; --cta-text: {{ card.contact_cta_text_color }};">{{ card.contact_cta_label|default:"Contactanos" }}</span>
+                                    {% if card.services %}
+                                        <p class="company-business-card-service-line">{{ card.services|truncatechars:82 }}</p>
+                                    {% else %}
+                                        <p class="company-business-card-service-line">Abre la tarjeta para ver contacto y servicios.</p>
+                                    {% endif %}
+                                {% else %}
+                                    {% if card.phone_number or card.profile.phone_number %}
+                                        <p><span>Tel</span>{{ card.phone_number|default:card.profile.phone_number }}</p>
+                                    {% endif %}
+                                    {% if card.email or card.profile.email %}
+                                        <p><span>Email</span>{{ card.email|default:card.profile.email|truncatechars:34 }}</p>
+                                    {% endif %}
+                                    {% if card.website or card.profile.website %}
+                                        <p><span>Web</span>{{ card.website|default:card.profile.website|truncatechars:36 }}</p>
+                                    {% endif %}
                                 {% endif %}
                             </div>
 

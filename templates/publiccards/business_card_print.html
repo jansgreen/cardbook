@@ -40,22 +40,31 @@
         .copy-logo { width: .34in; height: .34in; object-fit: contain; border-radius: .06in; background: white; padding: .035in; }
         .copy-qr-box { width: {% if business_card.hide_direct_contact_on_print %}.96in{% else %}.72in{% endif %}; padding: .04in; border-radius: .06in; background: white; }
         .copy-qr { display: block; width: {% if business_card.hide_direct_contact_on_print %}.88in{% else %}.64in{% endif %}; height: {% if business_card.hide_direct_contact_on_print %}.88in{% else %}.64in{% endif %}; }
-        .qr-double-sheet { width: {% if paper == "a4" %}11.19in{% else %}10in{% endif %}; min-height: {% if paper == "a4" %}7.69in{% else %}7.5in{% endif %}; padding: .22in; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: auto; gap: .55in; align-items: stretch; }
+        .qr-double-sheet { width: {% if paper == "a4" %}11.19in{% else %}10in{% endif %}; min-height: {% if paper == "a4" %}7.69in{% else %}7.5in{% endif %}; padding: .18in; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: auto; gap: .38in; align-items: stretch; }
         .qr-double-sheet::before { background-image: linear-gradient(to right, transparent calc(50% - 1px), #bfd0e5 calc(50% - 1px), #bfd0e5 50%, transparent 50%); }
-        .qr-ticket { min-height: 7.05in; border: .08in solid {{ business_card.background_color }}; border-radius: .12in; padding: .24in .22in; display: flex; flex-direction: column; gap: .12in; color: #061b3a; background: #ffffff; page-break-inside: avoid; overflow: hidden; }
-        .qr-ticket-head { display: grid; grid-template-columns: .48in 1fr; align-items: center; gap: .12in; }
-        .qr-ticket-logo { width: .48in; height: .48in; object-fit: contain; border-radius: .08in; border: 1px solid #dbe6f4; background: #fff; padding: .04in; }
-        .qr-ticket-head p { margin: 0; color: #0057b8; font-size: .1in; line-height: 1.05; font-weight: 900; text-transform: uppercase; overflow-wrap: anywhere; }
-        .qr-ticket-head h2 { margin: .02in 0 0; color: #003875; font-family: Georgia, "Times New Roman", serif; font-size: .22in; line-height: .92; }
-        .qr-ticket-frame { margin-top: .04in; padding: .13in; border: .02in solid #d9e2ef; border-radius: .18in; background: #f8fbff; }
-        .qr-ticket-qr-wrap { padding: .07in; border: .02in solid #9fb0c8; border-radius: .12in; background: {{ business_card.accent_color }}; }
-        .qr-ticket-qr { display: block; width: 2.18in; height: 2.18in; margin: 0 auto; }
-        .qr-ticket-note { margin: .04in 0 0; color: #64748b; font-size: .095in; line-height: 1.25; text-align: center; }
-        .qr-ticket-list-title { margin: .02in 0 0; color: #003875; font-size: .095in; font-weight: 900; text-decoration: underline; }
-        .qr-ticket-list { margin: 0; padding-left: .16in; display: grid; gap: .055in; color: #06142f; font-size: .085in; line-height: 1.2; }
-        .qr-ticket-list strong { color: #003875; }
-        .qr-ticket-footer { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: .08in; color: #64748b; font-size: .08in; border-top: 1px solid #dbe6f4; padding-top: .1in; }
-        .qr-ticket-pill { border-radius: 999px; background: #eef5ff; color: #003875; padding: .055in .09in; font-weight: 900; }
+        .qr-ticket { min-height: 7.08in; border: .02in solid #d6e3f2; border-radius: .08in; padding: .2in; display: flex; flex-direction: column; gap: .12in; color: #061b3a; background: linear-gradient(180deg, #ffffff 0%, #fff 77%, color-mix(in srgb, {{ business_card.background_color }} 16%, #ffffff) 100%); page-break-inside: avoid; overflow: hidden; position: relative; }
+        .qr-ticket::before { content: ""; position: absolute; left: -.3in; top: .82in; width: 4.3in; height: .2in; border-radius: 999px; background: {{ business_card.accent_color }}; transform: rotate(-3deg); opacity: .86; }
+        .qr-ticket::after { content: ""; position: absolute; right: -.15in; bottom: -.12in; width: 1.2in; height: .5in; border-radius: 999px 999px 0 0; background: color-mix(in srgb, {{ business_card.accent_color }} 70%, #fff); opacity: .8; }
+        .qr-ticket-head { position: relative; z-index: 1; display: grid; grid-template-columns: .58in 1fr; align-items: center; gap: .12in; min-height: .72in; }
+        .qr-ticket-logo { width: .58in; height: .58in; object-fit: contain; border-radius: .12in; border: 1px solid #dbe6f4; background: #fff; padding: .045in; box-shadow: 0 .06in .16in rgba(0, 38, 89, .16); }
+        .qr-ticket-brand { margin: 0; color: {{ business_card.background_color }}; font-size: .105in; line-height: 1.05; font-weight: 950; text-transform: uppercase; overflow-wrap: anywhere; }
+        .qr-ticket-head h2 { margin: .02in 0 0; color: #003875; font-family: "Segoe UI", Arial, sans-serif; font-size: .34in; line-height: .92; font-weight: 950; letter-spacing: 0; }
+        .qr-ticket-tagline { position: relative; z-index: 1; margin: .02in 0 0; max-width: 3.1in; color: {{ business_card.background_color }}; font-size: .12in; line-height: 1.18; font-weight: 850; }
+        .qr-ticket-body { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 1.68in; gap: .14in; align-items: stretch; margin-top: .04in; }
+        .qr-ticket-services-title { display: inline-flex; align-items: center; min-height: .34in; margin: 0 0 .1in; border-radius: 999px; padding: .06in .18in; background: {{ business_card.background_color }}; color: #fff; font-size: .2in; line-height: 1; font-weight: 950; }
+        .qr-ticket-service-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .09in; margin: 0; padding: 0; list-style: none; }
+        .qr-ticket-service-grid li { min-height: .46in; display: grid; grid-template-columns: .32in 1fr; align-items: center; gap: .07in; border-radius: .13in; padding: .07in .08in; background: color-mix(in srgb, {{ business_card.accent_color }} 20%, #ffffff); color: {{ business_card.background_color }}; font-size: .088in; line-height: 1.1; font-weight: 900; box-shadow: inset 0 0 0 1px rgba(0, 56, 117, .06); }
+        .qr-ticket-service-icon { width: .32in; height: .32in; display: grid; place-items: center; border-radius: .1in; background: #fff; color: {{ business_card.accent_color }}; font-size: .14in; font-weight: 950; }
+        .qr-ticket-qr-panel { border-radius: .2in; padding: .1in; background: linear-gradient(180deg, color-mix(in srgb, {{ business_card.accent_color }} 92%, #fff), {{ business_card.accent_color }}); color: #fff; text-align: center; box-shadow: 0 .12in .24in rgba(0, 38, 89, .18); }
+        .qr-ticket-scan { margin: 0 0 .07in; color: #fff; font-size: .21in; line-height: 1; font-weight: 950; text-transform: uppercase; }
+        .qr-ticket-qr-wrap { padding: .08in; border-radius: .1in; background: #fff; }
+        .qr-ticket-qr { display: block; width: 1.34in; height: 1.34in; margin: 0 auto; }
+        .qr-ticket-note { margin: .08in 0 0; color: #fff; font-size: .09in; line-height: 1.18; font-weight: 850; }
+        .qr-ticket-benefits { position: relative; z-index: 1; margin-top: auto; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .1in; padding-top: .08in; border-top: 1px solid #dbe6f4; }
+        .qr-ticket-benefit { display: grid; grid-template-columns: .36in 1fr; align-items: center; gap: .07in; color: {{ business_card.background_color }}; font-size: .105in; line-height: 1.05; font-weight: 950; }
+        .qr-ticket-benefit span { width: .36in; height: .36in; display: grid; place-items: center; border-radius: 999px; background: color-mix(in srgb, {{ business_card.background_color }} 12%, #ffffff); color: {{ business_card.background_color }}; font-size: .16in; }
+        .qr-ticket-footer { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: .08in; color: #64748b; font-size: .075in; }
+        .qr-ticket-pill { border-radius: 999px; background: #eef5ff; color: #003875; padding: .045in .08in; font-weight: 900; }
         @media print {
             body { background: white; }
             .print-toolbar { display: none; }
@@ -77,7 +86,7 @@
             <label for="layout">Vista</label>
             <select id="layout" name="layout" onchange="this.form.submit()">
                 <option value="cards" {% if layout == "cards" %}selected{% endif %}>Tarjetas comerciales</option>
-                <option value="qr_double" {% if layout == "qr_double" %}selected{% endif %}>QR doble</option>
+                <option value="qr_double" {% if layout == "qr_double" %}selected{% endif %}>Volante promocional</option>
             </select>
             <button type="button" onclick="window.print()">Imprimir</button>
             <a href="{% url 'public-business-card' business_card.slug %}">Volver</a>
@@ -85,7 +94,7 @@
     </header>
     <main class="sheet-wrap">
         {% if layout == "qr_double" %}
-        <section class="sheet qr-double-sheet" aria-label="Hoja horizontal con dos codigos QR">
+        <section class="sheet qr-double-sheet" aria-label="Hoja horizontal con dos volantes promocionales">
             {% for copy in qr_copies %}
                 <article class="qr-ticket">
                     <div class="qr-ticket-head">
@@ -95,26 +104,38 @@
                             <img class="qr-ticket-logo" src="{% static 'img/logo.png' %}" alt="Cardbook">
                         {% endif %}
                         <div>
-                            <p>{{ business_card.company_name }}</p>
-                            <h2>Escanea mi tarjeta</h2>
+                            <p class="qr-ticket-brand">{{ business_card.company_name }}</p>
+                            <h2>{% if business_card.tagline %}{{ business_card.tagline }}{% else %}Conecta con nosotros{% endif %}</h2>
                         </div>
                     </div>
-                    <div class="qr-ticket-frame">
-                        <div class="qr-ticket-qr-wrap">
-                            <img class="qr-ticket-qr" src="{% url 'public-card-qr' business_card.profile.slug %}" alt="QR de {{ business_card.display_name }}">
+                    <p class="qr-ticket-tagline">Escanea el codigo y abre nuestra tarjeta digital con informacion actualizada, contacto directo y servicios disponibles.</p>
+                    <div class="qr-ticket-body">
+                        <div>
+                            <p class="qr-ticket-services-title">Nuestros servicios</p>
+                            <ul class="qr-ticket-service-grid">
+                                {% if business_service_items %}
+                                    {% for service in business_service_items %}
+                                        <li><span class="qr-ticket-service-icon">{{ forloop.counter }}</span>{{ service }}</li>
+                                    {% endfor %}
+                                {% else %}
+                                    <li><span class="qr-ticket-service-icon">1</span>Consulta los servicios disponibles</li>
+                                    <li><span class="qr-ticket-service-icon">2</span>Contactanos desde la tarjeta digital</li>
+                                {% endif %}
+                            </ul>
                         </div>
+                        <aside class="qr-ticket-qr-panel">
+                            <p class="qr-ticket-scan">Escanea aqui</p>
+                            <div class="qr-ticket-qr-wrap">
+                                <img class="qr-ticket-qr" src="{% url 'public-card-qr' business_card.profile.slug %}" alt="QR de {{ business_card.display_name }}">
+                            </div>
+                            <p class="qr-ticket-note">Conoce nuestra tarjeta digital y contactanos.</p>
+                        </aside>
                     </div>
-                    <p class="qr-ticket-note">Este codigo abre directamente la tarjeta digital publica.</p>
-                    <p class="qr-ticket-list-title">{{ business_service_heading }}</p>
-                    <ul class="qr-ticket-list">
-                        {% if business_service_items %}
-                            {% for service in business_service_items %}
-                                <li>{{ service }}</li>
-                            {% endfor %}
-                        {% else %}
-                            <li>Consulta los servicios disponibles desde la tarjeta digital publica.</li>
-                        {% endif %}
-                    </ul>
+                    <div class="qr-ticket-benefits">
+                        <div class="qr-ticket-benefit"><span>OK</span>Atencion directa</div>
+                        <div class="qr-ticket-benefit"><span>i</span>Info actualizada</div>
+                        <div class="qr-ticket-benefit"><span>*</span>Servicios claros</div>
+                    </div>
                     <div class="qr-ticket-footer">
                         <span class="qr-ticket-pill">{{ business_card.profile.get_qr_shape_display }}</span>
                         <span>{{ business_card.profile.qr_dot_color }}</span>

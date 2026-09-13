@@ -41,6 +41,24 @@ class PublicMarketplaceTests(APITestCase):
         self.assertContains(response, "Sitios publicados")
         self.assertContains(response, self.website.title)
 
+    def test_public_companies_page_respects_business_card_contact_cta(self):
+        self.business_card.phone_number = "9175551111"
+        self.business_card.email = "hidden@example.com"
+        self.business_card.website = "https://hidden.example.com"
+        self.business_card.hide_direct_contact_on_print = True
+        self.business_card.contact_cta_label = "Contactanos"
+        self.business_card.services = "Mecanica general"
+        self.business_card.save()
+
+        response = self.client.get("/empresas/", HTTP_HOST="127.0.0.1:8000")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertContains(response, "Contactanos")
+        self.assertContains(response, "Mecanica general")
+        self.assertNotContains(response, "9175551111")
+        self.assertNotContains(response, "hidden@example.com")
+        self.assertNotContains(response, "https://hidden.example.com")
+
     @override_settings(
         ALLOWED_HOSTS=["testserver", "incardbook.test", ".incardbook.test"],
         CARDBOOK_PUBLIC_SITE_BASE_DOMAIN="incardbook.test",
