@@ -105,8 +105,8 @@
                             </div>
 
                             <div class="company-business-card-media">
-                                {% if card.profile.photo %}
-                                    <img class="company-business-card-photo" src="{{ card.profile.photo.url }}" alt="{{ card.display_name }}">
+                                {% if card.user_profile_image %}
+                                    <img class="company-business-card-photo" src="{{ card.user_profile_image.url }}" alt="{{ card.display_name }}">
                                 {% endif %}
                                 {% if card.company.logo %}
                                     <img class="company-business-card-logo" src="{{ card.company.logo.url }}" alt="{{ card.company.name }}">

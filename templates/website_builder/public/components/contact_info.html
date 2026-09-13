@@ -1,6 +1,6 @@
+{% load websitebuilder_tags %}
 {% for block in component.blocks.all %}
-    {% if block.value %}
+    {% if block.value and block|block_visible_for_company:website.company %}
         <p class="wb-contact-line"><strong>{{ block.key|title }}:</strong> {{ block.value }}</p>
     {% endif %}
 {% endfor %}
-

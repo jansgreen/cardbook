@@ -130,7 +130,10 @@ class PublicCompaniesView(TemplateView):
                 website="", profile__website=""
             )
         if has_photo:
-            business_cards = business_cards.exclude(profile__photo="")
+            business_cards = business_cards.filter(Q(profile__user__avatar__isnull=False) | Q(profile__photo__isnull=False)).exclude(
+                profile__user__avatar="",
+                profile__photo="",
+            )
 
         white_cards = WhiteCardJob.objects.filter(is_active=True, is_available=True).select_related("user", "specialty")
         if query:
@@ -238,7 +241,7 @@ def business_card_marketplace_item(request, card):
         "city": company.city,
         "region": company.region,
         "logo": request.build_absolute_uri(company.logo.url) if company.logo else "",
-        "photo": request.build_absolute_uri(card.profile.photo.url) if card.profile.photo else "",
+        "photo": request.build_absolute_uri(card.user_profile_image.url) if card.user_profile_image else "",
         "public_url": request.build_absolute_uri(reverse("public-business-card", kwargs={"slug": card.slug})),
         "qr_svg_url": request.build_absolute_uri(reverse("public-card-qr", kwargs={"slug": card.profile.slug})),
     }

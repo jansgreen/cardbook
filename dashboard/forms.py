@@ -6,7 +6,7 @@ from urllib.parse import parse_qs, urlparse
 from django.contrib.auth import password_validation
 
 from accounts.models import Profile
-from billing.models import StripeConfiguration
+from billing.models import MembershipPlan, StripeConfiguration, ensure_default_membership_plans
 from business_feed.models import BusinessPost
 from cards.models import BusinessCard, DigitalCard
 from cards.services import (
@@ -116,27 +116,13 @@ class AccountSettingsForm(forms.ModelForm):
 
 
 class AccountPlanForm(forms.Form):
-    PLAN_STARTER = "starter"
-    PLAN_BUSINESS = "business"
-    PLAN_TEAM = "team"
-    PLAN_CHOICES = [
-        (PLAN_STARTER, "Inicial"),
-        (PLAN_BUSINESS, "Negocio"),
-        (PLAN_TEAM, "Equipo"),
-    ]
-    PLAN_PRICES = {
-        PLAN_STARTER: 0,
-        PLAN_BUSINESS: 12,
-        PLAN_TEAM: 29,
-    }
-
     company = forms.ModelChoiceField(
         queryset=Company.objects.none(),
         label="Empresa",
         widget=forms.Select(attrs={"class": "form-control"}),
     )
     plan = forms.ChoiceField(
-        choices=PLAN_CHOICES,
+        choices=[],
         label="Membresia",
         widget=forms.RadioSelect(attrs={"class": "plan-radio-list"}),
     )
@@ -148,6 +134,20 @@ class AccountPlanForm(forms.Form):
             Company.objects.filter(is_active=True, owner=user)
             | Company.objects.filter(is_active=True, members__user=user, members__is_active=True)
         ).distinct()
+        ensure_default_membership_plans()
+        self.plan_queryset = MembershipPlan.objects.filter(is_active=True).order_by("order", "unit_amount", "name")
+        self.fields["plan"].choices = [(plan.key, plan.name) for plan in self.plan_queryset]
+
+    def clean_plan(self):
+        key = self.cleaned_data["plan"]
+        plan = MembershipPlan.objects.filter(key=key, is_active=True).first()
+        if not plan:
+            raise forms.ValidationError("Selecciona una membresia activa.")
+        self.selected_plan = plan
+        return key
+
+    def get_selected_plan(self):
+        return getattr(self, "selected_plan", None)
 
 
 class PlatformUserForm(forms.ModelForm):
@@ -316,6 +316,73 @@ class StripeConfigurationForm(forms.ModelForm):
         if not key and self.instance and self.instance.pk:
             return self.instance.webhook_secret
         return key
+
+
+class MembershipPlanForm(forms.ModelForm):
+    class Meta:
+        model = MembershipPlan
+        fields = [
+            "key",
+            "name",
+            "description",
+            "features",
+            "unit_amount",
+            "currency",
+            "billing_interval",
+            "stripe_price_id",
+            "is_free",
+            "is_active",
+            "order",
+        ]
+        labels = {
+            "key": "Clave interna",
+            "name": "Nombre",
+            "description": "Descripcion",
+            "features": "Caracteristicas",
+            "unit_amount": "Precio",
+            "currency": "Moneda",
+            "billing_interval": "Intervalo",
+            "stripe_price_id": "Stripe Price ID",
+            "is_free": "Plan gratis",
+            "is_active": "Plan activo",
+            "order": "Orden",
+        }
+        widgets = {
+            "key": forms.TextInput(attrs={"class": "form-control", "placeholder": "starter, business, premium"}),
+            "name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Nombre del plan"}),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 3, "placeholder": "Descripcion corta del plan"}),
+            "features": forms.Textarea(attrs={"class": "form-control", "rows": 6, "placeholder": "Una caracteristica por linea"}),
+            "unit_amount": forms.NumberInput(attrs={"class": "form-control", "min": "0", "step": "0.01"}),
+            "currency": forms.TextInput(attrs={"class": "form-control", "maxlength": "3", "placeholder": "USD"}),
+            "billing_interval": forms.Select(attrs={"class": "form-control"}),
+            "stripe_price_id": forms.TextInput(attrs={"class": "form-control", "placeholder": "price_..."}),
+            "is_free": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "order": forms.NumberInput(attrs={"class": "form-control", "min": "0"}),
+        }
+        help_texts = {
+            "key": "No la cambies si ya hay suscripciones usando este plan.",
+            "stripe_price_id": "Necesario para planes pagos por Stripe Checkout.",
+        }
+
+    def clean_key(self):
+        return (self.cleaned_data["key"] or "").strip().lower()
+
+    def clean_currency(self):
+        return (self.cleaned_data["currency"] or "USD").strip().upper()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        is_free = cleaned_data.get("is_free")
+        unit_amount = cleaned_data.get("unit_amount")
+        stripe_price_id = (cleaned_data.get("stripe_price_id") or "").strip()
+        if is_free and unit_amount and unit_amount > 0:
+            self.add_error("unit_amount", "Un plan gratis debe tener precio 0.")
+        if not is_free and unit_amount == 0:
+            self.add_error("unit_amount", "Un plan pago debe tener precio mayor que 0.")
+        if not is_free and not stripe_price_id:
+            self.add_error("stripe_price_id", "Agrega el Price ID de Stripe para planes pagos.")
+        return cleaned_data
 
 
 def normalize_whatsapp_url(value):

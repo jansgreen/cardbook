@@ -5,7 +5,7 @@ from rest_framework.test import APITestCase
 from accesscontrol.models import AccessRole, UserAccessGrant
 from accesscontrol.services import ensure_default_permissions
 from cardbookweb.test_utils import make_business_card, make_company, make_digital_card, make_user
-from websitebuilder.models import Component, Page, Website
+from websitebuilder.models import Block, Component, Page, Website
 from websitebuilder.services import (
     can_manage_website_builder,
     can_publish_website_builder,
@@ -307,3 +307,51 @@ class WebsiteBuilderQualityTests(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "wb-service-flip-card")
         self.assertContains(response, "<svg viewBox=")
+
+    def test_dashboard_builder_updates_public_contact_visibility(self):
+        owner = make_user("visibilityowner")
+        company = make_company(owner=owner, name="Visibility Company")
+        create_starter_website(company, publish=True)
+        self.client.force_login(owner)
+
+        response = self.client.post(
+            reverse("dashboard-company-website", kwargs={"company_id": company.id}),
+            {
+                "action": "update_contact_visibility",
+                "show_email": "on",
+                "show_website": "on",
+            },
+        )
+
+        company.refresh_from_db()
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(company.show_phone)
+        self.assertFalse(company.show_whatsapp)
+        self.assertTrue(company.show_email)
+        self.assertTrue(company.show_website)
+        self.assertFalse(company.show_address)
+
+    def test_public_site_hides_contact_blocks_by_company_visibility(self):
+        company = make_company(
+            owner=make_user("hiddencontactowner"),
+            name="Hidden Contact Company",
+            phone_number="+18095550100",
+            email="visible@example.com",
+            address="123 Hidden Street",
+            show_phone=False,
+            show_address=False,
+            show_email=True,
+        )
+        website = create_starter_website(company, publish=True)
+        footer = website.pages.get(is_homepage=True).layout.sections.get(section_type="footer")
+        component = footer.components.filter(component_type="contact_info").first()
+        Block.objects.create(component=component, block_type="phone", key="phone", value=company.phone_number, order=10)
+        Block.objects.create(component=component, block_type="email", key="email", value=company.email, order=11)
+        Block.objects.create(component=component, block_type="address", key="address", value=company.address, order=12)
+
+        response = self.client.get(reverse("websitebuilder-public-home", kwargs={"website_slug": website.slug}))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "+18095550100")
+        self.assertNotContains(response, "123 Hidden Street")
+        self.assertContains(response, "visible@example.com")

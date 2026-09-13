@@ -1,6 +1,6 @@
 {% load websitebuilder_tags %}
 {% for block in component.blocks.all %}
-    {% if not block.is_active %}
+    {% if not block|block_visible_for_company:website.company %}
     {% elif block.block_type == "button" or block.block_type == "link" %}
         <a class="wb-btn {% if forloop.first %}primary{% endif %}" href="{{ block.url|default:'#' }}">{{ block|translated_block_text:language }}</a>
     {% elif block.block_type == "phone" and block.value %}

@@ -91,6 +91,10 @@ class DigitalCard(NameTypographyMixin, models.Model):
     def __str__(self):
         return self.slug
 
+    @property
+    def user_profile_image(self):
+        return self.user.avatar or self.photo
+
 
 class BusinessCard(NameTypographyMixin, models.Model):
     SIZE_STANDARD = "standard"
@@ -144,6 +148,10 @@ class BusinessCard(NameTypographyMixin, models.Model):
     @property
     def user(self):
         return self.profile.user
+
+    @property
+    def user_profile_image(self):
+        return self.profile.user_profile_image
 
     def save(self, *args, **kwargs):
         if not self.slug:

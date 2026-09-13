@@ -52,6 +52,27 @@ def translated_block_text(block, language):
 
 
 @register.filter
+def block_visible_for_company(block, company):
+    if not getattr(block, "is_active", False):
+        return False
+    block_type = (getattr(block, "block_type", "") or "").lower()
+    key = (getattr(block, "key", "") or "").lower()
+    url = (getattr(block, "url", "") or "").lower()
+    visibility_checks = {
+        "phone": getattr(company, "show_phone", True),
+        "email": getattr(company, "show_email", True),
+        "address": getattr(company, "show_address", True),
+        "whatsapp": getattr(company, "show_whatsapp", True),
+    }
+    for value, is_visible in visibility_checks.items():
+        if block_type == value or key == value or value in url:
+            return is_visible
+    if block_type in {"link", "button"} and key in {"website", "web", "site", "url"}:
+        return getattr(company, "show_website", True)
+    return True
+
+
+@register.filter
 def hero_slides(section):
     slides = []
     components = section.components.filter(is_active=True).prefetch_related("blocks")

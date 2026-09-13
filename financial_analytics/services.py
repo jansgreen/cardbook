@@ -10,7 +10,7 @@ from django.db.models import Count, Sum
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 
-from billing.models import Invoice, Payment, Refund, StripeConfiguration, StripeEvent
+from billing.models import Invoice, MembershipPlan, Payment, Refund, StripeConfiguration, StripeEvent
 from companies.models import Company
 from financial_analytics.models import AuditLog, CommissionPayment, ReferralClick, RevenueSnapshot
 from referrals.models import AgentProfile, Commission
@@ -277,7 +277,9 @@ def create_subscription_checkout_session(*, company, plan, request, return_url="
     configuration = get_active_stripe_configuration()
     if not configuration or not configuration.secret_key:
         raise FinanceConfigurationError("Stripe is not configured.")
-    price_id = configuration.price_id_for_plan(plan)
+    membership_plan = plan if isinstance(plan, MembershipPlan) else MembershipPlan.objects.filter(key=plan, is_active=True).first()
+    plan_key = membership_plan.key if membership_plan else str(plan)
+    price_id = (membership_plan.stripe_price_id if membership_plan else "") or configuration.price_id_for_plan(plan_key)
     if not price_id:
         raise FinanceConfigurationError("Stripe price is not configured for this plan.")
 
@@ -293,14 +295,14 @@ def create_subscription_checkout_session(*, company, plan, request, return_url="
         metadata={
             "company_id": str(company.id),
             "cardbook_company_id": str(company.id),
-            "plan": plan,
+            "plan": plan_key,
             "stripe_mode": configuration.mode,
         },
         subscription_data={
             "metadata": {
                 "company_id": str(company.id),
                 "cardbook_company_id": str(company.id),
-                "plan": plan,
+                "plan": plan_key,
                 "stripe_mode": configuration.mode,
             }
         },
@@ -312,7 +314,7 @@ def create_subscription_checkout_session(*, company, plan, request, return_url="
         target=company,
         metadata={
             "company_id": company.id,
-            "plan": plan,
+            "plan": plan_key,
             "checkout_session_id": getattr(session, "id", ""),
             "stripe_mode": configuration.mode,
         },

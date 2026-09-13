@@ -29,7 +29,7 @@
             <article class="public-card">
                 <header class="card-cover">
                     {% if card.company.logo %}<img class="company-logo" src="{{ card.company.logo.url }}" alt="{{ card.company.name }}" data-fallback-text="{{ card.company.name|slice:':2' }}">{% else %}<img class="company-logo" src="{% static 'img/logo.png' %}" alt="Cardbook" data-fallback-text="CB">{% endif %}
-                    {% if card.photo %}<img class="profile-photo" src="{{ card.photo.url }}" alt="Foto de perfil" data-fallback-text="{{ card.user.get_full_name|default:card.user.username|slice:':2' }}">{% elif card.user.avatar %}<img class="profile-photo" src="{{ card.user.avatar.url }}" alt="Foto de perfil" data-fallback-text="{{ card.user.get_full_name|default:card.user.username|slice:':2' }}">{% else %}<div class="profile-photo text-avatar">{{ card.user.username|slice:":2" }}</div>{% endif %}
+                    {% if card.user_profile_image %}<img class="profile-photo" src="{{ card.user_profile_image.url }}" alt="Foto de perfil" data-fallback-text="{{ card.user.get_full_name|default:card.user.username|slice:':2' }}">{% else %}<div class="profile-photo text-avatar">{{ card.user.username|slice:":2" }}</div>{% endif %}
                 </header>
                 <section class="card-main">
                     <p class="company-name">{{ card.company.name }}</p>

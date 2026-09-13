@@ -59,6 +59,88 @@ class StripeConfiguration(models.Model):
         return cls.objects.filter(is_active=True).order_by("mode").first()
 
 
+class MembershipPlan(models.Model):
+    KEY_STARTER = "starter"
+    KEY_BUSINESS = "business"
+    KEY_TEAM = "team"
+
+    key = models.SlugField(max_length=80, unique=True)
+    name = models.CharField(max_length=120)
+    description = models.TextField(blank=True)
+    features = models.TextField(blank=True, help_text="Una caracteristica por linea.")
+    unit_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    currency = models.CharField(max_length=3, default="USD")
+    billing_interval = models.CharField(max_length=20, choices=Subscription.INTERVAL_CHOICES, default=Subscription.INTERVAL_MONTHLY)
+    stripe_price_id = models.CharField(max_length=255, blank=True)
+    is_free = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["order", "unit_amount", "name"]
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def feature_list(self):
+        return [line.strip() for line in self.features.splitlines() if line.strip()]
+
+    @property
+    def price_label(self):
+        if self.is_free or self.unit_amount == 0:
+            return "Gratis"
+        interval = "mes" if self.billing_interval == Subscription.INTERVAL_MONTHLY else "ano"
+        return f"{self.currency.upper()} {self.unit_amount:g}/{interval}"
+
+    @classmethod
+    def default_plans(cls):
+        return [
+            {
+                "key": cls.KEY_STARTER,
+                "name": "Inicial",
+                "description": "Para validar una presencia digital sencilla.",
+                "features": "1 perfil digital\nQR publico\nBook basico",
+                "unit_amount": 0,
+                "currency": "USD",
+                "billing_interval": Subscription.INTERVAL_MONTHLY,
+                "is_free": True,
+                "order": 10,
+            },
+            {
+                "key": cls.KEY_BUSINESS,
+                "name": "Negocio",
+                "description": "Para empresas que necesitan tarjetas, website y estadisticas.",
+                "features": "Perfiles de negocio\nPresentaciones comerciales\nWebsite Builder",
+                "unit_amount": 12,
+                "currency": "USD",
+                "billing_interval": Subscription.INTERVAL_MONTHLY,
+                "is_free": False,
+                "order": 20,
+            },
+            {
+                "key": cls.KEY_TEAM,
+                "name": "Equipo",
+                "description": "Para manejar mas usuarios, empresas y operaciones.",
+                "features": "Equipo ampliado\nAccesos por rol\nSoporte prioritario",
+                "unit_amount": 29,
+                "currency": "USD",
+                "billing_interval": Subscription.INTERVAL_MONTHLY,
+                "is_free": False,
+                "order": 30,
+            },
+        ]
+
+
+def ensure_default_membership_plans():
+    for plan_data in MembershipPlan.default_plans():
+        defaults = plan_data.copy()
+        key = defaults.pop("key")
+        MembershipPlan.objects.get_or_create(key=key, defaults=defaults)
+
+
 class Invoice(models.Model):
     STATUS_DRAFT = "draft"
     STATUS_OPEN = "open"

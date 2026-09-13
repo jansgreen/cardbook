@@ -619,7 +619,7 @@
                                     </span>
 
                                     <strong class="membership-plan-price">
-                                        {{ plan_card.price }}
+                                        {{ plan_card.price_label }}
                                     </strong>
 
                                     <p class="membership-plan-description">
@@ -627,7 +627,7 @@
                                     </p>
 
                                     <ul class="membership-plan-features">
-                                        {% for feature in plan_card.features %}
+                                        {% for feature in plan_card.feature_list %}
                                             <li>{{ feature }}</li>
                                         {% endfor %}
                                     </ul>

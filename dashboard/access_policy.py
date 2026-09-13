@@ -1,6 +1,6 @@
 from django.urls import NoReverseMatch, reverse
 
-from accesscontrol.services import PERM_MANAGE_PLATFORM_USERS, PERM_MANAGE_STRIPE_CONFIGURATION, user_has_access_permission
+from accesscontrol.services import PERM_MANAGE_MEMBERSHIP_PLANS, PERM_MANAGE_PLATFORM_USERS, PERM_MANAGE_STRIPE_CONFIGURATION, user_has_access_permission
 from companies.models import Company
 
 
@@ -21,6 +21,7 @@ SECTION_FINANCE = "finance"
 SECTION_PUBLIC_SITE = "public_site"
 SECTION_USERS = "users"
 SECTION_STRIPE_CONFIGURATION = "stripe_configuration"
+SECTION_MEMBERSHIP_PLANS = "membership_plans"
 
 
 ALL_DASHBOARD_SECTIONS = {
@@ -41,6 +42,7 @@ ALL_DASHBOARD_SECTIONS = {
     SECTION_PUBLIC_SITE,
     SECTION_USERS,
     SECTION_STRIPE_CONFIGURATION,
+    SECTION_MEMBERSHIP_PLANS,
 }
 
 
@@ -72,6 +74,8 @@ AGENT_SECTIONS = ALL_DASHBOARD_SECTIONS - {SECTION_ACCESS, SECTION_FINANCE}
 
 URL_SECTION_RULES = [
     ("finance-", SECTION_FINANCE),
+    ("dashboard-membership-plan", SECTION_MEMBERSHIP_PLANS),
+    ("dashboard-membership-plans", SECTION_MEMBERSHIP_PLANS),
     ("dashboard-stripe-configuration", SECTION_STRIPE_CONFIGURATION),
     ("dashboard-users", SECTION_USERS),
     ("dashboard-user-", SECTION_USERS),
@@ -206,6 +210,13 @@ MENU_DEFINITIONS = [
         "icon": '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 11a4 4 0 1 0-3.7-5.5A5.98 5.98 0 0 0 2 10a6 6 0 0 0 10.3 4.2A4 4 0 1 0 16 11Zm-8 3a4 4 0 1 1 3.3-6.3A4 4 0 0 0 12 11c0 .6.1 1.1.4 1.6A4 4 0 0 1 8 14Zm8 5a3 3 0 0 1 6 0v1H10v-1a6 6 0 0 1 6-6c1.1 0 2.1.3 3 .8A4.95 4.95 0 0 0 16 19Z"/></svg>',
     },
     {
+        "key": SECTION_MEMBERSHIP_PLANS,
+        "label": "Planes",
+        "url_name": "dashboard-membership-plans",
+        "active_sections": [SECTION_MEMBERSHIP_PLANS],
+        "icon": '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v14a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V5Zm4 2h8v2H8V7Zm0 4h8v2H8v-2Zm0 4h5v2H8v-2Z"/></svg>',
+    },
+    {
         "key": SECTION_STRIPE_CONFIGURATION,
         "label": "Stripe",
         "url_name": "dashboard-stripe-configuration",
@@ -263,6 +274,8 @@ def can_access_dashboard_section(user, section):
         return bool(user and user.is_authenticated and (user.is_superuser or user_has_access_permission(user, PERM_MANAGE_PLATFORM_USERS)))
     if section == SECTION_STRIPE_CONFIGURATION:
         return bool(user and user.is_authenticated and (user.is_superuser or user_has_access_permission(user, PERM_MANAGE_STRIPE_CONFIGURATION)))
+    if section == SECTION_MEMBERSHIP_PLANS:
+        return bool(user and user.is_authenticated and (user.is_superuser or user_has_access_permission(user, PERM_MANAGE_MEMBERSHIP_PLANS)))
     return section in allowed_dashboard_sections(user)
 
 
@@ -315,6 +328,14 @@ def dashboard_menu_for_user(user, current_section=None, active_company=None):
             continue
         if item["key"] == SECTION_STRIPE_CONFIGURATION:
             if user and user.is_authenticated and (user.is_superuser or user_has_access_permission(user, PERM_MANAGE_STRIPE_CONFIGURATION)):
+                menu.append({
+                    **item,
+                    "url": build_menu_url(item, active_company=active_company),
+                    "is_active": current_section in item.get("active_sections", []),
+                })
+            continue
+        if item["key"] == SECTION_MEMBERSHIP_PLANS:
+            if user and user.is_authenticated and (user.is_superuser or user_has_access_permission(user, PERM_MANAGE_MEMBERSHIP_PLANS)):
                 menu.append({
                     **item,
                     "url": build_menu_url(item, active_company=active_company),

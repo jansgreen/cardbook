@@ -197,7 +197,7 @@ class PublicCardDetailView(DetailView):
             "allied_companies": get_allied_companies(card.company),
             "social_title": f"{card_name} - {card.company.name}",
             "social_description": card_description,
-            **social_image_context(self.request, card.company.logo, card.photo, card.user.avatar),
+            **social_image_context(self.request, card.company.logo, card.user.avatar, card.photo),
         })
         return context
 
@@ -248,8 +248,8 @@ class PublicBusinessCardDetailView(DetailView):
         context.update(social_image_context(
             self.request,
             self.object.company.logo,
-            self.object.profile.photo,
             self.object.profile.user.avatar,
+            self.object.profile.photo,
         ))
         return context
 

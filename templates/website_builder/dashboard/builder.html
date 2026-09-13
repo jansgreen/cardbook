@@ -99,6 +99,33 @@
             <article class="builder-panel">
                 <div class="builder-panel-head">
                     <div>
+                        <span>Visibilidad</span>
+                        <h2>Informacion publica de contacto</h2>
+                    </div>
+                </div>
+                {% if can_manage_website %}
+                    <form method="post" class="builder-theme-form builder-structure-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="update_contact_visibility">
+                        <div class="builder-check-row">
+                            <label><input type="checkbox" name="show_phone" {% if company.show_phone %}checked{% endif %}> Telefono</label>
+                            <label><input type="checkbox" name="show_whatsapp" {% if company.show_whatsapp %}checked{% endif %}> WhatsApp</label>
+                            <label><input type="checkbox" name="show_email" {% if company.show_email %}checked{% endif %}> Email</label>
+                            <label><input type="checkbox" name="show_website" {% if company.show_website %}checked{% endif %}> Sitio web</label>
+                            <label><input type="checkbox" name="show_address" {% if company.show_address %}checked{% endif %}> Direccion</label>
+                        </div>
+                        <div class="builder-form-actions">
+                            <button class="builder-primary-button" type="submit">Guardar visibilidad</button>
+                        </div>
+                    </form>
+                {% else %}
+                    <p>No tienes permiso para editar la visibilidad de contacto de este sitio.</p>
+                {% endif %}
+            </article>
+
+            <article class="builder-panel">
+                <div class="builder-panel-head">
+                    <div>
                         <span>Agente publico</span>
                         <h2>Asistente IA del website</h2>
                     </div>

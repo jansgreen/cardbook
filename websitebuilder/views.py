@@ -550,6 +550,21 @@ class DashboardWebsiteBuilderView(LoginRequiredMixin, TemplateView):
                 return redirect("dashboard-company-website", company_id=company.id)
             website.save(update_fields=["title", "subdomain", "domain", "updated_at"])
             messages.success(request, "Identidad publica del website actualizada.")
+        elif action == "update_contact_visibility" and website:
+            company.show_phone = request.POST.get("show_phone") == "on"
+            company.show_whatsapp = request.POST.get("show_whatsapp") == "on"
+            company.show_email = request.POST.get("show_email") == "on"
+            company.show_website = request.POST.get("show_website") == "on"
+            company.show_address = request.POST.get("show_address") == "on"
+            company.save(update_fields=[
+                "show_phone",
+                "show_whatsapp",
+                "show_email",
+                "show_website",
+                "show_address",
+                "updated_at",
+            ])
+            messages.success(request, "Visibilidad de contacto actualizada.")
         elif action == "create_page" and website:
             form = PageDashboardForm(request.POST)
             if form.is_valid():

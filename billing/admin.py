@@ -1,12 +1,20 @@
 from django.contrib import admin
 
-from .models import Invoice, Payment, Refund, StripeConfiguration, StripeEvent
+from .models import Invoice, MembershipPlan, Payment, Refund, StripeConfiguration, StripeEvent
 
 
 @admin.register(StripeConfiguration)
 class StripeConfigurationAdmin(admin.ModelAdmin):
     list_display = ("mode", "is_active", "publishable_key", "updated_at")
     list_filter = ("mode", "is_active")
+
+
+@admin.register(MembershipPlan)
+class MembershipPlanAdmin(admin.ModelAdmin):
+    list_display = ("name", "key", "unit_amount", "currency", "billing_interval", "is_free", "is_active", "order")
+    list_filter = ("is_active", "is_free", "currency", "billing_interval")
+    search_fields = ("name", "key", "description", "stripe_price_id")
+    prepopulated_fields = {"key": ("name",)}
 
 
 @admin.register(Invoice)

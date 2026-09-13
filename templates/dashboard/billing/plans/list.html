@@ -1,0 +1,100 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}Planes - Cardbook{% endblock %}
+{% block topbar_title %}Planes de membresia{% endblock %}
+{% block topbar_subtitle %}Administra nombres, precios y Stripe Price IDs{% endblock %}
+
+{% block dashboard_content %}
+<section class="dashboard-heading action-heading">
+    <div>
+        <p>Billing</p>
+        <h1>Planes de membresia</h1>
+    </div>
+    <a class="btn btn-primary" href="{% url 'dashboard-membership-plan-create' %}">Nuevo plan</a>
+</section>
+
+<form class="panel users-filter-panel" method="get">
+    <label>
+        <span>Buscar</span>
+        <input class="form-control" type="search" name="q" value="{{ query }}" placeholder="Nombre, clave o Stripe Price ID">
+    </label>
+    <label>
+        <span>Estado</span>
+        <select class="form-control" name="status">
+            <option value="">Todos</option>
+            <option value="active" {% if status == "active" %}selected{% endif %}>Activos</option>
+            <option value="inactive" {% if status == "inactive" %}selected{% endif %}>Inactivos</option>
+        </select>
+    </label>
+    <div class="users-filter-actions">
+        <button class="btn btn-primary" type="submit">Filtrar</button>
+        <a class="btn btn-outline" href="{% url 'dashboard-membership-plans' %}">Limpiar</a>
+    </div>
+</form>
+
+<section class="panel users-table-panel">
+    <table class="data-table users-table">
+        <thead>
+            <tr>
+                <th>Plan</th>
+                <th>Precio</th>
+                <th>Intervalo</th>
+                <th>Stripe Price</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for plan in plans %}
+                <tr>
+                    <td>
+                        <strong>{{ plan.name }}</strong>
+                        <span>{{ plan.key }}</span>
+                    </td>
+                    <td>{{ plan.price_label }}</td>
+                    <td>{{ plan.get_billing_interval_display }}</td>
+                    <td>
+                        {% if plan.stripe_price_id %}
+                            {{ plan.stripe_price_id }}
+                        {% else %}
+                            <span>Pendiente</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if plan.is_active %}
+                            <span class="status-pill">Activo</span>
+                        {% else %}
+                            <span class="status-pill muted">Inactivo</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="table-actions">
+                            <a href="{% url 'dashboard-membership-plan-update' plan.id %}">Editar</a>
+                            <form method="post" action="{% url 'dashboard-membership-plan-delete' plan.id %}" onsubmit="return confirm('Este plan sera eliminado si no tiene suscripciones. Deseas continuar?');">
+                                {% csrf_token %}
+                                <button type="submit">Eliminar</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="6">No hay planes con esos filtros.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+{% if page_obj.paginator.num_pages > 1 %}
+    <nav class="pagination-bar" aria-label="Paginacion de planes">
+        {% if page_obj.has_previous %}
+            <a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.previous_page_number }}">Anterior</a>
+        {% endif %}
+        <span>Pagina {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+            <a href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.next_page_number }}">Siguiente</a>
+        {% endif %}
+    </nav>
+{% endif %}
+{% endblock %}

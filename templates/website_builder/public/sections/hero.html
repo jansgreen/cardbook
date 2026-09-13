@@ -45,7 +45,7 @@
         <aside class="wb-hero-card">
             {% if website.company.logo %}<img src="{{ website.company.logo.url }}" alt="{{ website.company.name }}">{% endif %}
             <strong>{{ website.company.name }}</strong>
-            <span>{{ website.company.city|default:website.company.region }}</span>
+            {% if website.company.show_address %}<span>{{ website.company.city|default:website.company.region }}</span>{% endif %}
         </aside>
     </div>
 </{{ section.html_tag|default:"section" }}>

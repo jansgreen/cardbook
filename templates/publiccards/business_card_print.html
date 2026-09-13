@@ -109,10 +109,8 @@
                             <p class="qr-ticket-title">{{ business_card.job_title|default:"Profesional" }}</p>
                         </div>
                         {% if business_card.show_profile_photo %}
-                            {% if business_card.profile.photo %}
-                                <img class="qr-ticket-photo" src="{{ business_card.profile.photo.url }}" alt="{{ business_card.display_name }}">
-                            {% elif business_card.profile.user.avatar %}
-                                <img class="qr-ticket-photo" src="{{ business_card.profile.user.avatar.url }}" alt="{{ business_card.display_name }}">
+                            {% if business_card.user_profile_image %}
+                                <img class="qr-ticket-photo" src="{{ business_card.user_profile_image.url }}" alt="{{ business_card.display_name }}">
                             {% else %}
                                 <span aria-hidden="true"></span>
                             {% endif %}
@@ -121,11 +119,11 @@
                         {% endif %}
                     </header>
                     <section class="qr-ticket-qr-panel" aria-label="Codigo QR de la tarjeta digital">
-                        <p class="qr-ticket-scan">Escanea mi tarjeta</p>
+                        <p class="qr-ticket-scan">Escanea aqui</p>
                         <div class="qr-ticket-qr-wrap">
                             <img class="qr-ticket-qr" src="{% url 'public-card-qr' business_card.profile.slug %}" alt="QR de {{ business_card.display_name }}">
                         </div>
-                        <p class="qr-ticket-note">Accede a nuestra informacion y formas de contacto.</p>
+                        <p class="qr-ticket-note">Conoce nuestra tarjeta digital y contactanos.</p>
                     </section>
                     <section class="qr-ticket-services">
                         <h3 class="qr-ticket-services-title">Nuestros servicios</h3>
@@ -165,10 +163,8 @@
                     <div class="copy-side">
                         <div class="copy-media">
                             {% if business_card.show_profile_photo %}
-                                {% if business_card.profile.photo %}
-                                    <img class="copy-photo" src="{{ business_card.profile.photo.url }}" alt="">
-                                {% elif business_card.profile.user.avatar %}
-                                    <img class="copy-photo" src="{{ business_card.profile.user.avatar.url }}" alt="">
+                                {% if business_card.user_profile_image %}
+                                    <img class="copy-photo" src="{{ business_card.user_profile_image.url }}" alt="">
                                 {% endif %}
                             {% endif %}
                             {% if business_card.profile.company.logo %}

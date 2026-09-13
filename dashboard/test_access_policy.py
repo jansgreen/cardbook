@@ -5,8 +5,8 @@ from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 from accesscontrol.models import AccessPermission, AccessRole, UserAccessGrant
-from accesscontrol.services import PERM_MANAGE_PLATFORM_USERS, PERM_MANAGE_STRIPE_CONFIGURATION, ensure_default_permissions
-from billing.models import StripeConfiguration
+from accesscontrol.services import PERM_MANAGE_MEMBERSHIP_PLANS, PERM_MANAGE_PLATFORM_USERS, PERM_MANAGE_STRIPE_CONFIGURATION, ensure_default_permissions
+from billing.models import MembershipPlan, StripeConfiguration
 from companies.models import Company
 from dashboard.access_policy import dashboard_menu_for_user, default_dashboard_url_name
 from referrals.models import AgentApplication, AgentProfile
@@ -85,6 +85,7 @@ class DashboardAccessPolicyTests(TestCase):
         self.assertIn("finance", keys)
         self.assertIn("access", keys)
         self.assertIn("users", keys)
+        self.assertIn("membership_plans", keys)
         self.assertIn("white_card_job", keys)
         self.assertIn("referrals", keys)
 
@@ -103,6 +104,17 @@ class DashboardAccessPolicyTests(TestCase):
         UserAccessGrant.objects.create(user=user, company=company, role=role, is_active=True)
 
         self.assertIn("users", self.menu_keys(user))
+
+    def test_user_with_membership_plan_permission_sees_plans_menu(self):
+        ensure_default_permissions()
+        owner = self.create_user("ownerplans", "company")
+        user = self.create_user("assignedplans", "company")
+        company = Company.objects.create(owner=owner, name="Plans Access Co", is_active=True)
+        role = AccessRole.objects.create(name="Plans Manager")
+        role.permissions.add(AccessPermission.objects.get(code=PERM_MANAGE_MEMBERSHIP_PLANS))
+        UserAccessGrant.objects.create(user=user, company=company, role=role, is_active=True)
+
+        self.assertIn("membership_plans", self.menu_keys(user))
 
     def test_company_sidebar_hides_disallowed_items(self):
         user = self.create_user("companynav", "company")
@@ -388,16 +400,72 @@ class DashboardAccessPolicyTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
 
+    def test_superuser_can_create_membership_plan(self):
+        user = self.create_user("plansadmin", is_staff=True, is_superuser=True)
+        self.login(user)
+
+        response = self.client.post(
+            reverse("dashboard-membership-plan-create"),
+            {
+                "key": "premium",
+                "name": "Premium",
+                "description": "Plan premium",
+                "features": "Feature one\nFeature two",
+                "unit_amount": "49.00",
+                "currency": "usd",
+                "billing_interval": "monthly",
+                "stripe_price_id": "price_premium",
+                "is_active": "on",
+                "order": "40",
+            },
+        )
+
+        self.assertRedirects(response, reverse("dashboard-membership-plans"))
+        plan = MembershipPlan.objects.get(key="premium")
+        self.assertEqual(plan.currency, "USD")
+        self.assertEqual(plan.stripe_price_id, "price_premium")
+
+    def test_company_user_cannot_open_membership_plans_without_permission(self):
+        user = self.create_user("blockedplans", "company")
+        self.login(user)
+
+        response = self.client.get(reverse("dashboard-membership-plans"))
+
+        self.assertRedirects(response, reverse("dashboard-home"))
+
+    def test_assigned_user_can_open_membership_plans(self):
+        ensure_default_permissions()
+        owner = self.create_user("ownerplanspage", "company")
+        user = self.create_user("assignedplanspage", "company")
+        company = Company.objects.create(owner=owner, name="Plans Page Co", is_active=True)
+        role = AccessRole.objects.create(name="Assigned Plans Manager")
+        role.permissions.add(AccessPermission.objects.get(code=PERM_MANAGE_MEMBERSHIP_PLANS))
+        UserAccessGrant.objects.create(user=user, company=company, role=role, is_active=True)
+        self.login(user)
+
+        response = self.client.get(reverse("dashboard-membership-plans"))
+
+        self.assertEqual(response.status_code, 200)
+
     def test_plan_upgrade_creates_stripe_checkout_for_paid_plan(self):
         user = self.create_user("checkoutuser", "company")
         company = Company.objects.create(owner=user, name="Checkout Co", email="billing@example.com", is_active=True)
+        MembershipPlan.objects.create(
+            key="premium",
+            name="Premium",
+            unit_amount="49.00",
+            currency="USD",
+            billing_interval="monthly",
+            stripe_price_id="price_premium",
+            is_active=True,
+            order=40,
+        )
         StripeConfiguration.objects.create(
             mode="test",
             is_active=True,
             publishable_key="pk_test_123",
             secret_key="sk_test_123",
             webhook_secret="whsec_123",
-            business_price_id="price_business",
         )
         self.login(user)
 
@@ -407,8 +475,9 @@ class DashboardAccessPolicyTests(TestCase):
             stripe.checkout.Session = SimpleNamespace(create=Mock(return_value=SimpleNamespace(id="cs_test_123", url="https://checkout.stripe.com/test")))
             get_stripe_client.return_value = stripe
 
-            response = self.client.post(reverse("dashboard-plan"), {"company": company.id, "plan": "business"})
+            response = self.client.post(reverse("dashboard-plan"), {"company": company.id, "plan": "premium"})
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "https://checkout.stripe.com/test")
         stripe.checkout.Session.create.assert_called_once()
+        self.assertEqual(stripe.checkout.Session.create.call_args.kwargs["line_items"][0]["price"], "price_premium")

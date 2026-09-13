@@ -29,11 +29,11 @@ from memberships.models import CompanyMember
 from referrals.models import AgentProfile
 from referrals.services import record_agent_card_sale
 from subscriptions.models import Subscription
-from accesscontrol.services import PERM_MANAGE_PLATFORM_USERS, PERM_MANAGE_STRIPE_CONFIGURATION, ensure_default_permissions, user_has_access_permission
+from accesscontrol.services import PERM_MANAGE_MEMBERSHIP_PLANS, PERM_MANAGE_PLATFORM_USERS, PERM_MANAGE_STRIPE_CONFIGURATION, ensure_default_permissions, user_has_access_permission
 from accounts.models import Profile
-from billing.models import StripeConfiguration
+from billing.models import MembershipPlan, StripeConfiguration, ensure_default_membership_plans
 from financial_analytics.services import FinanceConfigurationError, create_subscription_checkout_session
-from .forms import AccountPlanForm, AccountSettingsForm, BusinessCardForm, BusinessPostForm, CompanyForm, DigitalCardForm, PlatformUserForm, StripeConfigurationForm
+from .forms import AccountPlanForm, AccountSettingsForm, BusinessCardForm, BusinessPostForm, CompanyForm, DigitalCardForm, MembershipPlanForm, PlatformUserForm, StripeConfigurationForm
 
 
 class DashboardContextMixin(LoginRequiredMixin):
@@ -72,6 +72,17 @@ class StripeConfigurationAccessMixin(DashboardContextMixin):
         if request.user.is_superuser or user_has_access_permission(request.user, PERM_MANAGE_STRIPE_CONFIGURATION):
             return super().dispatch(request, *args, **kwargs)
         messages.error(request, "No tienes permisos para configurar Stripe.")
+        return redirect(self.access_denied_redirect)
+
+
+class MembershipPlanAccessMixin(DashboardContextMixin):
+    access_denied_redirect = "dashboard-home"
+
+    def dispatch(self, request, *args, **kwargs):
+        ensure_default_permissions()
+        if request.user.is_superuser or user_has_access_permission(request.user, PERM_MANAGE_MEMBERSHIP_PLANS):
+            return super().dispatch(request, *args, **kwargs)
+        messages.error(request, "No tienes permisos para administrar planes.")
         return redirect(self.access_denied_redirect)
 
 
@@ -143,9 +154,13 @@ class DashboardUsersView(PlatformUserAccessMixin, TemplateView):
             "plan": self.request.GET.get("plan", ""),
             "querystring": query_params.urlencode(),
             "type_choices": Profile.INTENT_CHOICES,
-            "plan_choices": AccountPlanForm.PLAN_CHOICES,
+            "plan_choices": self.get_plan_choices(),
         })
         return context
+
+    def get_plan_choices(self):
+        ensure_default_membership_plans()
+        return [(plan.key, plan.name) for plan in MembershipPlan.objects.filter(is_active=True).order_by("order", "unit_amount", "name")]
 
 
 class DashboardUserCreateView(PlatformUserAccessMixin, CreateView):
@@ -217,6 +232,77 @@ class DashboardStripeConfigurationView(StripeConfigurationAccessMixin, TemplateV
         return redirect(f"{reverse_lazy('dashboard-stripe-configuration')}?mode={saved.mode}")
 
 
+class DashboardMembershipPlansView(MembershipPlanAccessMixin, TemplateView):
+    template_name = "dashboard/billing/plans/list.html"
+
+    def get_queryset(self):
+        queryset = MembershipPlan.objects.all().order_by("order", "unit_amount", "name")
+        query = (self.request.GET.get("q") or "").strip()
+        status = self.request.GET.get("status") or ""
+        if query:
+            queryset = queryset.filter(
+                Q(key__icontains=query)
+                | Q(name__icontains=query)
+                | Q(description__icontains=query)
+                | Q(stripe_price_id__icontains=query)
+            )
+        if status == "active":
+            queryset = queryset.filter(is_active=True)
+        elif status == "inactive":
+            queryset = queryset.filter(is_active=False)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        query_params = self.request.GET.copy()
+        query_params.pop("page", None)
+        paginator = Paginator(self.get_queryset(), 15)
+        page_obj = paginator.get_page(self.request.GET.get("page"))
+        context.update({
+            "page_obj": page_obj,
+            "plans": page_obj.object_list,
+            "query": self.request.GET.get("q", ""),
+            "status": self.request.GET.get("status", ""),
+            "querystring": query_params.urlencode(),
+        })
+        return context
+
+
+class DashboardMembershipPlanCreateView(MembershipPlanAccessMixin, CreateView):
+    model = MembershipPlan
+    form_class = MembershipPlanForm
+    template_name = "dashboard/billing/plans/form.html"
+    success_url = reverse_lazy("dashboard-membership-plans")
+
+    def form_valid(self, form):
+        messages.success(self.request, "Plan de membresia creado correctamente.")
+        return super().form_valid(form)
+
+
+class DashboardMembershipPlanUpdateView(MembershipPlanAccessMixin, UpdateView):
+    model = MembershipPlan
+    form_class = MembershipPlanForm
+    template_name = "dashboard/billing/plans/form.html"
+    success_url = reverse_lazy("dashboard-membership-plans")
+
+    def form_valid(self, form):
+        messages.success(self.request, "Plan de membresia actualizado correctamente.")
+        return super().form_valid(form)
+
+
+class DashboardMembershipPlanDeleteView(MembershipPlanAccessMixin, View):
+    def post(self, request, pk):
+        plan = get_object_or_404(MembershipPlan, pk=pk)
+        if Subscription.objects.filter(plan=plan.key).exists():
+            plan.is_active = False
+            plan.save(update_fields=["is_active", "updated_at"])
+            messages.warning(request, "El plan tiene suscripciones asociadas; fue desactivado para conservar el historial.")
+        else:
+            plan.delete()
+            messages.success(request, "Plan de membresia eliminado.")
+        return redirect("dashboard-membership-plans")
+
+
 class DashboardSettingsView(DashboardContextMixin, UpdateView):
     form_class = AccountSettingsForm
     template_name = "dashboard/settings.html"
@@ -238,32 +324,12 @@ class DashboardSettingsView(DashboardContextMixin, UpdateView):
 class DashboardPlanView(DashboardContextMixin, TemplateView):
     template_name = "dashboard/plan.html"
 
-    plan_cards = [
-        {
-            "key": AccountPlanForm.PLAN_STARTER,
-            "name": "Inicial",
-            "price": "Gratis",
-            "description": "Para validar una presencia digital sencilla.",
-            "features": ["1 perfil digital", "QR publico", "Book basico"],
-        },
-        {
-            "key": AccountPlanForm.PLAN_BUSINESS,
-            "name": "Negocio",
-            "price": "US$12/mes",
-            "description": "Para empresas que necesitan tarjetas, website y estadisticas.",
-            "features": ["Perfiles de negocio", "Presentaciones comerciales", "Website Builder"],
-        },
-        {
-            "key": AccountPlanForm.PLAN_TEAM,
-            "name": "Equipo",
-            "price": "US$29/mes",
-            "description": "Para manejar mas usuarios, empresas y operaciones.",
-            "features": ["Equipo ampliado", "Accesos por rol", "Soporte prioritario"],
-        },
-    ]
-
     def get_form(self):
         return AccountPlanForm(user=self.request.user, data=self.request.POST or None)
+
+    def get_plan_cards(self):
+        ensure_default_membership_plans()
+        return MembershipPlan.objects.filter(is_active=True).order_by("order", "unit_amount", "name")
 
     def get_current_subscription(self):
         companies = self.get_companies()
@@ -274,7 +340,7 @@ class DashboardPlanView(DashboardContextMixin, TemplateView):
         form = kwargs.get("form") or self.get_form()
         context.update({
             "form": form,
-            "plan_cards": self.plan_cards,
+            "plan_cards": self.get_plan_cards(),
             "current_subscription": self.get_current_subscription(),
         })
         return context
@@ -286,25 +352,26 @@ class DashboardPlanView(DashboardContextMixin, TemplateView):
 
         company = form.cleaned_data["company"]
         plan = form.cleaned_data["plan"]
-        if plan != AccountPlanForm.PLAN_STARTER:
+        membership_plan = form.get_selected_plan() or get_object_or_404(MembershipPlan, key=plan, is_active=True)
+        if not membership_plan.is_free and membership_plan.unit_amount > 0:
             try:
-                session = create_subscription_checkout_session(company=company, plan=plan, request=request)
+                session = create_subscription_checkout_session(company=company, plan=membership_plan, request=request)
             except FinanceConfigurationError as exc:
                 messages.error(request, f"No se pudo crear Checkout: {exc}")
                 return redirect("dashboard-plan")
             return redirect(session.url)
 
-        amount = Decimal(str(AccountPlanForm.PLAN_PRICES[plan]))
+        amount = Decimal(str(membership_plan.unit_amount))
         Subscription.objects.update_or_create(
             stripe_subscription_id=f"manual-company-{company.id}",
             defaults={
                 "company": company,
                 "stripe_customer_id": f"manual-customer-{company.id}",
-                "plan": plan,
+                "plan": membership_plan.key,
                 "unit_amount": amount,
-                "currency": "USD",
+                "currency": membership_plan.currency.upper(),
                 "status": Subscription.STATUS_ACTIVE,
-                "billing_interval": Subscription.INTERVAL_MONTHLY,
+                "billing_interval": membership_plan.billing_interval,
             },
         )
         messages.success(request, "Tu seleccion de membresia fue guardada.")

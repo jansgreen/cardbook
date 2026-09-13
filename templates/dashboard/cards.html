@@ -26,8 +26,8 @@
                         <strong>{{ card.company.name }}</strong>
                     </div>
                     <div class="profile-card-avatar">
-                        {% if card.photo %}
-                            <img src="{{ card.photo.url }}" alt="{{ card.user.get_full_name|default:card.user.username }}">
+                        {% if card.user_profile_image %}
+                            <img src="{{ card.user_profile_image.url }}" alt="{{ card.user.get_full_name|default:card.user.username }}">
                         {% else %}
                             <span>{{ card.user.get_full_name|default:card.user.username|slice:":2" }}</span>
                         {% endif %}

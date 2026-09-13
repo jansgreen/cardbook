@@ -1,0 +1,38 @@
+{% extends "dashboard/base_dashboard.html" %}
+
+{% block title %}Plan de membresia - Cardbook{% endblock %}
+{% block topbar_title %}{% if object %}Editar plan{% else %}Nuevo plan{% endif %}{% endblock %}
+{% block topbar_subtitle %}Define precio, beneficios y conexion con Stripe{% endblock %}
+
+{% block dashboard_content %}
+<section class="dashboard-heading action-heading">
+    <div>
+        <p>Billing</p>
+        <h1>{% if object %}Editar plan{% else %}Nuevo plan{% endif %}</h1>
+    </div>
+    <a class="btn btn-outline" href="{% url 'dashboard-membership-plans' %}">Volver</a>
+</section>
+
+<div class="form-layout stripe-config-layout">
+    <aside class="form-helper">
+        <strong>Stripe Price ID</strong>
+        <span>Usa price_...</span>
+        <small>Para cobrar un plan pago, crea el precio recurrente en Stripe y pega aqui su Price ID. Los planes gratis no necesitan Price ID.</small>
+    </aside>
+
+    <form class="panel dashboard-form" method="post">
+        {% csrf_token %}
+        {% for field in form %}
+            <label class="{% if field.field.widget.input_type == 'checkbox' %}checkbox-field{% endif %}">
+                {{ field.label }}
+                {{ field }}
+                {% if field.help_text %}<span class="helptext">{{ field.help_text }}</span>{% endif %}
+                {{ field.errors }}
+            </label>
+        {% endfor %}
+        <div class="form-actions">
+            <button class="btn btn-primary" type="submit">Guardar plan</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

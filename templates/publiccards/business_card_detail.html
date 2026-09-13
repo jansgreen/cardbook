@@ -290,10 +290,8 @@
                     <div class="print-side-column">
                         <div class="print-media">
                             {% if business_card.show_profile_photo %}
-                                {% if business_card.profile.photo %}
-                                    <img class="print-profile-photo" src="{{ business_card.profile.photo.url }}" alt="Foto de {{ business_card.display_name }}" data-fallback-text="{{ business_card.display_name|slice:':2' }}">
-                                {% elif business_card.profile.user.avatar %}
-                                    <img class="print-profile-photo" src="{{ business_card.profile.user.avatar.url }}" alt="Foto de {{ business_card.display_name }}" data-fallback-text="{{ business_card.display_name|slice:':2' }}">
+                                {% if business_card.user_profile_image %}
+                                    <img class="print-profile-photo" src="{{ business_card.user_profile_image.url }}" alt="Foto de {{ business_card.display_name }}" data-fallback-text="{{ business_card.display_name|slice:':2' }}">
                                 {% else %}
                                     <span class="print-profile-photo image-fallback">{{ business_card.display_name|slice:":2" }}</span>
                                 {% endif %}

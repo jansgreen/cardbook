@@ -2,7 +2,9 @@
 <{{ section.html_tag|default:"footer" }} class="wb-footer">
     <div class="wb-container">
         <strong>{{ section|translated_title:language }}</strong>
-        <p>{{ section|translated_subtitle:language }}</p>
+        {% if website.company.show_address or section.subtitle != website.company.address %}
+            <p>{{ section|translated_subtitle:language }}</p>
+        {% endif %}
         {% for component in section.components.all %}
             {% if component.is_active %}{% include "website_builder/public/components/contact_info.html" %}{% endif %}
         {% endfor %}
