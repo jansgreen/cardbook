@@ -1,1 +1,45 @@
-{% include "website_builder/public/sections/custom.html" %}
+{% load websitebuilder_tags %}
+{% with gallery_blocks=section|gallery_image_blocks %}
+<{{ section.html_tag|default:"section" }} class="wb-section wb-gallery-section">
+    <div class="wb-container">
+        <div class="wb-section-head">
+            <h2>{{ section|translated_title:language }}</h2>
+            <p>{{ section|translated_subtitle:language }}</p>
+        </div>
+        {% if gallery_blocks %}
+            <div id="wbGallery{{ section.id }}" class="carousel slide wb-gallery-carousel" data-wb-carousel>
+                {% if gallery_blocks|length > 1 %}
+                    <div class="carousel-indicators">
+                        {% for block in gallery_blocks %}
+                            <button type="button" data-wb-slide-to="{{ forloop.counter0 }}" class="{% if forloop.first %}active{% endif %}" aria-current="{% if forloop.first %}true{% else %}false{% endif %}" aria-label="Imagen {{ forloop.counter }}"></button>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <div class="carousel-inner">
+                    {% for block in gallery_blocks %}
+                        <article class="carousel-item wb-gallery-item {% if forloop.first %}active{% endif %}">
+                            <img src="{{ block.image.url }}" alt="{{ block.value|default:block.button_text|default:website.title }}">
+                            <div class="wb-gallery-caption">
+                                {% if block.button_text %}<h3>{{ block.button_text }}</h3>{% endif %}
+                                {% if block.text %}<p>{{ block.text }}</p>{% endif %}
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+                {% if gallery_blocks|length > 1 %}
+                    <button class="carousel-control-prev" type="button" data-wb-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Anterior</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-wb-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Siguiente</span>
+                    </button>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="wb-gallery-empty">Agrega imagenes desde Website Builder.</div>
+        {% endif %}
+    </div>
+</{{ section.html_tag|default:"section" }}>
+{% endwith %}

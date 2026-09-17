@@ -17,7 +17,7 @@ from cardbookweb.social import social_image_context
 from cards.models import BusinessCard, DigitalCard
 from companies.models import Company
 from cards.permissions import can_manage_card
-from websitebuilder.models import Website
+from websitebuilder.models import Block, Website
 from websitebuilder.services import website_public_url
 
 
@@ -162,6 +162,24 @@ def get_business_card_service_items(business_card):
     return raw_items[:6]
 
 
+def get_company_gallery_items(company, limit=4):
+    try:
+        website = company.builder_website
+    except ObjectDoesNotExist:
+        return []
+    if not website or not website.is_active:
+        return []
+    blocks = Block.objects.filter(
+        component__section__layout__page__website=website,
+        component__section__section_type="gallery",
+        component__section__is_active=True,
+        component__is_active=True,
+        block_type="image",
+        is_active=True,
+    ).exclude(image="").order_by("order", "id")
+    return [block for block in blocks[:limit] if block.image]
+
+
 class PublicCardDetailView(DetailView):
     model = DigitalCard
     template_name = "publiccards/card_detail.html"
@@ -297,6 +315,7 @@ class BusinessCardPrintView(LoginRequiredMixin, DetailView):
             "business_website_url": get_business_card_website_url(self.request, self.object),
             "business_service_heading": self.object.company.category or "Servicios de la empresa",
             "business_service_items": get_business_card_service_items(self.object),
+            "business_gallery_items": get_company_gallery_items(self.object.company),
         })
         return context
 

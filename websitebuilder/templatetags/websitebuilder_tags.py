@@ -109,6 +109,17 @@ def hero_slides(section):
     return slides
 
 
+@register.filter
+def gallery_image_blocks(section):
+    images = []
+    components = section.components.filter(is_active=True).prefetch_related("blocks")
+    for component in components:
+        for block in component.blocks.all():
+            if block.is_active and block.block_type == "image" and block.image:
+                images.append(block)
+    return images[:4]
+
+
 SERVICE_ICONS = {
     "briefcase": '<path d="M9 6V5a3 3 0 0 1 3-3h0a3 3 0 0 1 3 3v1"/><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/><path d="M3 12h18"/><path d="M10 12v2h4v-2"/>',
     "wrench": '<path d="M14.7 6.3a4 4 0 0 0-5 5L3 18l3 3 6.7-6.7a4 4 0 0 0 5-5l-2.8 2.8-3-3Z"/>',

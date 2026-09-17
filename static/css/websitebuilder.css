@@ -530,6 +530,67 @@
 .wb-service-back p {
     color: rgba(255,255,255,.82);
 }
+.wb-gallery-section {
+    background: linear-gradient(180deg, #f7faff 0%, #ffffff 100%);
+}
+.wb-gallery-carousel {
+    position: relative;
+    overflow: hidden;
+    border-radius: 18px;
+    box-shadow: 0 26px 70px rgba(7,21,45,.16);
+    background: var(--wb-secondary);
+}
+.wb-gallery-item {
+    min-height: min(68vh, 560px);
+    display: none;
+    position: relative;
+    color: white;
+}
+.wb-gallery-item.active {
+    display: block;
+}
+.wb-gallery-item img {
+    width: 100%;
+    height: min(68vh, 560px);
+    min-height: 420px;
+    display: block;
+    object-fit: cover;
+}
+.wb-gallery-item::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(7,21,45,.72), rgba(7,21,45,.2) 58%, rgba(7,21,45,.48));
+    pointer-events: none;
+}
+.wb-gallery-caption {
+    position: absolute;
+    left: clamp(24px, 7vw, 86px);
+    bottom: clamp(28px, 7vw, 76px);
+    z-index: 1;
+    max-width: 560px;
+}
+.wb-gallery-caption h3 {
+    margin: 0;
+    color: white;
+    font-size: clamp(2rem, 5vw, 4rem);
+    line-height: 1;
+}
+.wb-gallery-caption p {
+    margin: 14px 0 0;
+    color: rgba(255,255,255,.86);
+    font-size: 1.1rem;
+    line-height: 1.55;
+}
+.wb-gallery-empty {
+    padding: 34px;
+    border: 1px dashed #bed1e8;
+    border-radius: 14px;
+    color: #637189;
+    background: #f7faff;
+    text-align: center;
+    font-weight: 850;
+}
 .wb-cta {
     text-align: center;
     color: white;

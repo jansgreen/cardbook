@@ -69,6 +69,47 @@
             <article class="builder-panel">
                 <div class="builder-panel-head">
                     <div>
+                        <span>Galeria visual</span>
+                        <h2>Carrusel de imagenes</h2>
+                    </div>
+                    <strong class="builder-pill live">{{ gallery_blocks|length }}/4 fotos</strong>
+                </div>
+                {% if can_manage_website %}
+                    <p>Sube hasta 4 fotos con texto. Se mostraran como carrusel en la web y como cuadritos elegantes en el volante comercial.</p>
+                    <form method="post" enctype="multipart/form-data" class="builder-gallery-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="update_gallery_images">
+                        <div class="builder-gallery-slots">
+                            {% for slot in gallery_slots %}
+                                <section class="builder-gallery-slot">
+                                    <strong>Foto {{ slot.index }}</strong>
+                                    {% if slot.block and slot.block.image %}
+                                        <img src="{{ slot.block.image.url }}" alt="{{ slot.block.value|default:'Galeria' }}">
+                                    {% else %}
+                                        <span class="builder-gallery-empty">Sin imagen</span>
+                                    {% endif %}
+                                    <label>Imagen<input type="file" name="gallery_image_{{ slot.index }}" accept="image/*"></label>
+                                    <label>Titulo<input type="text" name="gallery_title_{{ slot.index }}" value="{% if slot.block %}{{ slot.block.button_text }}{% endif %}" maxlength="120" placeholder="Titulo corto"></label>
+                                    <label class="wide">Texto<textarea name="gallery_text_{{ slot.index }}" rows="2" placeholder="Texto que aparecera sobre la imagen">{% if slot.block %}{{ slot.block.text }}{% endif %}</textarea></label>
+                                    <label>Texto alternativo<input type="text" name="gallery_alt_{{ slot.index }}" value="{% if slot.block %}{{ slot.block.value }}{% endif %}" maxlength="255" placeholder="Descripcion de la foto"></label>
+                                    <div class="builder-check-row">
+                                        <label><input type="checkbox" name="gallery_active_{{ slot.index }}" {% if not slot.block or slot.block.is_active %}checked{% endif %}> Activa</label>
+                                    </div>
+                                </section>
+                            {% endfor %}
+                        </div>
+                        <div class="builder-form-actions">
+                            <button class="builder-primary-button" type="submit">Guardar galeria</button>
+                        </div>
+                    </form>
+                {% else %}
+                    <p>No tienes permiso para editar la galeria visual de este sitio.</p>
+                {% endif %}
+            </article>
+
+            <article class="builder-panel">
+                <div class="builder-panel-head">
+                    <div>
                         <span>Identidad publica</span>
                         <h2>Nombre y URL del website</h2>
                     </div>

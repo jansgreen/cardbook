@@ -58,6 +58,10 @@
         .qr-ticket-qr-wrap { display: inline-block; padding: .09in; border-radius: .14in; background: #fff; border: .018in solid {{ business_card.accent_color }}; }
         .qr-ticket-qr { display: block; width: 2.6in; height: 2.6in; margin: 0 auto; }
         .qr-ticket-note { margin: .085in 0 0; color: #52647b; font-size: .1in; line-height: 1.22; font-weight: 700; }
+        .qr-ticket-gallery { margin: 0 .24in .18in; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .08in; position: relative; z-index: 1; }
+        .qr-ticket-gallery figure { margin: 0; min-width: 0; border-radius: .13in; overflow: hidden; background: #fff; border: .012in solid #dce8f6; box-shadow: 0 .07in .16in rgba(0, 47, 101, .1); }
+        .qr-ticket-gallery img { width: 100%; height: .72in; display: block; object-fit: cover; }
+        .qr-ticket-gallery figcaption { padding: .045in .055in .055in; color: #17365f; font-size: .07in; line-height: 1.12; font-weight: 850; overflow-wrap: anywhere; }
         .qr-ticket-services { margin: 0 .24in .22in; padding: .17in .18in .18in; border: .012in solid #dce8f6; border-radius: .2in; background: #f7faff; position: relative; z-index: 1; }
         .qr-ticket-services-title { display: flex; align-items: center; gap: .09in; margin: 0 0 .12in; color: {{ business_card.background_color }}; font-size: .19in; line-height: 1; font-weight: 950; }
         .qr-ticket-services-title::before { content: ""; width: .08in; height: .27in; border-radius: 999px; background: {{ business_card.accent_color }}; }
@@ -107,6 +111,19 @@
             .qr-ticket-qr-wrap { padding: .055in; border-radius: .1in; }
             .qr-ticket-qr { width: 2.16in; height: 2.16in; }
             .qr-ticket-note { margin-top: .055in; font-size: .075in; }
+            .qr-ticket-gallery {
+                margin: 0 .14in .1in;
+                gap: .055in;
+            }
+            .qr-ticket-gallery figure {
+                border-radius: .09in;
+                box-shadow: none;
+            }
+            .qr-ticket-gallery img { height: .46in; }
+            .qr-ticket-gallery figcaption {
+                padding: .032in .04in .04in;
+                font-size: .052in;
+            }
             .qr-ticket-services {
                 margin: 0 .14in .12in;
                 padding: .1in .11in .11in;
@@ -186,6 +203,18 @@
                         </div>
                         <p class="qr-ticket-note">Conoce nuestra tarjeta digital y contactanos.</p>
                     </section>
+                    {% if business_gallery_items %}
+                        <section class="qr-ticket-gallery" aria-label="Galeria de imagenes">
+                            {% for item in business_gallery_items %}
+                                <figure>
+                                    <img src="{{ item.image.url }}" alt="{{ item.value|default:item.button_text|default:business_card.company_name }}">
+                                    {% if item.button_text or item.text %}
+                                        <figcaption>{{ item.button_text|default:item.text|truncatechars:42 }}</figcaption>
+                                    {% endif %}
+                                </figure>
+                            {% endfor %}
+                        </section>
+                    {% endif %}
                     <section class="qr-ticket-services">
                         <h3 class="qr-ticket-services-title">Nuestros servicios</h3>
                         <ul class="qr-ticket-service-grid">

@@ -1,3 +1,4 @@
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 from django.urls import reverse
 from rest_framework.test import APITestCase
@@ -14,6 +15,14 @@ from websitebuilder.services import (
     website_public_url,
     website_publish_status,
 )
+
+
+def tiny_gif(name="gallery.gif"):
+    return SimpleUploadedFile(
+        name,
+        b"GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00\xff\xff\xff,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;",
+        content_type="image/gif",
+    )
 
 
 class WebsiteBuilderQualityTests(APITestCase):
@@ -308,6 +317,36 @@ class WebsiteBuilderQualityTests(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "wb-service-flip-card")
         self.assertContains(response, "<svg viewBox=")
+
+    def test_dashboard_builder_uploads_gallery_and_public_site_renders_carousel(self):
+        owner = make_user("galleryowner")
+        company = make_company(owner=owner, name="Gallery Company")
+        website = create_starter_website(company, publish=True)
+        self.client.force_login(owner)
+
+        response = self.client.post(
+            reverse("dashboard-company-website", kwargs={"company_id": company.id}),
+            {
+                "action": "update_gallery_images",
+                "gallery_image_1": tiny_gif(),
+                "gallery_title_1": "Salon principal",
+                "gallery_text_1": "Ambiente listo para clientes.",
+                "gallery_alt_1": "Foto del salon",
+                "gallery_active_1": "on",
+            },
+            format="multipart",
+        )
+
+        self.assertEqual(response.status_code, 302)
+        gallery_section = website.pages.get(is_homepage=True).layout.sections.get(section_type="gallery")
+        block = gallery_section.components.get(component_type="gallery_item").blocks.get(key="gallery-1")
+        self.assertEqual(block.button_text, "Salon principal")
+
+        response = self.client.get(reverse("websitebuilder-public-home", kwargs={"website_slug": website.slug}))
+
+        self.assertContains(response, "wb-gallery-carousel")
+        self.assertContains(response, "Salon principal")
+        self.assertContains(response, "Ambiente listo para clientes.")
 
     def test_dashboard_builder_updates_public_contact_visibility(self):
         owner = make_user("visibilityowner")

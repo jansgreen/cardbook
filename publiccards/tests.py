@@ -1,8 +1,18 @@
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.test import override_settings
 from rest_framework.test import APITestCase
 
 from cardbookweb.test_utils import make_business_card, make_company, make_digital_card, make_published_website, make_user
+from websitebuilder.models import Block, Component, Section
+
+
+def tiny_gif(name="print-gallery.gif"):
+    return SimpleUploadedFile(
+        name,
+        b"GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00\xff\xff\xff,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;",
+        content_type="image/gif",
+    )
 
 
 class BusinessCardPrintTests(APITestCase):
@@ -31,6 +41,41 @@ class BusinessCardPrintTests(APITestCase):
         self.assertContains(response, "Ruedos y dobladillos")
         self.assertContains(response, "Ajuste de cinturas y caderas")
         self.assertNotContains(response, "Compartir el perfil digital sin imprimir nuevas tarjetas.")
+
+    def test_print_promotional_flyer_uses_builder_gallery_images(self):
+        owner = make_user("flyergalleryowner")
+        company = make_company(owner=owner, name="Pacheco Family Day Care")
+        profile = make_digital_card(user=owner, company=company)
+        business_card = make_business_card(profile=profile, display_name="Carmen Pacheco")
+        website = make_published_website(company=company)
+        layout = website.pages.get(is_homepage=True).layout
+        section = Section.objects.create(
+            layout=layout,
+            section_type="gallery",
+            html_tag=Section.TAG_SECTION,
+            name="Galeria visual",
+            title="Galeria",
+            order=3,
+        )
+        component = Component.objects.create(section=section, component_type="gallery_item", name="Galeria principal")
+        Block.objects.create(
+            component=component,
+            block_type="image",
+            key="gallery-1",
+            image=tiny_gif(),
+            button_text="Area de juegos",
+            order=1,
+        )
+        self.client.force_login(owner)
+
+        response = self.client.get(
+            reverse("public-business-card-print", kwargs={"slug": business_card.slug}),
+            {"layout": "qr_double"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '<section class="qr-ticket-gallery"', count=2)
+        self.assertContains(response, "Area de juegos")
 
     def test_smart_print_hides_direct_contact_and_shows_contact_cta(self):
         owner = make_user("smartprintowner")

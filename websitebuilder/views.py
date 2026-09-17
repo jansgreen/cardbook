@@ -338,6 +338,60 @@ def public_company_contact_items(company):
     return items
 
 
+def get_gallery_blocks(website, limit=4):
+    if not website:
+        return []
+    blocks = Block.objects.filter(
+        component__section__layout__page__website=website,
+        component__section__section_type="gallery",
+        component__is_active=True,
+        component__section__is_active=True,
+        block_type="image",
+        is_active=True,
+    ).exclude(image="").order_by("order", "id")
+    return [block for block in blocks[:limit] if block.image]
+
+
+def ensure_home_gallery_component(website):
+    page = website.pages.filter(is_active=True, is_homepage=True).first() or website.pages.filter(is_active=True).order_by("order", "id").first()
+    if not page:
+        page = Page.objects.create(
+            website=website,
+            title="Inicio",
+            slug="inicio",
+            order=1,
+            is_homepage=True,
+            is_published=True,
+            show_in_menu=True,
+        )
+    layout, _ = Layout.objects.get_or_create(page=page, defaults={"layout_type": Layout.LANDING_PAGE, "name": "Landing principal"})
+    section, _ = Section.objects.get_or_create(
+        layout=layout,
+        section_type="gallery",
+        name="Galeria visual",
+        defaults={
+            "html_tag": Section.TAG_SECTION,
+            "title": "Galeria",
+            "subtitle": "Conoce mas de nuestro trabajo y ambiente.",
+            "order": 3,
+            "is_active": True,
+        },
+    )
+    component, _ = Component.objects.get_or_create(
+        section=section,
+        component_type="gallery_item",
+        name="Galeria principal",
+        defaults={"title": "Galeria principal", "order": 1, "is_active": True},
+    )
+    if not section.is_active:
+        section.is_active = True
+        section.save(update_fields=["is_active", "updated_at"])
+    if not component.is_active:
+        component.is_active = True
+        component.save(update_fields=["is_active", "updated_at"])
+    return component
+
+
 def register_visit(request, website, page, language):
     agent = request.META.get("HTTP_USER_AGENT", "")
     device = "mobile" if "Mobile" in agent else "desktop"
@@ -530,6 +584,13 @@ class DashboardWebsiteBuilderView(LoginRequiredMixin, TemplateView):
                 section.active_components = [component for component in section.components.all() if component.is_active]
                 for component in section.active_components:
                     component.active_blocks = [block for block in component.blocks.all() if block.is_active]
+        gallery_blocks = get_gallery_blocks(website)
+        gallery_slots = []
+        for index in range(1, 5):
+            gallery_slots.append({
+                "index": index,
+                "block": next((block for block in gallery_blocks if block.key == f"gallery-{index}" or block.order == index), None),
+            })
         context.update({
             "company": company,
             "website": website,
@@ -541,6 +602,8 @@ class DashboardWebsiteBuilderView(LoginRequiredMixin, TemplateView):
             "themes": Theme.objects.filter(is_active=True),
             "visits": WebsiteVisit.objects.filter(website=website).count() if website else 0,
             "website_ai_agent": public_website_agent(website) if website else None,
+            "gallery_blocks": gallery_blocks,
+            "gallery_slots": gallery_slots,
             "pages": pages,
             "page_form": kwargs.get("page_form") or PageDashboardForm(),
             "page_edit_form": kwargs.get("page_edit_form"),
@@ -597,6 +660,43 @@ class DashboardWebsiteBuilderView(LoginRequiredMixin, TemplateView):
                 "updated_at",
             ])
             messages.success(request, "Visibilidad de contacto actualizada.")
+        elif action == "update_gallery_images" and website:
+            component = ensure_home_gallery_component(website)
+            saved = 0
+            for index in range(1, 5):
+                block, _ = Block.objects.get_or_create(
+                    component=component,
+                    key=f"gallery-{index}",
+                    defaults={
+                        "block_type": "image",
+                        "order": index,
+                        "is_active": True,
+                    },
+                )
+                image = request.FILES.get(f"gallery_image_{index}")
+                if image:
+                    block.image = image
+                    saved += 1
+                block.block_type = "image"
+                block.order = index
+                block.button_text = (request.POST.get(f"gallery_title_{index}") or "").strip()[:120]
+                block.text = (request.POST.get(f"gallery_text_{index}") or "").strip()
+                block.value = (request.POST.get(f"gallery_alt_{index}") or block.button_text or f"Galeria {index}").strip()[:255]
+                block.is_active = request.POST.get(f"gallery_active_{index}") == "on"
+                block.save(update_fields=[
+                    "block_type",
+                    "order",
+                    "button_text",
+                    "text",
+                    "value",
+                    "image",
+                    "is_active",
+                    "updated_at",
+                ])
+            if saved:
+                messages.success(request, "Galeria visual actualizada con nuevas imagenes.")
+            else:
+                messages.success(request, "Textos y visibilidad de la galeria actualizados.")
         elif action == "create_page" and website:
             form = PageDashboardForm(request.POST)
             if form.is_valid():
