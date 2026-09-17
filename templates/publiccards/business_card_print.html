@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Impresion - {{ business_card.display_name }}</title>
     <style>
-        @page { size: {{ paper_css }}; margin: .5in; }
+        @page { size: {{ paper_css }}; margin: {% if layout == "qr_double" %}.25in{% else %}.5in{% endif %}; }
         * { box-sizing: border-box; }
         body { margin: 0; background: #eef3f8; color: #17233c; font-family: "Segoe UI", Arial, sans-serif; }
         .print-toolbar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 20px; background: #fff; box-shadow: 0 8px 24px rgba(0, 35, 80, .12); }
@@ -66,11 +66,72 @@
         .qr-ticket-service-icon { width: .28in; height: .28in; display: grid; place-items: center; border-radius: 50%; background: {{ business_card.accent_color }}; color: #fff; font-size: .105in; font-weight: 950; }
         .qr-ticket-services-empty { grid-column: 1 / -1; }
         @media print {
-            body { background: white; }
+            html, body { width: 100%; margin: 0; background: white; }
             .print-toolbar { display: none; }
             .sheet-wrap { padding: 0; }
             .sheet { box-shadow: none; outline: none; width: 100%; min-height: auto; }
-            .qr-double-sheet { min-height: 100vh; }
+            .qr-double-sheet {
+                width: {% if paper == "a4" %}10.95in{% else %}9.65in{% endif %};
+                height: {% if paper == "a4" %}7.2in{% else %}6.65in{% endif %};
+                min-height: 0;
+                padding: .08in;
+                gap: .2in;
+                break-after: avoid;
+                page-break-after: avoid;
+            }
+            .qr-ticket {
+                min-height: 0;
+                height: 100%;
+                border-radius: .14in;
+                box-shadow: none;
+            }
+            .qr-ticket-head {
+                min-height: .92in;
+                padding: .14in .18in .13in;
+                grid-template-columns: .56in minmax(0, 1fr) .54in;
+                gap: .09in;
+            }
+            .qr-ticket-logo { width: .56in; height: .56in; border-radius: .11in; }
+            .qr-ticket-photo { width: .54in; height: .54in; border-width: .025in; }
+            .qr-ticket-brand { font-size: .078in; }
+            .qr-ticket-name { font-size: .2in; }
+            .qr-ticket-title { margin-top: .035in; font-size: .09in; }
+            .qr-ticket-qr-panel {
+                margin: .13in auto .1in;
+                width: 2.72in;
+                padding: .08in .1in .09in;
+                border-radius: .16in;
+                box-shadow: none;
+            }
+            .qr-ticket-scan { margin-bottom: .055in; font-size: .14in; }
+            .qr-ticket-qr-wrap { padding: .055in; border-radius: .1in; }
+            .qr-ticket-qr { width: 2.16in; height: 2.16in; }
+            .qr-ticket-note { margin-top: .055in; font-size: .075in; }
+            .qr-ticket-services {
+                margin: 0 .14in .12in;
+                padding: .1in .11in .11in;
+                border-radius: .14in;
+            }
+            .qr-ticket-services-title {
+                gap: .06in;
+                margin-bottom: .08in;
+                font-size: .13in;
+            }
+            .qr-ticket-services-title::before { width: .055in; height: .18in; }
+            .qr-ticket-service-grid { gap: .055in; }
+            .qr-ticket-service-grid li {
+                min-height: .3in;
+                grid-template-columns: .21in minmax(0, 1fr);
+                gap: .045in;
+                padding: .045in .055in;
+                border-radius: .08in;
+                font-size: .068in;
+            }
+            .qr-ticket-service-icon {
+                width: .21in;
+                height: .21in;
+                font-size: .075in;
+            }
         }
     </style>
 </head>
